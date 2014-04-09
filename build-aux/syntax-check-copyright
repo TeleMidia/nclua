@@ -1,0 +1,47 @@
+#!/usr/bin/perl -s -0777 -wnl
+# Copyright (C) 2013-2014 PUC-Rio/Laboratorio TeleMidia
+#
+# This file is part of NCLua.
+#
+# NCLua is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# NCLua is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+# License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NCLua.  If not, see <http://www.gnu.org/licenses/>.
+
+BEGIN {
+    (my $ME = $0) =~ s|.*/||;
+    if (!defined $b) {
+        warn "usage: $ME -b=STRING [-e=STRING] FILE...\n";
+        exit 255;
+    }
+    if (defined $e) {
+        $e = '  ' . $e;
+        $p = '';
+        $q = '';
+        $s = '\s' x (length ($b) + 1);
+    }
+    else {
+        $e = '';
+        $p = "$b ";
+        $q = "$b";
+        $s = '';
+    }
+    open my $file, '<', $0;
+    $regex = <$file>;
+    close $file;
+    $regex =~ /^.*?\n\#\s(Copyright.*?)\n\n+/s;
+    $regex = $1;
+    $regex =~ s/^\#\n/$q\n/gm;
+    $regex =~ s/^#\ /$p/gm;
+    $regex = qr(\Q$b\E\s([\w\-\.]+\s--\s[^\n]+\.\n$s$p)?\Q$regex$e\E\n\n\S);
+}
+
+/$regex/m or die "error:$ARGV: bad license text\n";

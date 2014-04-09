@@ -1,0 +1,78 @@
+NCLua TODO -- Tasks that need implementing.                    -*-outline-*-
+
+* KNOWN BUGS
+
+  + nclua/event/socket.c: Pending operations on disconnect_finished().
+
+    The disconnect_finished() function should cancel pending send or receive
+    operations.  Otherwise, the 'disconnect' event will cause these
+    operations to fail with 'Socket closed' error.  Currently, to avoid
+    reporting such errors, we check if the socket is connected before
+    dispatching errors.
+
+* FEATURES OR PROBLEMS
+
+  + Generate API documentation.
+
+  + lib/ncluaw.c: Check event syntax in ncluaw_send().
+
+    The ncluaw_send() function should check the syntax its event parameter.
+
+  + nclua/canvas.c: Add canvas:_resize (new_w, new_h).
+
+    Currently, it is not possible to resize the surface of a canvas.  In
+    fact, you can allocate another canvas and then compose the original one
+    scaled onto the new canvas, but this is not a "true" resize operation.
+
+  + src/nclua.c: Add options to the nclua standalone player.
+
+    Some useful options:
+      --version     print version information
+      --help        print help information
+      --debug       print debugging information
+      --load=FILE   load FILE before running the given script
+      --plugin=FILE load and registers FILE as a new event plugin
+
+    If no input file is given, nclua should read input from stdin.
+
+  + nclua/event: Add new event classes
+
+    Some useful classes:
+      http/https    HTTP/HTTPS support (maybe via libsoup)
+      crypto        basic cryptography
+
+  + src/nclua.c: Add widgets to the player windows.
+
+    It would be useful to have a menu bar and status bar.  The latter, for
+    example, could show the current frame-rate.
+
+  + List the problems with the ABNT standard.
+
+    E.g., the standard establishes that the size canvas:attrFont() is given
+    in pixels.  This is probably wrong; most APIs support only point values.
+    We're thus assuming that font size is given in points.
+
+* OPTIMIZATION AND CLEAN UP
+
+  + src/nclua.c: Improve GTK+ to NCLua key event mapping
+
+  + build-aux/syntax-check-copyright: Make it project independent
+
+    This way we can use it in other projects (cf. syntax-check).
+
+============================================================================
+
+Copyright (C) 2013-2014 PUC-Rio/Laboratorio TeleMidia
+
+Permission is granted to copy, distribute and/or modify this document under
+the terms of the GNU Free Documentation License, Version 1.3 or any later
+version published by the Free Software Foundation; with no Invariant
+Sections, with no Front-Cover Texts, and with no Back-Cover Texts.  A copy
+of the license is included in the "GNU Free Documentation License" file as
+part of this distribution.
+
+
+Local Variables:
+mode: outline
+outline-regexp: " *[-+*.] \\|"
+End:

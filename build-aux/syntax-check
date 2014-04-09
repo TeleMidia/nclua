@@ -1,0 +1,171 @@
+#!/usr/bin/perl -wnl
+my $VERSION = '2014-03-17 20:59'; # UTC
+
+# Copyright (C) 2014 Free Software Foundation, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Written by Guilherme F. Lima
+
+use strict;
+(my $ME = $0) =~ s|.*/||;
+
+my ($nfailure) = 0;
+
+sub _fail {
+    my ($file, $line, $msg) = @_;
+    defined $file and length $file > 0 and $file = "$file:" or $file = '';
+    defined $line and $line > 0 and $line = "$line:" or $line = '';
+    warn "error:$file$line $msg\n";
+    ++$nfailure;
+}
+
+sub fail {
+    my ($msg) = @_;
+    _fail $ARGV, 1, $msg;
+}
+
+sub fail_at {
+    my ($msg) = @_;
+    _fail $ARGV, $., "$msg\n-->$_";
+}
+
+sub match {
+    my ($pattern, $file) = @_;
+    local $.;
+    open (FP, '<', $file) or die $!;
+    my (@lines) = <FP>;
+    close FP or warn $!;
+    return grep /$pattern/, @lines;
+}
+
+sub ARGV_ANY {
+    return -T $ARGV;
+}
+
+sub ARGV_C {
+    return $ARGV =~ /.*\.[ch]$/;
+}
+
+sub ARGV_LUA {
+    return $ARGV =~ /.*\.lua$/;
+}
+
+my (@lua_global_functions) = qw(assert collectgarbage dofile error
+    getmetatable ipairs load loadfile next pairs pcall print rawequal rawget
+    rawlen rawset require select setmetatable tonumber tostring type
+    xpcall);
+
+my ($match_lua_global_function);
+do {
+    local $,='';
+    $match_lua_global_function = join '|', @lua_global_functions;
+};
+
+my (@lua_global_modules) = qw(bit32 coroutine debug io math
+    os package string table);
+
+my ($match_lua_global_module);
+do {
+    local $,='';
+    $match_lua_global_module = join '|', @lua_global_modules;
+};
+
+sub lua_function_is_used {
+    my ($func, $file) = @_;
+    return match qr/\b$func\s*[\(\{\'\"]/, $file;
+}
+
+sub lua_module_is_used {
+    my ($mod, $file) = @_;
+    return match qr/\b$mod[\.\[]/, $file;
+}
+
+# Sanity checks:
+
+ARGV_ANY and do {
+    /\t/g
+        and fail_at 'don\'t use tabs';
+
+    /.*(\s+)$/ and ($1 ne "\cL" or length $_ > 1)
+        and fail_at 'trailing white-space';
+};
+
+ARGV_C and do {
+    /^#\s*if\s+HAVE_CONFIG_H/
+        and fail_at 'don\'t use CPP tests for HAVE_CONFIG_H';
+
+    /^#\s*include\s+\"config\.h\"/
+        and fail_at "write '<config.h>'; not '\"config.h\"'";
+};
+
+ARGV_LUA and do {
+    /^\s*::\s+\w+\s+::/
+        and fail_at 'useless space between :: and goto label';
+
+    /^\s*require\b/
+        and fail_at 'require() without assignment';
+
+    /^\s*(module)\s*\(.*?\)/
+        and fail_at 'don\'t use $1() in "real" code';
+
+    /^(\w+)\s*(,\s*\w+\s*)*=/ and $1 ne '_ENV'
+        and fail_at 'don\'t use global variables';
+
+    /^function\s*\w+\s*\(/
+        and fail_at 'don\'t use global functions';
+
+    /^\s*local\s+($match_lua_global_function)\s+=\s+\1\b/
+        and !lua_function_is_used "$1", $ARGV
+        and fail_at "function '$1' declared but not used";
+
+    /^\s*local\s+($match_lua_global_module)\s+=\s+\1\b/
+        and !lua_module_is_used "$1", $ARGV
+        and fail_at "module '$1' declared but not used";
+};
+
+eof and do {
+
+    ARGV_ANY and do {
+        local $.;
+        open FP, '<', $ARGV or die $!;
+        my ($p) = sysseek (FP, -2, 2);
+        my ($last_two_bytes);
+        defined $p and $p = sysread FP, $last_two_bytes, 2;
+        close FP;
+        $p and ($last_two_bytes eq "\n\n"
+                or substr ($last_two_bytes, 1) ne "\n")
+            and fail 'empty line(s) or no newline at EOF';
+    };
+
+    ARGV_LUA and do {
+        !match qr/^\s*_ENV\s*=\s*nil\b/, $ARGV
+            and fail "missing '_ENV=nil'";
+    };
+
+    close ARGV;
+};
+
+END {
+    $nfailure > 0 and exit 255;
+}
+
+# Local Variables:
+# mode: perl
+# eval: (add-hook 'write-file-hooks 'time-stamp)
+# time-stamp-start: "my $VERSION = '"
+# time-stamp-format: "%:y-%02m-%02d %02H:%02M"
+# time-stamp-time-zone: "UTC"
+# time-stamp-end: "'; # UTC"
+# End:

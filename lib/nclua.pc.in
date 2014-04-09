@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: nclua
+Description: Event handling and 2D graphics for Lua scripts
+Version: @VERSION@
+
+Cflags:
+Libs: -L${libdir} -lnclua
+Libs.private: @CAIRO_LIBS@ @GLIB_LIBS@ @GIO_LIBS@ @PANGO_LIBS@ @GTK_LIBS@

@@ -1,0 +1,56 @@
+# -*-mode:makefile-*-
+# Copyright (C) 2013-2014 PUC-Rio/Laboratorio TeleMidia
+#
+# This file is part of NCLua.
+#
+# NCLua is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# NCLua is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+# License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NCLua.  If not, see <http://www.gnu.org/licenses/>.
+
+if ENABLE_COVERAGE
+
+LCOV_DIR = coverage
+LCOV_INFO = coverage.info
+COVERAGE_EXCLUDE ?=
+
+lcov_capture_options = --capture --quiet --directory $(top_builddir)\
+  --output-file $(LCOV_INFO) --test-name '$(PACKAGE_NAME)_PERF'\
+  --no-checksum --compat-libtool --ignore-errors source
+
+lcov_remove_options = --quiet --output-file $(LCOV_INFO)\
+  --remove $(LCOV_INFO) $(COVERAGE_EXCLUDE)
+
+lcov_genhtml_options = --title '$(PACKAGE_NAME) Code Coverage' --quiet\
+  --prefix $(top_builddir) --output-directory $(LCOV_DIR) --legend\
+  --frames --show-details $(LCOV_INFO) --ignore-errors source
+
+.PHONY: coverage
+coverage: all
+	@$(LCOV) --zerocounters --quiet --directory $(top_builddir)
+	-$(MAKE) $(AM_MAKEFLAGS) -k check
+	@$(LCOV) $(lcov_capture_options)
+	@$(LCOV) $(lcov_remove_options)
+	@LANG=C $(GENHTML) $(lcov_genhtml_options)
+	@echo 'REPORT: file://$(abs_top_builddir)/$(LCOV_DIR)/index.html'
+
+.PHONY: coverage-clean
+coverage-clean:
+	-rm -rf $(LCOV_DIR) $(LCOV_INFO)
+
+clean-local: coverage-clean
+
+else
+.PHONY: coverage coverage-clean
+coverage coverage-clean:
+	@echo You need to configure $(PACKAGE_NAME) with support for gcov enabled.
+	@echo E.g., ./configure --enable-debug --enable-coverage
+endif
