@@ -69,6 +69,20 @@ do
 end
 
 ---
+-- Returns true if we're on FreeBSD.
+--
+function tests.is_freebsd ()
+   return tests.mk.build_os:match ('^freebsd.*$') ~= nil
+end
+
+---
+-- Returns true if we're on Linux.
+--
+function tests.is_linux ()
+   return tests.mk.build_os:match ('^linux.*$') ~= nil
+end
+
+---
 -- Checks if each of its arguments evaluates to true.
 -- Returns its arguments if successful, otherwise throws an error.
 --

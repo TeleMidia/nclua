@@ -141,7 +141,7 @@ engine.cycle ()
 tests.sleep (1)
 local now = event.uptime ()
 local epsilon = 10
-if tests.mk.build_os:match ('^freebsd.*$') then
+if not tests.is_linux () then
    epsilon = epsilon * 4
 end
 assert (now >= 1000 and now < 1000 * epsilon,

@@ -26,10 +26,10 @@ local engine = event._engine
 _ENV = nil
 
 local epsilon
-if tests.mk.build_os == 'freebsd11.0' then
-   epsilon = 100                -- 100ms
-else
+if tests.is_linux () then
    epsilon = 1                  -- 1ms
+else
+   epsilon = 100                -- 100ms
 end
 
 if tests.mk._VALGRIND then
