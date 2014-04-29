@@ -234,9 +234,13 @@ AS_CASE([" $CFLAGS "], [*[[\ \	]]-pipe[[\ \	]]*], [:],
    [-pipe -c conftest.$ac_ext], [],
    [CFLAGS="$CFLAGS -pipe"])])
 
+# Check for libm, for sin, cos, etc.
+LT_LIB_M
+AC_SUBST([LIBM])
+
 # Check for the functions used by macros.h.
 saved_LIBS=$LIBS
-LIBS="$LIBS -lm"
+LIBS="$LIBS $LIBM"
 AC_CHECK_FUNCS([lround round])
 LIBS=$saved_LIBS
 

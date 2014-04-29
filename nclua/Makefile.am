@@ -31,7 +31,8 @@ lualib_LTLIBRARIES =\
 
 canvas_la_CFLAGS = $(AM_CFLAGS) $(CAIRO_CFLAGS)\
   $(GLIB_CFLAGS) $(PANGO_CFLAGS)
-canvas_la_LDFLAGS = $(AM_LDFLAGS) $(CAIRO_LIBS) $(GLIB_LIBS) $(PANGO_LIBS)
+canvas_la_LDFLAGS = $(AM_LDFLAGS) $(LIBM) $(CAIRO_LIBS)\
+  $(GLIB_LIBS) $(PANGO_LIBS)
 canvas_la_SOURCES = canvas.c canvas-color-table.h
 
 if HAVE_GTK

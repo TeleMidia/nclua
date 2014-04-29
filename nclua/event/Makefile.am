@@ -47,4 +47,4 @@ socket_la_CFLAGS = $(AM_CFLAGS) $(GLIB_CFLAGS) $(GIO_CFLAGS)
 socket_la_LDFLAGS = $(AM_LDFLAGS) $(GLIB_LIBS) $(GIO_LIBS)
 
 stopwatch_la_CFLAGS = $(AM_CFLAGS) $(GLIB_CFLAGS)
-stopwatch_la_LDFLAGS = $(AM_LDFLAGS) $(GLIB_LIBS)
+stopwatch_la_LDFLAGS = $(AM_LDFLAGS) $(LIBM) $(GLIB_LIBS)
