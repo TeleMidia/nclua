@@ -45,7 +45,11 @@ dist-hook:
 EXTRA_DIST =\
   .version\
   bootstrap\
+  build-aux/git-log-fix\
+  build-aux/git-version-gen\
+  build-aux/gitlog-to-changelog\
   build-aux/manywarnings.m4\
+  build-aux/perl.m4\
   build-aux/syntax-check-copyright\
   build-aux/syntax-check\
   build-aux/useless-if-before-free\
