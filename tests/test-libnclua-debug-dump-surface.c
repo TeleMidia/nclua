@@ -30,7 +30,7 @@ main (void)
 
     L = LUA_NEWSTATE ();
     ASSERT (nclua_open (L, 50, 50, NULL) == LUA_OK);
-    err = nclua_debug_dump_surface (L, "/invalid");
+    err = nclua_debug_dump_surface (L, INVALID_PATH);
     ASSERT (err != LUA_OK);
     TRACE ("%s", luaL_checkstring (L, -1));
     ASSERT_LUA_GETTOP (L, 1);

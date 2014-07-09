@@ -188,6 +188,7 @@ int luaopen_nclua_event_stopwatch (lua_State *L);
 int
 luaopen_nclua_event_stopwatch (lua_State *L)
 {
+  G_TYPE_INIT_WRAPPER ();
   luax_newmetatable (L, STOPWATCH);
   luaL_setfuncs (L, funcs, 0);
   return 1;

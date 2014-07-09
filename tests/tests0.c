@@ -283,6 +283,7 @@ int luaopen_tests0 (lua_State *L);
 int
 luaopen_tests0 (lua_State *L)
 {
+  G_TYPE_INIT_WRAPPER ();
   luaL_newlib (L, tests0_funcs);
   lua_pushinteger (L, XRAND0_LIMIT);
   lua_setfield (L, -2, "XRAND0_LIMIT");

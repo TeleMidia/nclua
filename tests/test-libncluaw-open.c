@@ -24,8 +24,8 @@ main (void)
   TEST_BEGIN
   {
     char *errmsg = NULL;
-    ASSERT (ncluaw_open ("/invalid", 800, 600, NULL) == NULL);
-    ASSERT (ncluaw_open ("/invalid", 800, 600, &errmsg) == NULL);
+    ASSERT (ncluaw_open (INVALID_PATH, 800, 600, NULL) == NULL);
+    ASSERT (ncluaw_open (INVALID_PATH, 800, 600, &errmsg) == NULL);
     TRACE ("%s", errmsg);
     free (errmsg);
   }

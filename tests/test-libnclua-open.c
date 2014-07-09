@@ -29,8 +29,8 @@ main (void)
 
     saved_path = g_getenv ("LUA_PATH");
     saved_cpath = g_getenv ("LUA_CPATH");
-    g_setenv ("LUA_PATH", "/invalid", TRUE);
-    g_setenv ("LUA_CPATH", "/invalid", TRUE);
+    g_setenv ("LUA_PATH", INVALID_PATH, TRUE);
+    g_setenv ("LUA_CPATH", INVALID_PATH, TRUE);
 
     L = LUA_NEWSTATE ();
     ASSERT (nclua_open (L, 800, 600, NULL) != LUA_OK);

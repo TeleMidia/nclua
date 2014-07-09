@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with NCLua.  If not, see <http://www.gnu.org/licenses/>.
 
+AC_PREREQ([2.62])
+
 m4_define([nclua_version_string],
   m4_esyscmd([build-aux/git-version-gen .tarball-version]))
 
@@ -33,7 +35,6 @@ m4_define([nclua_version_minor],
 m4_define([nclua_version_micro],
   m4_default(m4_bregexp(nclua_version_string, nclua_version_re, [\3]), [0]))
 
-AC_PREREQ([2.62])
 AC_INIT([NCLua],
         nclua_version_string,
         [gflima@telemidia.puc-rio.br],
@@ -45,46 +46,112 @@ AC_USE_SYSTEM_EXTENSIONS
 AC_CONFIG_SRCDIR([lib/nclua.h])
 AC_CONFIG_HEADERS([lib/config.h])
 
+AM_INIT_AUTOMAKE([1.14 foreign -Wall no-define no-dist-gzip dist-xz])
+AM_SILENT_RULES([yes])
+AM_PROG_AR
+
+LT_PREREQ([2.2])
+LT_INIT([win32-dll])
+
+# NCLua version.
 AC_SUBST([NCLUA_VERSION_MAJOR], nclua_version_major)
 AC_SUBST([NCLUA_VERSION_MINOR], nclua_version_minor)
 AC_SUBST([NCLUA_VERSION_MICRO], nclua_version_micro)
 AC_SUBST([NCLUA_VERSION_STRING], nclua_version_string)
 
-# library code modified:            REVISION++
-# interfaces changed/added/removed: REVISION=0, CURRENT++
-# interfaces added:                 AGE++
-# interfaces removed:               AGE=0
+# Libtool versioning.
+# - library code modified:            REVISION++
+# - interfaces changed/added/removed: REVISION=0, CURRENT++
+# - interfaces added:                 AGE++
+# - interfaces removed:               AGE=0
 m4_define([nclua_libtool_current],  [0])
 m4_define([nclua_libtool_revision], [0])
 m4_define([nclua_libtool_age],      [0])
+m4_define([nclua_libtool_current_minus_age],
+ [m4_eval(nclua_libtool_current - nclua_libtool_age)])
 m4_define([nclua_libtool_string],
  [nclua_libtool_current:nclua_libtool_revision:nclua_libtool_age])
 AC_SUBST([NCLUA_LIBTOOL_CURRENT], nclua_libtool_current)
 AC_SUBST([NCLUA_LIBTOOL_REVISION], nclua_libtool_revision)
 AC_SUBST([NCLUA_LIBTOOL_AGE], nclua_libtool_age)
+AC_SUBST([NCLUA_LIBTOOL_CURRENT_MINUS_AGE], nclua_libtool_current_minus_age)
 AC_SUBST([NCLUA_LIBTOOL_STRING], nclua_libtool_string)
 
-m4_define([lua_required_version],   [5.2])
+# Dependencies version.
 m4_define([cairo_required_version], [1.10.2])
 m4_define([glib_required_version],  [2.32.4])
-m4_define([pango_required_version], [1.30.0])
 m4_define([gtk_required_version],   [3.4.2])
-AC_SUBST([LUA_REQUIRED_VERSION], lua_required_version)
+m4_define([lua_required_version],   [5.2])
+m4_define([pango_required_version], [1.30.0])
 AC_SUBST([CAIRO_REQUIRED_VERSION], cairo_required_version)
-AC_SUBST([PANGO_REQUIRED_VERSION], pango_required_version)
+AC_SUBST([GLIB_REQUIRED_VERSION], glib_required_version)
 AC_SUBST([GTK_REQUIRED_VERSION], gtk_required_version)
+AC_SUBST([LUA_REQUIRED_VERSION], lua_required_version)
+AC_SUBST([PANGO_REQUIRED_VERSION], pango_required_version)
 
-AM_INIT_AUTOMAKE([1.14 -Wall dist-xz foreign gnu no-define no-dist-gzip])
-AM_MAINTAINER_MODE([enable])
-AM_SILENT_RULES([yes])
-AM_PROG_AR
-
+# Checks for tools we use.
 AC_PROG_CC
 AC_PROG_CPP
+AM_PROG_CC_STDC
 AM_PROG_CC_C_O
+AC_C_CONST
+AC_PROG_INSTALL
 
-LT_PREREQ([2.2])
-LT_INIT([disable-static win32-dll])
+AC_CHECK_PROGS([M4], [m4 gm4])
+AM_CONDITIONAL([HAVE_M4], [test -n "$M4"])
+
+gl_PERL
+AM_CONDITIONAL([HAVE_PERL], [test -n "$PERL"])
+
+PKG_PROG_PKG_CONFIG
+AS_IF([test -z "$PKG_CONFIG"],
+ [AC_MSG_ERROR([pkg-config >= $PKGCONFIG_REQUIRED required.])])
+
+# System checks.
+AC_CANONICAL_HOST
+AC_CHECK_LIBM
+AC_EXEEXT
+LT_SYS_MODULE_EXT
+AC_SUBST([SOEXT], [$libltdl_cv_shlibext])
+AC_MSG_CHECKING([for native Win32])
+AS_CASE(["$host"], [*-*-mingw*],
+ [nclua_os_win32=yes],
+ [nclua_os_win32=no])
+AC_MSG_RESULT([$nclua_os_win32])
+AM_CONDITIONAL([OS_WIN32], [test "$nclua_os_win32" = yes])
+
+AS_IF([test "$nclua_os_win32" = yes],
+ [AS_CASE(["$host"], [x86_64-*-*],
+  [LIB_EXE_MACHINE_FLAG=X64],
+  [LIB_EXE_MACHINE_FLAG=X86])])
+AC_SUBST([LIB_EXE_MACHINE_FLAG])
+AM_CONDITIONAL([OS_WIN32_X64], [test "$LIB_EXE_MACHINE_FLAG" = "X64"])
+
+AS_IF([test "$nclua_os_win32" = yes],
+ [AC_CHECK_TOOL([WINDRES], [windres])
+  AS_IF([test -z "$WINDRES"],
+   [AC_MSG_ERROR([windres required.])])
+  AC_CHECK_TOOL([NM], [nm])
+  AS_IF([test -z "$NM"],
+   [AC_MSG_ERROR([nm required.])])
+  AC_CHECK_TOOL([RANLIB], [ranlib], [:])
+  AC_CHECK_PROG([ms_lib], [lib.exe], [yes], [no])])
+AM_CONDITIONAL([HAVE_MS_LIB], [test "$ms_lib" = "yes"])
+
+# Ensure MSVC-compatible struct packing convention is used when compiling
+# for Win32 with GCC.
+AS_IF([test "$nclua_os_win32" = yes],
+ [AS_IF([test "$GCC" = yes],
+   [AC_LIBTOOL_COMPILER_OPTION([if $compiler supports -fnative-struct],
+     [nclua_cv_prog_compiler_fnative_struct],
+     [-fnative-struct -c conftest.$ac_ext], [],
+     [CFLAGS="$CFLAGS -fnative-struct"],
+     [AC_LIBTOOL_COMPILER_OPTION([if $compiler supports -mms-bitfields],
+       [nclua_cv_prog_compiler_mms_bitfields],
+       [-mms-bitfields -c conftest.$ac_ext], [],
+       [CFLAGS="$CFLAGS -mms-bitfields"],
+       [AC_MSG_WARN([dnl
+produced libraries might be incompatible with MSVC-compiled code])])])])])
 
 # _AC_ARG_ENABLE(NAME, DESCRIPTION, DEFAULT)
 # ------------------------------------------
@@ -100,7 +167,7 @@ m4_define([_AC_ARG_ENABLE],
 
 # Enable -ansi and -pedantic compiler flags.
 _AC_ARG_ENABLE([ansi], [turn on strict ansi], [no])
-AS_IF([test x"$enable_ansi" = xyes],
+AS_IF([test "$enable_ansi" = yes],
  [AS_CASE([" $CFLAGS "], [*[[\ \	]]-ansi[[\ \	]]*], [:],
    [AC_LIBTOOL_COMPILER_OPTION([if $compiler supports -ansi],
      [nclua_cv_prog_compiler_ansi],
@@ -115,9 +182,9 @@ AS_IF([test x"$enable_ansi" = xyes],
 
 # Enable debugging.
 _AC_ARG_ENABLE([debug], [build for debugging], [no])
-AS_IF([test x"$enable_debug" = xyes],
+AS_IF([test "$enable_debug" = yes],
  [AC_DEFINE([DEBUG], [1], [Define to 1 to enable runtime debugging])
-  AS_IF([test x"$GCC" = xyes],
+  AS_IF([test "$GCC" = yes],
    [AS_CASE([" $CFLAGS "],
      [*[[\ \	]]-O*],
        [CFLAGS=`echo $CFLAGS | $SED 's/-O[[^ ]]* / /;s/-O[[^ ]]*$//'`])
@@ -134,12 +201,12 @@ AS_IF([test x"$enable_debug" = xyes],
 
 # Enable code-coverage reports.
 _AC_ARG_ENABLE([coverage], [enable coverage testing with gcov], [no])
-AM_CONDITIONAL([ENABLE_COVERAGE], [test x"$enable_coverage" = xyes])
-AS_IF([test x"$enable_coverage" = xyes],
- [AS_IF([test x"$enable_debug" = xno],
+AM_CONDITIONAL([ENABLE_COVERAGE], [test "$enable_coverage" = yes])
+AS_IF([test "$enable_coverage" = yes],
+ [AS_IF([test "$enable_debug" = no],
    [AC_MSG_ERROR([--enable-coverage requires --enable-debug])])
 
-  AS_IF([test x"$GCC" != xyes],
+  AS_IF([test "$GCC" != yes],
    [AC_MSG_ERROR([--enable-coverage requires GCC])])
 
   AC_CHECK_PROGS([SHTOOL], [shtool])
@@ -163,7 +230,7 @@ You can disable ccache by setting environment variable CCACHE_DISABLE=1])])
 
 # Enable compiler warnings.
 _AC_ARG_ENABLE([gcc-warnings], [turn on lots of GCC warnigns], [no])
-AS_IF([test x"$enable_gcc_warnings" = xyes],
+AS_IF([test "$enable_gcc_warnings" = yes],
  [gl_WARN_ADD([-Werror], [WERROR_CFLAGS])
   AC_SUBST([WERROR_CFLAGS])
 
@@ -202,7 +269,7 @@ AS_IF([test x"$enable_gcc_warnings" = xyes],
           ]])],
        [nclua_cv_clang=yes],
        [nclua_cv_clang=no])])
-  AS_IF([test x"$nclua_cv_clang" = xyes],
+  AS_IF([test "$nclua_cv_clang" = yes],
    [gl_WARN_ADD([-Wno-tautological-constant-out-of-range-compare])
     gl_WARN_ADD([-Wno-unused-command-line-argument])])
 
@@ -212,8 +279,8 @@ AS_IF([test x"$enable_gcc_warnings" = xyes],
   AC_SUBST([WARN_CFLAGS])
 
   AC_DEFINE([lint], [1], [Define to 1 if compiler is checking for lint.])
-  AH_VERBATIM([FORTIFY_SOURCE], [
-/* Enable compile-time and run-time bounds-checking, and some warnings,
+  AH_VERBATIM([FORTIFY_SOURCE],
+[/* Enable compile-time and run-time bounds-checking, and some warnings,
    without upsetting glibc 2.15+.  */
 #if !defined _FORTIFY_SOURCE && defined __OPTIMIZE__ && __OPTIMIZE__
 # define _FORTIFY_SOURCE 2
@@ -225,7 +292,7 @@ gl_VISIBILITY
 
 # Run tests under Valgrind if it is available.
 gl_VALGRIND_TESTS
-AM_CONDITIONAL([VALGRIND_TESTS], [test x"$opt_valgrind_tests" = xyes])
+AM_CONDITIONAL([VALGRIND_TESTS], [test "$opt_valgrind_tests" = yes])
 
 # Use gcc's -pipe option if available (for faster compilation).
 AS_CASE([" $CFLAGS "], [*[[\ \	]]-pipe[[\ \	]]*], [:],
@@ -234,28 +301,14 @@ AS_CASE([" $CFLAGS "], [*[[\ \	]]-pipe[[\ \	]]*], [:],
    [-pipe -c conftest.$ac_ext], [],
    [CFLAGS="$CFLAGS -pipe"])])
 
-# Check for libm, for sin, cos, etc.
-LT_LIB_M
-AC_SUBST([LIBM])
-
 # Check for the functions used by macros.h.
 saved_LIBS=$LIBS
 LIBS="$LIBS $LIBM"
 AC_CHECK_FUNCS([lround round])
 LIBS=$saved_LIBS
 
-# Check for M4.
-AC_CHECK_PROGS([M4], [m4 gm4])
-AM_CONDITIONAL([HAVE_M4], [test -n "$M4"])
-
-# Check for Perl.
-gl_PERL
-AM_CONDITIONAL([HAVE_PERL], [test -n "$PERL"])
-
-# Check for pkg-config.
-PKG_PROG_PKG_CONFIG
-
 # Check for Lua.
+AC_MSG_CHECKING([for LUA])
 AC_ARG_WITH([lua_pc],
  [AS_HELP_STRING([--with-lua-pc=NAME],
                  [use NAME as the pkg-config module name for Lua])])
@@ -269,12 +322,12 @@ AS_IF(
  [test -n "$lua_pkg_module"],
    [PKG_CHECK_MODULES([LUA], [$lua_pkg_module >= lua_required_version])],
  [test -z "$LUA_LIBS"],
-   [LUA_LIBS='-llua -lm'])
+   [LUA_LIBS="-llua $LIBM"])
 
 saved_CFLAGS=$CFLAGS
-saved_LDFLAGS=$LDFLAGS
+saved_LIBS=$LIBS
 CFLAGS="$CFLAGS $LUA_CFLAGS"
-LDFLAGS="$LDFLAGS $LUA_LIBS"
+LIBS="$LDFLAGS $LUA_LIBS"
 AC_TRY_LINK(
   [#include <lua.h>
 ],[lua_rawlen (0, 0);],
@@ -283,9 +336,9 @@ AC_TRY_LINK(
     [#include <lua.h>
   ],[lua_objlen (0, 0);],
     [LUA_VERSION=5.1],
-    [AC_MSG_ERROR([Lua >= lua_required_version is required.])])])
+    [AC_MSG_ERROR([Lua >= lua_required_version required.])])])
 CFLAGS=$saved_CFLAGS
-LDFLAGS=$saved_LDFLAGS
+LIBS=$saved_LIBS
 AC_SUBST([LUA_VERSION])
 
 AC_ARG_WITH([lualibdir],
@@ -300,39 +353,55 @@ AC_ARG_WITH([luadatadir],
 
 AC_SUBST([lualibdir], [$with_lualibdir])
 AC_SUBST([luadatadir], [$with_luadatadir])
+AC_MSG_RESULT([yes])
 
 # Check for Cairo.
 PKG_CHECK_MODULES([CAIRO],
  [cairo >= cairo_required_version], [],
- [AC_MSG_ERROR([Cairo >= cairo_required_version is required.])])
+ [AC_MSG_ERROR([Cairo >= cairo_required_version required.])])
 
 # Check for GLib.
 PKG_CHECK_MODULES([GLIB],
- [glib-2.0 >= glib_required_version], [],
- [AC_MSG_ERROR([GLib >= glib_required_version is required.])])
+ [glib-2.0 >= glib_required_version dnl
+  gobject-2.0 >= glib_required_version], [],
+ [AC_MSG_ERROR([GLib >= glib_required_version required.])])
+
+PKG_CHECK_EXISTS([glib-2.0 < 2.36],
+ [AC_DEFINE([_G_TYPE_INIT], [g_type_init],
+   [Define to g_type_init if GLIB < 2.36.])])
+
+AH_VERBATIM([_G_TYPE_INIT],
+[/* Expands to g_type_init if GLIB < 2.36; otherwise, expands to nothing.  */
+#ifdef _G_TYPE_INIT
+# define G_TYPE_INIT_WRAPPER() _G_TYPE_INIT
+#else
+# define G_TYPE_INIT_WRAPPER()
+#endif
+])
 
 # Check for GIO.
 PKG_CHECK_MODULES([GIO],
  [gio-2.0 >= glib_required_version], [],
- [AC_MSG_ERROR([GIO > glib_required_version is required.])])
+ [AC_MSG_ERROR([GIO > glib_required_version required.])])
 
 # Check for Pango.
 PKG_CHECK_MODULES([PANGO],
  [pango >= pango_required_version dnl
   pangocairo >= pango_required_version], [],
- [AC_MSG_ERROR([Pango >= pango_required_version is required.])])
+ [AC_MSG_ERROR([Pango >= pango_required_version required.])])
 
 # Check for GTK.
 PKG_CHECK_MODULES([GTK],
  [gtk+-3.0 >= gtk_required_version], [have_gtk=yes], [have_gtk=no])
-AS_IF([test x"$have_gtk" = xyes],
+AS_IF([test "$have_gtk" = yes],
  [AC_DEFINE([HAVE_GTK], [1], [Define to 1 if we have GTK+-3.0.])])
-AM_CONDITIONAL([HAVE_GTK], [test x"$have_gtk" = xyes])
+AM_CONDITIONAL([HAVE_GTK], [test "$have_gtk" = yes])
 
 AC_CONFIG_FILES([
 Makefile
 lib/Makefile
 lib/nclua.pc
+lib/nclua.rc
 lib/ncluaconf.h
 nclua/Makefile
 nclua/event/Makefile

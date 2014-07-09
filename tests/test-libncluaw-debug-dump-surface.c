@@ -32,11 +32,11 @@ main (void)
     L = LUA_NEWSTATE ();
     ASSERT (nclua_open (L, 50, 50, NULL) == LUA_OK);
 
-    err = nclua_debug_dump_surface (L, "/invalid");
+    err = nclua_debug_dump_surface (L, INVALID_PATH);
     ASSERT (err != LUA_OK);
     TRACE ("%s", luaL_checkstring (L, -1));
 
-    ASSERT (!ncluaw_debug_dump_surface ((ncluaw_t *) L, "/invalid", &msg));
+    ASSERT (!ncluaw_debug_dump_surface ((ncluaw_t *) L, INVALID_PATH, &msg));
     TRACE ("%s", msg);
 
     ASSERT (streq (luaL_checkstring (L, -1), msg));

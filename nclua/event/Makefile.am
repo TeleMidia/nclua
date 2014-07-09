@@ -21,7 +21,7 @@ include $(top_srcdir)/build-aux/Makefile.am.link
 
 AM_CPPFLAGS = -I$(top_srcdir)/lib -I$(top_builddir)/lib
 AM_CFLAGS = $(WERROR_CFLAGS) $(WARN_CFLAGS) $(LUA_CFLAGS)
-AM_LDFLAGS = -shared -module -avoid-version $(LUA_LIBS)
+AM_LDFLAGS = -shared -module -avoid-version  -no-undefined $(LUA_LIBS)
 
 eventlibdir = $(lualibdir)/event
 eventdatadir = $(luadatadir)/event
@@ -43,8 +43,25 @@ dist_eventdata_DATA =\
   user.lua\
   $(NULL)
 
-socket_la_CFLAGS = $(AM_CFLAGS) $(GLIB_CFLAGS) $(GIO_CFLAGS)
-socket_la_LDFLAGS = $(AM_LDFLAGS) $(GLIB_LIBS) $(GIO_LIBS)
+if OS_WIN32
+socket_export_symbols = -export-symbols socket.def
+socket_def_dependency = socket.def
 
+stopwatch_export_symbols = -export-symbols stopwatch.def
+stopwatch_def_dependency = stopwatch.def
+endif
+
+CLEANFILES += socket.def stopwatch.def
+socket.def stopwatch.def:
+	$(AM_V_GEN) (echo EXPORTS;\
+	echo luaopen_nclua_event_`echo "$@" | sed s/\.def//`) >$@
+
+socket_la_DEPENDENCIES = $(socket_def_dependency)
+socket_la_CFLAGS = $(AM_CFLAGS) $(GLIB_CFLAGS) $(GIO_CFLAGS)
+socket_la_LDFLAGS = $(AM_LDFLAGS) $(GLIB_LIBS) $(GIO_LIBS)\
+  $(socket_export_symbols)
+
+stopwatch_la_DEPENDENCIES = $(stopwatch_def_dependency)
 stopwatch_la_CFLAGS = $(AM_CFLAGS) $(GLIB_CFLAGS)
-stopwatch_la_LDFLAGS = $(AM_LDFLAGS) $(LIBM) $(GLIB_LIBS)
+stopwatch_la_LDFLAGS = $(AM_LDFLAGS) $(GLIB_LIBS)\
+  $(stopwatch_export_symbols)

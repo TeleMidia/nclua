@@ -83,6 +83,13 @@ function tests.is_linux ()
 end
 
 ---
+-- Returns true if we're on Windows.
+--
+function tests.is_windows ()
+   return tests.mk.build_os:match ('^mingw.*$') ~= nil
+end
+
+---
 -- Checks if each of its arguments evaluates to true.
 -- Returns its arguments if successful, otherwise throws an error.
 --
@@ -162,7 +169,7 @@ end
 -- Fail with error message ERRMSG.
 --
 function tests.FAIL (errmsg)
-   error (errmsg)
+   error (errmsg, 2)
 end
 
 ---
@@ -630,7 +637,6 @@ do
    tests.server = {}
    tests.server.__index = tests.server
    tests.server.__metatable = 'not your business'
-   tests.server.script = tests.mk.srcdir..'/server.pl'
 end
 
 ---
@@ -671,9 +677,8 @@ end
 function tests.server.start (server)
    server.pid = nil
    server.pidfile = os.tmpname ()
-   local str = ("%s --pid=%s --port=%d %s &")
-      :format (tests.server.script,
-               server.pidfile,
+   local str = ('sh server.sh --verbose --pid="%s" --port=%d %s')
+      :format (server.pidfile,
                server.port,
                server.args or '')
    assert (os.execute (str))
@@ -688,7 +693,7 @@ end
 --
 function tests.server.stop (server)
    assert (server.pid ~= nil)
-   os.execute (("perl -e 'kill \"TERM\", %s;'"):format (server.pid))
+   os.execute (("perl -e 'kill \"KILL\", %s;'"):format (server.pid))
    assert (os.remove (server.pidfile))
 end
 

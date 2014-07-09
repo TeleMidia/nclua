@@ -29,9 +29,22 @@ LDADD = $(top_builddir)/lib/libnclua.la
 
 # Auxiliary libraries.
 noinst_LTLIBRARIES = tests0.la
+
+if OS_WIN32
+tests0_export_symbols = -export-symbols tests0.def
+tests0_def_dependency = tests0.def
+endif
+
+CLEANFILES += tests0.def
+tests0.def:
+	$(AM_V_GEN) (echo EXPORTS;\
+	echo luaopen_tests0) >$@
+
+tests0_la_DEPENDENCIES = $(tests0_def_dependency)
 tests0_la_CFLAGS = $(AM_CFLAGS) $(CAIRO_CFLAGS) $(GLIB_CFLAGS)
-tests0_la_LDFLAGS = -shared -module -avoid-version -rpath '/force-shared'\
-  $(AM_LDFLAGS) $(CAIRO_LIBS) $(GLIB_LIBS)
+tests0_la_LDFLAGS = -shared -module -avoid-version -no-undefined\
+  -rpath '/force-shared' $(AM_LDFLAGS) $(CAIRO_LIBS) $(GLIB_LIBS)\
+  $(tests0_export_symbols)
 
 # Auxiliary programs.
 noinst_PROGRAMS = libnclua-echo lua
@@ -50,10 +63,11 @@ perl_env_sh_get_tests_environment =\
 
 perl_env_sh_expand_variables =\
   s/^\s*//g; s/\\//g;\
-  s:\$$\(srcdir\):$(abs_srcdir):g;\
+  s:\$$\(SOEXT\):$(SOEXT):g;\
   s:\$$\(builddir\):$(abs_builddir):g;\
-  s:\$$\(top_srcdir\):$(abs_top_srcdir):g;\
-  s:\$$\(top_builddir\):$(abs_top_builddir):g;
+  s:\$$\(srcdir\):$(abs_srcdir):g;\
+  s:\$$\(top_builddir\):$(abs_top_builddir):g;\
+  s:\$$\(top_srcdir\):$(abs_top_srcdir):g;
 
 perl_env_sh_remove_ld_preload =\
   /^\s*export\s*LD_PRELOAD=/ or print;
@@ -103,9 +117,9 @@ AM_TESTS_ENVIRONMENT =\
   export G_DEBUG="all";\
   export G_SLICE="always-malloc";\
   export LD_LIBRARY_PATH="$(top_builddir)/nclua:$(top_builddir)/nclua/event";\
-  export LD_PRELOAD="canvas.so:socket.so:stopwatch.so";\
+  export LD_PRELOAD="canvas$(SOEXT):socket$(SOEXT):stopwatch$(SOEXT)";\
   export LUA_PATH="$(top_srcdir)/?.lua;$(top_srcdir)/?/init.lua;$(top_srcdir)/tests/?.lua;;";\
-  export LUA_CPATH="$(builddir)/.libs/?.so;$(top_builddir)/?.so;;";\
+  export LUA_CPATH="$(builddir)/.libs/?$(SOEXT);$(top_builddir)/?$(SOEXT);;";\
   $(NULL)
 
 # Test scripts.

@@ -37,9 +37,14 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 static ncluaw_t *ncluaw_state;
 static GtkWidget *app;
 
+#if GTK_CHECK_VERSION(3,8,0)
 static gboolean
-cycle_callback (GtkWidget *canvas, arg_unused (GdkFrameClock *frame_clock),
+cycle_callback (GtkWidget *canvas, arg_unused (gpointer frame_clock),
                 arg_unused (gpointer data))
+#else
+static gboolean
+cycle_callback (GtkWidget *canvas)
+#endif
 {
   ncluaw_event_t *evt;
 
@@ -184,7 +189,13 @@ main (int argc, char **argv)
   canvas = gtk_drawing_area_new ();
   g_signal_connect (canvas, "draw", G_CALLBACK (draw_callback), NULL);
   gtk_container_add (GTK_CONTAINER (app), canvas);
-  gtk_widget_add_tick_callback (canvas, cycle_callback, NULL, NULL);
+
+#if GTK_CHECK_VERSION(3,8,0)
+  gtk_widget_add_tick_callback (canvas, (GtkTickCallback) cycle_callback,
+                                NULL, NULL);
+#else
+  g_timeout_add (1000/60, (GSourceFunc) cycle_callback, canvas);
+#endif
 
   /* NCL */
   ncluaw_send_ncl_event (ncluaw_state, "presentation", "start", "", NULL);

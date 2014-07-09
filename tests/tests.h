@@ -45,6 +45,12 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nclua.h"
 #include "ncluaw.h"
 
+#ifdef __MINGW32__
+# define INVALID_PATH "invalid:/invalid"
+#else
+# define INVALID_PATH "/invalid/invalid"
+#endif
+
 #define TEST_BEGIN TRACE_SEP (); STMT_BEGIN
 #define TEST_END   STMT_END
 

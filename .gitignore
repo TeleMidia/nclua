@@ -1,12 +1,15 @@
 *.a
 *.bak
 *.core
+*.def
+*.dll
 *.exe
 *.gcda
 *.gcno
 *.gmo
 *.header
 *.la
+*.lib
 *.lo
 *.log
 *.mo
@@ -53,7 +56,9 @@
 /coverage.info
 /lib/config.h
 /lib/config.h.in
+/lib/nclua.exp
 /lib/nclua.pc
+/lib/nclua.rc
 /lib/ncluaconf.h
 /lib/stamp-h1
 /nclua-*.tar.gz

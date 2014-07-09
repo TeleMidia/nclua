@@ -1658,6 +1658,7 @@ int luaopen_nclua_canvas (lua_State *L);
 int
 luaopen_nclua_canvas (lua_State *L)
 {
+  G_TYPE_INIT_WRAPPER ();
   luax_newmetatable (L, CANVAS);
   luaL_setfuncs (L, funcs, 0);
   return 1;

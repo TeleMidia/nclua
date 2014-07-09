@@ -697,6 +697,7 @@ int luaopen_nclua_event_socket (lua_State *L);
 int
 luaopen_nclua_event_socket (lua_State *L)
 {
+  G_TYPE_INIT_WRAPPER ();
   socket_init_registry (L);
   luax_newmetatable (L, SOCKET);
   luaL_setfuncs (L, socket_funcs, 0);
