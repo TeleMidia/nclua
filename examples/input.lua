@@ -21,10 +21,23 @@ local pairs = pairs
 local print = print
 _ENV = nil
 
+local WIDTH, HEIGHT = canvas:attrSize ()
+local n = 1
+canvas:attrFont ('comic sans', 16)
 event.register (
    function (evt)
+      local text = '#'..n..' { '
       for k,v in pairs (evt) do
-         print (k,'<'..v..'>')
+         text = text .. k .. '=' .. v .. ', '
       end
+      text = text .. '}'
+      print (text)
+      canvas:attrColor ('black')
+      canvas:clear ()
+      local w, h = canvas:measureText (text)
+      canvas:attrColor ('red')
+      canvas:drawText ((WIDTH - w) / 2, (HEIGHT - h) / 2, text)
+      canvas:flush ()
+      n = n + 1
    end
 )
