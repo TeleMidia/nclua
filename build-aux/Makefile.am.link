@@ -18,7 +18,7 @@
 
 .PHONY: link-so
 link-so: $(LTLIBRARIES)
-	@for soname in $(LTLIBRARIES:.la=.so); do\
+	@for soname in $(LTLIBRARIES:.la=$(SOEXT)); do\
 	  if ! test -f $$soname; then\
 	    $(LN_S) .libs/$$soname $$soname;\
 	  fi;\
@@ -26,7 +26,7 @@ link-so: $(LTLIBRARIES)
 
 .PHONY: unlink-so
 unlink-so:
-	-for soname in $(LTLIBRARIES:.la=.so); do\
+	-for soname in $(LTLIBRARIES:.la=$(SOEXT)); do\
 	  rm -f $$soname;\
 	done
 

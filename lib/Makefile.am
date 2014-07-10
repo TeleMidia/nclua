@@ -48,7 +48,7 @@ CLEANFILES += nclua.def
 nclua.def: nclua.h ncluaw.h
 	$(AM_V_GEN) (echo EXPORTS;\
 	cat nclua.h ncluaw.h | sed -n '$(sed_nclua_def)' | sort;\
-	echo LIBRARY libnclua-$(NCLUA_LIBTOOL_CURRENT_MINUS_AGE).$(SOEXT) >$@
+	echo LIBRARY libnclua-$(NCLUA_LIBTOOL_CURRENT_MINUS_AGE)$(SOEXT)) >$@
 install-def-file:
 	$(install_def_file_cmd)
 uninstall-def-file:
@@ -57,7 +57,7 @@ uninstall-def-file:
 CLEANFILES += nclua.exp nclua.lib
 nclua.lib: libnclua.la nclua.def
 	$(AM_V_GEN) lib -machine:$(LIB_EXE_MACHINE_FLAG)\
-	  -name:libnclua-$(NCLUA_LIBTOOL_CURRENT_MINUS_AGE).$(SOEXT)\
+	  -name:libnclua-$(NCLUA_LIBTOOL_CURRENT_MINUS_AGE)$(SOEXT)\
 	  -def:$(builddir)/nclua.def -out:$@
 
 if HAVE_MS_LIB
