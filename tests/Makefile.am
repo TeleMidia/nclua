@@ -250,6 +250,7 @@ EXTRA_DIST =\
   sample/apple-red.png\
   sample/gnu-keys.png\
   server.pl\
+  server.sh\
   suppfile.m4\
   test-canvas-clear-1-ref.png\
   test-canvas-clear-2-ref.png\

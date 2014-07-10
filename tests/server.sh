@@ -1,2 +1,3 @@
 #!/bin/sh
-exec perl server.pl "$@" &
+srcdir="$1"; shift
+exec perl "$srcdir/server.pl" "$@" &

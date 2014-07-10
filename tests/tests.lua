@@ -677,8 +677,10 @@ end
 function tests.server.start (server)
    server.pid = nil
    server.pidfile = os.tmpname ()
-   local str = ('sh server.sh --verbose --pid="%s" --port=%d %s')
-      :format (server.pidfile,
+   local str = ('sh %s/server.sh %s --verbose --pid="%s" --port=%d %s')
+      :format (tests.mk.srcdir,
+               tests.mk.srcdir,
+               server.pidfile,
                server.port,
                server.args or '')
    assert (os.execute (str))
