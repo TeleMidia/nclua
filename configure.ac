@@ -366,18 +366,21 @@ PKG_CHECK_MODULES([GLIB],
   gobject-2.0 >= glib_required_version], [],
  [AC_MSG_ERROR([GLib >= glib_required_version required.])])
 
+AC_MSG_CHECKING([if g_type_init must be called explicitly])
 PKG_CHECK_EXISTS([glib-2.0 < 2.36],
- [AC_DEFINE([_G_TYPE_INIT], [g_type_init],
-   [Define to g_type_init if GLIB < 2.36.])])
-
-AH_VERBATIM([_G_TYPE_INIT],
+ [must_call_g_type_init=yes],
+ [must_call_g_type_init=no])
+AS_IF([test "$must_call_g_type_init" = yes],
+ [GLIB_CFLAGS="$GLIB_CFLAGS -DMUST_CALL_G_TYPE_INIT"])
+AH_VERBATIM([G_TYPE_INIT_WRAPPER],
 [/* Expands to g_type_init if GLIB < 2.36; otherwise, expands to nothing.  */
-#ifdef _G_TYPE_INIT
-# define G_TYPE_INIT_WRAPPER() _G_TYPE_INIT
+#ifdef MUST_CALL_G_TYPE_INIT
+# define G_TYPE_INIT_WRAPPER() g_type_init ()
 #else
 # define G_TYPE_INIT_WRAPPER()
 #endif
 ])
+AC_MSG_RESULT([$must_call_g_type_init])
 
 # Check for GIO.
 PKG_CHECK_MODULES([GIO],
