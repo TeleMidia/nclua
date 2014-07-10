@@ -26,6 +26,20 @@ bootstrap:
 	./bootstrap
 	./configure CFLAGS="" $(OPTIONS) $(EXTRA)
 
+.PHONY: debuild
+debuild:
+	@$(MAKE) dist
+	@set -e;\
+	version=`perl -wlne '/^VERSION\s*=\s*(.*)$$/ and print $$1;' Makefile`;\
+	package=nclua-$$version;\
+	rm -rf ./debuild && mkdir -p ./debuild;\
+	mv $$package.tar.xz ./debuild/nclua_$$version.orig.tar.xz;\
+	(cd ./debuild && tar -xf nclua_$$version.orig.tar.xz);\
+	cp -r ./contrib/debian ./debuild/nclua-$$version;\
+	(cd ./debuild/nclua-$$version && debuild -us -uc);\
+	rm -rf ./debuild/nclua-$$version
+
+
 gnulib_remote = http://git.savannah.gnu.org/cgit/gnulib.git/plain
 misc_remote = https://github.com/gflima/misc/raw/master
 .PHONY: fetch-remote

@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_test:
+
+override_dh_auto_configure:
+	dh_auto_configure -- --disable-valgrind-tests
+
+override_dh_auto_install:
+	$(MAKE) DESTDIR=$$(pwd)/debian/nclua prefix=/usr install
+	find $$(pwd)/debian/nclua -name '*.la' -delete
