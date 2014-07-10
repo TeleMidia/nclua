@@ -25,6 +25,7 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <cairo.h>
 #include <glib.h>
+#include <glib-object.h>
 #include <pango/pangocairo.h>
 
 #if HAVE_GTK

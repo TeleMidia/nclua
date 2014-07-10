@@ -23,6 +23,7 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <lua.h>
 #include <lauxlib.h>
 #include <glib.h>
+#include <glib-object.h>
 
 #include "macros.h"
 #include "luax-macros.h"

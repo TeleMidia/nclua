@@ -27,6 +27,7 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <lauxlib.h>
 #include <cairo.h>
 #include <glib.h>
+#include <glib-object.h>
 
 #include "macros.h"
 
