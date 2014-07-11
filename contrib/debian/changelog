@@ -1,4 +1,4 @@
-nclua (1.0.11-7919-dirty-1) UNRELEASED; urgency=low
+nclua (1.1-1) UNRELEASED; urgency=low
 
   * rules: Skip tests and delete '.la' files
   * control: Fix Homepage and Description.
