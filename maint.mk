@@ -29,6 +29,7 @@ bootstrap:
 dist_get_version_from_makefile :=\
   `perl -wlne '/^VERSION\s*=\s*(.*)$$/ and print $$1;' Makefile`
 
+.PHONY: dist-deb
 dist-deb:
 	@$(MAKE) dist
 	@set -e;\
