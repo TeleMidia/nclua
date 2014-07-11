@@ -26,19 +26,38 @@ bootstrap:
 	./bootstrap
 	./configure CFLAGS="" $(OPTIONS) $(EXTRA)
 
-.PHONY: debuild
-debuild:
+dist_get_version_from_makefile :=\
+  `perl -wlne '/^VERSION\s*=\s*(.*)$$/ and print $$1;' Makefile`
+
+dist-deb:
 	@$(MAKE) dist
 	@set -e;\
-	version=`perl -wlne '/^VERSION\s*=\s*(.*)$$/ and print $$1;' Makefile`;\
+	test -f Makefile || exit 1;\
+	version=$(dist_get_version_from_makefile);\
 	package=nclua-$$version;\
-	rm -rf ./debuild && mkdir -p ./debuild;\
-	mv $$package.tar.xz ./debuild/nclua_$$version.orig.tar.xz;\
-	(cd ./debuild && tar -xf nclua_$$version.orig.tar.xz);\
-	cp -r ./contrib/debian ./debuild/nclua-$$version;\
-	(cd ./debuild/nclua-$$version && debuild -us -uc);\
-	rm -rf ./debuild/nclua-$$version
+	rm -rf ./$@ && mkdir -p ./$@;\
+	mv $$package.tar.xz ./$@/nclua_$$version.orig.tar.xz;\
+	(cd ./$@ && tar -xf nclua_$$version.orig.tar.xz);\
+	cp -r ./contrib/debian ./$@/nclua-$$version;\
+	(cd ./$@/nclua-$$version && debuild -us -uc);\
+	rm -rf ./$@/nclua-$$version
 
+.PHONY: dist-win32
+dist-win32:
+	@set -e;\
+	test -f Makefile || exit 1;\
+	version=$(dist_get_version_from_makefile);\
+	package=nclua-$$version;\
+	rm -rf ./$@;\
+	./configure --prefix=$(PWD)/$$package-win32;\
+	make install;\
+	cp ./AUTHORS ./$$package-win32/AUTHORS.txt;\
+	cp ./COPYING ./$$package-win32/COPYING.txt;\
+	cp ./README ./$$package-win32/README.txt;\
+	find ./$$package-win32 -name '*.la' -delete;\
+	zip -r ./$$package-win32.zip ./$$package-win32;\
+	rm -rf ./$$package-win32;\
+	make distclean
 
 gnulib_remote = http://git.savannah.gnu.org/cgit/gnulib.git/plain
 misc_remote = https://github.com/gflima/misc/raw/master
