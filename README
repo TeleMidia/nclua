@@ -6,9 +6,13 @@ requiring the appropriated modules -- e.g., 'canvas' for 2D graphics,
 'event' for general event handling, 'event.stopwatch' for stopwatch timers,
 'event.socket' for asynchronous sockets, etc.  The NCLua library comes with
 a standalone interpreter, called nclua (cf. src/nclua.c), which can be used
-to run NCLua scripts.
+to run standalone NCLua scripts.
 
-For more information, cf. http://www.telemidia.puc-rio.br/~gflima
+For stable releases, cf.
+http://www.telemidia.puc-rio.br/~gflima/software/nclua
+
+For the latest sources, cf.
+https://github.com/gflima/nclua
 
 NCLua is the Lua dialect used by the Brazilian digital TV middleware, called
 Ginga (cf. http://www.ginga.org.br).  The reference implementation of Ginga
