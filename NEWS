@@ -1,6 +1,19 @@
 NCLua NEWS -- History of user-visible changes.                 -*-outline-*-
 
+* Version 1.1, July 2014, Guilherme F. Lima
+
+  - Call g_type_init in systems where it must be explicitly called.
+
+  - Make build system compatible with MinGW.
+
+  - Add contrib/debian subdir with debian packaging stuff.
+
+  - Add new examples: luarocks and pacman.
+
+  - Improve the compatibility of tests.
+
 * Version 1.0, April 2014, Guilherme F. Lima
+
   - First release.
 
 ============================================================================
