@@ -54,6 +54,7 @@
 /configure
 /coverage
 /coverage.info
+/dist-deb
 /lib/config.h
 /lib/config.h.in
 /lib/nclua.exp
