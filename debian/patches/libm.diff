@@ -1,0 +1,23 @@
+--- a/nclua/Makefile.am
++++ b/nclua/Makefile.am
+@@ -31,7 +31,7 @@
+ 
+ canvas_la_CFLAGS = $(AM_CFLAGS) $(CAIRO_CFLAGS)\
+   $(GLIB_CFLAGS) $(PANGO_CFLAGS)
+-canvas_la_LDFLAGS = $(AM_LDFLAGS) $(CAIRO_LIBS) $(GLIB_LIBS) $(PANGO_LIBS)
++canvas_la_LDFLAGS = $(AM_LDFLAGS) $(CAIRO_LIBS) $(GLIB_LIBS) $(PANGO_LIBS) -lm
+ canvas_la_SOURCES = canvas.c canvas-color-table.h
+ 
+ if HAVE_GTK
+--- a/nclua/event/Makefile.am
++++ b/nclua/event/Makefile.am
+@@ -44,7 +44,7 @@
+   $(NULL)
+ 
+ socket_la_CFLAGS = $(AM_CFLAGS) $(GLIB_CFLAGS) $(GIO_CFLAGS)
+-socket_la_LDFLAGS = $(AM_LDFLAGS) $(GLIB_LIBS) $(GIO_LIBS)
++socket_la_LDFLAGS = $(AM_LDFLAGS) $(GLIB_LIBS) $(GIO_LIBS) -lm
+ 
+ stopwatch_la_CFLAGS = $(AM_CFLAGS) $(GLIB_CFLAGS)
+-stopwatch_la_LDFLAGS = $(AM_LDFLAGS) $(GLIB_LIBS)
++stopwatch_la_LDFLAGS = $(AM_LDFLAGS) $(GLIB_LIBS) -lm
