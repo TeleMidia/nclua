@@ -1,4 +1,10 @@
-nclua (1.1-1) UNRELEASED; urgency=low
+nclua (1.2-1) unreleased; urgency=low
+
+  * New upstream version.
+
+ -- Guilherme F. Lima <gflima@sdf.org>  Wed, 20 Aug 2014 17:40:23 -0300
+
+nclua (1.1-1) unreleased; urgency=low
 
   * rules: Skip tests and delete '.la' files
   * control: Fix Homepage and Description.
@@ -6,7 +12,7 @@ nclua (1.1-1) UNRELEASED; urgency=low
 
  -- Guilherme F. Lima <gflima@sdf.org>  Thu, 10 Jul 2014 16:09:05 -0300
 
-nclua (1.0-1) UNRELEASED; urgency=low
+nclua (1.0-1) unreleased; urgency=low
 
   * Initial release.
 
