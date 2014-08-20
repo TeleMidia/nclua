@@ -55,6 +55,8 @@ EXTRA_DIST =\
   build-aux/useless-if-before-free\
   build-aux/valgrind-tests.m4\
   build-aux/warnings.m4\
+  contrib/*\
+  examples/*\
   maint.mk\
   $(NULL)
 
