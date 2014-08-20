@@ -41,15 +41,15 @@ ASSERT_ERROR_FILTER ('ncl', {})
 ASSERT_ERROR_FILTER ('ncl', 'unknown')
 
 -- Check bad action.
-ASSERT_ERROR_FILTER ('ncl', 'selection', {})
-ASSERT_ERROR_FILTER ('ncl', 'selection', 'unknown')
+ASSERT_ERROR_FILTER ('ncl', 'selection', nil, {})
+ASSERT_ERROR_FILTER ('ncl', 'selection', nil, 'unknown')
 
 -- Check bad name when type='attribution'.
-ASSERT_ERROR_FILTER ('ncl', 'attribution', nil, {})
+ASSERT_ERROR_FILTER ('ncl', 'attribution', {}, nil)
 
 -- Check bad label when type='presentation' or type='selection'.
-ASSERT_ERROR_FILTER ('ncl', 'presentation', nil, {})
-ASSERT_ERROR_FILTER ('ncl', 'selection', nil, {})
+ASSERT_ERROR_FILTER ('ncl', 'presentation', {}, nil)
+ASSERT_ERROR_FILTER ('ncl', 'selection', {}, nil)
 
 -- Check class-only.
 local t = ncl:filter ('ncl')
@@ -66,48 +66,48 @@ local t = ncl:filter ('ncl', 'selection')
 ASSERT (tests.objeq (t, {class='ncl', type='selection'}))
 
 -- Check class and action.
-local t = ncl:filter ('ncl', nil, 'abort')
+local t = ncl:filter ('ncl', nil, nil, 'abort')
 ASSERT (tests.objeq (t, {class='ncl', action='abort'}))
 
-local t = ncl:filter ('ncl', nil, 'pause')
+local t = ncl:filter ('ncl', nil, nil, 'pause')
 ASSERT (tests.objeq (t, {class='ncl', action='pause'}))
 
-local t = ncl:filter ('ncl', nil, 'resume')
+local t = ncl:filter ('ncl', nil, nil, 'resume')
 ASSERT (tests.objeq (t, {class='ncl', action='resume'}))
 
-local t = ncl:filter ('ncl', nil, 'start')
+local t = ncl:filter ('ncl', nil, nil, 'start')
 ASSERT (tests.objeq (t, {class='ncl', action='start'}))
 
-local t = ncl:filter ('ncl', nil, 'stop')
+local t = ncl:filter ('ncl', nil, nil, 'stop')
 ASSERT (tests.objeq (t, {class='ncl', action='stop'}))
 
 -- Check, class, type, and action.
-local t = ncl:filter ('ncl', 'presentation', 'abort')
+local t = ncl:filter ('ncl', 'presentation', nil, 'abort')
 ASSERT (tests.objeq (t, {class='ncl', type='presentation', action='abort'}))
 
-local t = ncl:filter ('ncl', 'attribution', 'pause')
+local t = ncl:filter ('ncl', 'attribution', nil, 'pause')
 ASSERT (tests.objeq (t, {class='ncl', type='attribution', action='pause'}))
 
-local t = ncl:filter ('ncl', 'selection', 'resume')
+local t = ncl:filter ('ncl', 'selection', nil, 'resume')
 ASSERT (tests.objeq (t, {class='ncl', type='selection', action='resume'}))
 
 -- Class, type and name when type='attribution'.
-local t = ncl:filter ('ncl', 'attribution', nil, 'x')
+local t = ncl:filter ('ncl', 'attribution', 'x', nil)
 ASSERT (tests.objeq (t, {class='ncl', type='attribution', name='x'}))
 
 -- Check class and label when type='presentation' or type='selection'.
-local t = ncl:filter ('ncl', nil, nil, 'x')
+local t = ncl:filter ('ncl', nil, 'x', nil)
 ASSERT (tests.objeq (t, {class='ncl', label='x'}))
 
 -- Check class, type, and label when type='presentation'
 -- or type='selection'.
-local t = ncl:filter ('ncl', 'presentation', nil, 'x')
+local t = ncl:filter ('ncl', 'presentation', 'x', nil)
 ASSERT (tests.objeq (t, {class='ncl', type='presentation', label='x'}))
 
-local t = ncl:filter ('ncl', 'selection', nil, 'x')
+local t = ncl:filter ('ncl', 'selection', 'x', nil)
 ASSERT (tests.objeq (t, {class='ncl', type='selection', label='x'}))
 
 -- Check class, action, and label when type='presentation'
 -- or type='selection'.
-local t = ncl:filter ('ncl', nil, 'start', 'x')
+local t = ncl:filter ('ncl', nil, 'x', 'start')
 ASSERT (tests.objeq (t, {class='ncl', action='start', label='x'}))

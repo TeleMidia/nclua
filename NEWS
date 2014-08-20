@@ -1,6 +1,21 @@
 NCLua NEWS -- History of user-visible changes.                 -*-outline-*-
 
-* Version 1.1, July 2014, Guilherme F. Lima
+* Version 1.2, August 20, 2014, Guilherme F. Lima
+
+  - Fix the order of parameters for NCL class filters in event.register.
+
+    The ITU-T H761 standard enforces the following possible orders for NCL
+    filter parameters in event.register calls:
+
+    (1) event.register (f, 'ncl', 'presentation', LABEL, ACTION);
+    (2) event.register (f, 'ncl', 'selection',    LABEL, ACTION);
+    (3) event.register (f, 'ncl', 'attribution',  NAME, VALUE).
+
+    In previous versions of NCLua, however, event.register expected ACTION
+    to come before LABEL.  This has been fixed.  Now event.register expects
+    LABEL followed by ACTION, as shown in cases (1) and (2) above.
+
+* Version 1.1, July 11, 2014, Guilherme F. Lima
 
   - Call g_type_init in systems where it must be explicitly called.
 
@@ -12,7 +27,7 @@ NCLua NEWS -- History of user-visible changes.                 -*-outline-*-
 
   - Improve the compatibility of tests.
 
-* Version 1.0, April 2014, Guilherme F. Lima
+* Version 1.0, April 9, 2014, Guilherme F. Lima
 
   - First release.
 

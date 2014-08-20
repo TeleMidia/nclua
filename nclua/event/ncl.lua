@@ -53,7 +53,7 @@ end
 -- Builds a NCL event filter according to the given parameters.
 -- Returns a new filter if successful, otherwise throws an error.
 --
-function ncl:filter (class, type, action, label)
+function ncl:filter (class, type, label, action)
    assert (class == ncl.class)
    if type ~= nil then
       check.arg.option ('type', type, type_list)
