@@ -41,6 +41,7 @@ dist-hook:
 	  rm -f $(distdir)/ChangeLog;\
 	  mv $(distdir)/cl-t $(distdir)/ChangeLog;\
 	fi
+	cp -r $(srcdir)/contrib $(srcdir)/examples $(distdir)
 
 EXTRA_DIST =\
   .version\
@@ -55,8 +56,6 @@ EXTRA_DIST =\
   build-aux/useless-if-before-free\
   build-aux/valgrind-tests.m4\
   build-aux/warnings.m4\
-  contrib/*\
-  examples/*\
   maint.mk\
   $(NULL)
 
