@@ -250,7 +250,7 @@ l_canvas_surface_equals (lua_State *L)
         }
     }
 
-  maxdiff = (int) (range (luaL_optnumber (L, 3, 1), 0, 1) * h1 * st1 / 4);
+  maxdiff = (int) (clamp (luaL_optnumber (L, 3, 1), 0, 1) * h1 * st1 / 4);
   if (ndiff > maxdiff)
     {
       lua_pushfstring (L, "#%d mismatch%s (expected #%d)",

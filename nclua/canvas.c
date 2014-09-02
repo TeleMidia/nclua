@@ -992,7 +992,7 @@ l_canvas_attrOpacity (lua_State *L)
     {
       int opacity;
       opacity = luaL_checkint (L, 2);
-      canvas->opacity = (unsigned char) (range (opacity, 0, 255));
+      canvas->opacity = (unsigned char) (clamp (opacity, 0, 255));
       return 0;
     }
 }
@@ -1143,10 +1143,10 @@ l_canvas_compose (lua_State *L)
 
   src = canvas_check (L, 4, NULL);
   luaL_argcheck (L, dest != src, 4, "cannot compose onto itself");
-  src_x = range (luaL_optint (L, 5, src->crop.x), 0, src->width);
-  src_y = range (luaL_optint (L, 6, src->crop.y), 0, src->height);
-  src_w = range (luaL_optint (L, 7, src->crop.width), 0, src->width);
-  src_h = range (luaL_optint (L, 8, src->crop.height), 0, src->height);
+  src_x = clamp (luaL_optint (L, 5, src->crop.x), 0, src->width);
+  src_y = clamp (luaL_optint (L, 6, src->crop.y), 0, src->height);
+  src_w = clamp (luaL_optint (L, 7, src->crop.width), 0, src->width);
+  src_h = clamp (luaL_optint (L, 8, src->crop.height), 0, src->height);
 
   if (src_x > 0 || src_y > 0 || src_w < src->width || src_h < src->height)
     {
@@ -1394,7 +1394,7 @@ l_canvas_drawRoundRect (lua_State *L)
   y = luaL_checknumber (L, 4);
   w = luaL_checknumber (L, 5);
   h = luaL_checknumber (L, 6);
-  r = range (luaL_checknumber (L, 7), 0, min (w, h) / 2);
+  r = clamp (luaL_checknumber (L, 7), 0, min (w, h) / 2);
 
   cairo_save (cr);
   cairo_arc (cr, x + r, y + r, r, M_PI, 1.5 * M_PI);

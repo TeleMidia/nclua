@@ -178,7 +178,7 @@ l_socket_new (lua_State *L)
   guint timeout;
 
   luax_optudata (L, 1, SOCKET);
-  timeout = (guint) range (luaL_optint (L, 2, 0), 0, INT_MAX);
+  timeout = (guint) clamp (luaL_optint (L, 2, 0), 0, INT_MAX);
   sock = (socket_t *) lua_newuserdata (L, sizeof (*sock));
   sock->client = g_socket_client_new ();
   sock->conn = NULL;
@@ -302,7 +302,7 @@ l_socket_connect (lua_State *L)
     return error_throw_socket_already_connected (L, sock);
 
   host = luaL_checkstring (L, 2);
-  port = range (luaL_checkint (L, 3), 0, G_MAXUINT16);
+  port = clamp (luaL_checkint (L, 3), 0, G_MAXUINT16);
   luaL_checktype (L, 4, LUA_TFUNCTION);
 
   lua_pushcclosure (L, l_socket_connect_callback_closure, 4);
