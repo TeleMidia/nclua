@@ -150,8 +150,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #define ASSERT_NOT_REACHED (assert (!"reached"), abort ())
-#define CONCAT(a, b)     CONCAT_ (a, b)
-#define CONCAT_(a, b)    a##b
+#define CONCAT(x, y)     CONCAT_ (x, y)
+#define CONCAT_(x, y)    x##y
 #define STRINGIFY(s)     STRINGIFY_ (s)
 #define STRINGIFY_(s)    #s
 #define nelementsof(x)   (sizeof (x) / sizeof (x[0]))
@@ -161,9 +161,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define isodd(n)         ((n) & 1)
 #define iseven(n)        (!isodd (n))
 #define sign(x)          ((x) >= 0.0 ? 1 : -1)
-#define max(a, b)        (((a) > (b)) ? (a) : (b))
-#define min(a, b)        (((a) < (b)) ? (a) : (b))
-#define range(x, lo, up) (min (max (x, lo), up))
+#define max(x, y)        (((x) > (y)) ? (x) : (y))
+#define min(x, y)        (((x) < (y)) ? (x) : (y))
+#define clamp(x, lo, hi) (min (max (x, lo), hi))
 #define radians(x)       (x * M_PI / 180)
 #define degrees(x)       (x * 180 / M_PI)
 #define streq(a, b)      ((*(a) == *(b)) && strcmp (a, b) == 0)
