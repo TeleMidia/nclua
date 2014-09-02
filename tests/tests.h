@@ -60,7 +60,7 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
    if (unlikely (!(cond)))                                      \
      {                                                          \
       fprintf (stderr, "%s:%d: ASSERTION FAILED!\n--> %s\n",    \
-                 __FILE__, __LINE__, STRINGIFY(cond));          \
+               __FILE__, __LINE__, STRINGIFY (cond));           \
       abort ();                                                 \
      }                                                          \
   }                                                             \
