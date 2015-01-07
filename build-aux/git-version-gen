@@ -1,8 +1,8 @@
 #!/bin/sh
 # Print a version string.
-scriptversion=2014-06-19.19; # UTC
+scriptversion=2014-12-02.19; # UTC
 
-# Copyright (C) 2007-2014 Free Software Foundation, Inc.
+# Copyright (C) 2007-2015 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -215,7 +215,7 @@ if test "x$v_from_git" != x; then
 fi
 
 # Omit the trailing newline, so that m4_esyscmd can use the result directly.
-echo "$v" | tr -d "$nl"
+printf %s "$v"
 
 # Local variables:
 # eval: (add-hook 'write-file-hooks 'time-stamp)
