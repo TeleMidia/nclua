@@ -172,16 +172,21 @@ sc-base:
 	@./build-aux/syntax-check\
 	  $(VC_LIST_C) $(VC_LIST_LUA) $(VC_LIST_PL) $(VC_LIST_SH)
 
-perl_sc_copright_exclude :=\
-  s:\blib/(macros|luax-macros)\.h\b::g;
+perl_sc_copyright_exclude :=\
+  s:\bexamples/luarocks/.*::g;\
+  s:\blib/(macros|luax-macros)\.h\b::g;\
+  $(NULL)
 
 sc-copyright:
 	@./build-aux/syntax-check-copyright -b='/*' -e='*/'\
-	  $$(echo $(VC_LIST_C) | perl -wple '$(perl_sc_copright_exclude)')
+	  $$(echo $(VC_LIST_C)\
+	   | perl -wple '$(perl_sc_copyright_exclude)')
 	@./build-aux/syntax-check-copyright -b='--[[' -e=']]--'\
-	  $(VC_LIST_LUA)
-	@./build-aux/syntax-check-copyright -b='#' $(VC_LIST_AC)\
-	  $(VC_LIST_AM) $(VC_LIST_MK) $(VC_LIST_SH)
+	  $$(echo $(VC_LIST_LUA)\
+	   | perl -wple '$(perl_sc_copyright_exclude)')
+	@./build-aux/syntax-check-copyright -b='#'\
+	  $$(echo $(VC_LIST_AM) $(VC_LIST_MK) $(VC_LIST_SH)\
+	   | perl -wple '$(perl_sc_copyright_exclude)')
 
 perl_sc_make_indent :=\
   /^\t?\ \S/ and print "$$ARGV:$$.:\n-->$$_\n";\
