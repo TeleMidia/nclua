@@ -1,5 +1,5 @@
 /* ncluaw.c -- The NCLua wrapper (Lua-free) interface.
-   Copyright (C) 2013-2014 PUC-Rio/Laboratorio TeleMidia
+   Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
 
 This file is part of NCLua.
 

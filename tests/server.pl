@@ -1,12 +1,12 @@
 #!/usr/bin/perl
 # A simple netcat-like TCP server.
-my $VERSION = '2014-02-09 03:11'; # UTC
+my $VERSION = '2015-01-07 19:20'; # UTC
 # The definition above must lie within the first 8 lines in order for the
 # Emacs time-stamp write hook (at end) to update it.  If you change this
 # file with Emacs, please let the write hook do its job.  Otherwise, update
 # this string manually.
 
-# Copyright (C) 2014 Free Software Foundation, Inc.
+# Copyright (C) 2014-2015 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

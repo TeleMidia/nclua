@@ -3,11 +3,11 @@ Upstream-Name: nclua
 Source: http://github.com/gflima/nclua
 
 Files: *
-Copyright: 2013-2014 PUC-Rio/Laboratorio TeleMidia
+Copyright: Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
 License: GPL-2.0+
 
 Files: debian/*
-Copyright: Copyright (C) 2013-2014 PUC-Rio/Laboratorio TeleMidia
+Copyright: Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
 License: GPL-2.0+
 
 License: GPL-2.0+

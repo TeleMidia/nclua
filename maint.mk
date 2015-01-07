@@ -1,5 +1,5 @@
 # maint.mk -- Maintainer's makefile.
-# Copyright (C) 2013-2014 PUC-Rio/Laboratorio TeleMidia
+# Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
 #
 # This file is part of NCLua.
 #
@@ -195,7 +195,7 @@ perl_sc_make_indent :=\
 sc-make-indent:
 	@perl -wnle '$(perl_sc_make_indent)' $(VC_LIST_AM) $(VC_LIST_MK)
 
-COPYRIGHT_YEAR := 2014
+COPYRIGHT_YEAR := 2015
 COPYRIGHT_HOLDER := PUC-Rio/Laboratorio TeleMidia
 perl_update_copyright :=\
   s:(\W*Copyright\s\(C\)\s\d+)-?\d*(\s\Q$(COPYRIGHT_HOLDER)\E\b)\

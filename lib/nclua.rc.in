@@ -17,7 +17,7 @@ VS_VERSION_INFO VERSIONINFO
         VALUE "FileDescription", "NCLua"
         VALUE "FileVersion", "@NCLUA_VERSION_STRING@"
         VALUE "InternalName", "libnclua-@NCLUA_LIBTOOL_CURRENT_MINUS_AGE@"
-        VALUE "LegalCopyright", "Copyright (C) 2013-2014 PUC-Rio/Laboratorio TeleMidia"
+        VALUE "LegalCopyright", "Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia"
         VALUE "OriginalFilename", "libnclua-@NCLUA_LIBTOOL_CURRENT_MINUS_AGE@.dll"
         VALUE "ProductName", "NCLua"
         VALUE "ProductVersion", "@NCLUA_VERSION_STRING@"
