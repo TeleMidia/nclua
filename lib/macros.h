@@ -18,7 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef MACROS_H
 #define MACROS_H
 
-#include <config.h>
+#if defined HAVE_CONFIG_H
+# include <config.h>
+#endif
 #include <assert.h>
 #include <ctype.h>
 #include <math.h>
@@ -174,15 +176,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define dequalify(t, x)  ((t)(ptrdiff_t)(const volatile void *)(x))
 #define test_and_set(c, x, y) STMT_BEGIN {if (c) x = y; } STMT_END
 
-#if !defined HAVE_ROUND
-static inline ATTR_CONST double
-round (double x)
-{
-  return floor (x + .5);
-}
+#if !defined round && defined HAVE_ROUND && !HAVE_ROUND
+# define round(x) floor (((double) x) + .5)
 #endif
 
-#if !defined HAVE_LROUND
+#if !defined lround && defined HAVE_LROUND && !HAVE_LROUND
 static inline ATTR_CONST long int
 lround (double x)
 {
