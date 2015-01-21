@@ -177,7 +177,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define test_and_set(c, x, y) STMT_BEGIN {if (c) x = y; } STMT_END
 
 #if !defined round && defined HAVE_ROUND && !HAVE_ROUND
-# define round(x) floor (((double) x) + .5)
+# define round(x) floor (((double) (x)) + .5)
 #endif
 
 #if !defined lround && defined HAVE_LROUND && !HAVE_LROUND
