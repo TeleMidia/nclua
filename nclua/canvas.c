@@ -475,9 +475,9 @@ _l_canvas_dump_to_file (lua_State *L)
  *
  * The following FORMAT strings are supported:
  *
- *   ARGB32 - each pixel is 32-bit quantity, with alpha in the upper 8 bits,
- *            then red, then green, then blue; the 32-bit quantities are
- *            stored native-endian; pre-multiplied alpha is used;
+ *   ARGB32 - each pixel is a 32-bit quantity, with alpha in the upper 8
+ *            bits, then red, then green, then blue; the 32-bit quantities
+ *            are stored native-endian; pre-multiplied alpha is used;
  *
  *   RGB24  - each pixel is a 32-bit quantity, with the upper 8 bits unused;
  *            red, green, and blue are stored in the remaining 24 bits in

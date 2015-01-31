@@ -183,18 +183,18 @@ nclua_send (lua_State *L)
 }
 
 /*-
- * Paints the surface of global canvas into buffer BUFFER.
+ * Paints the surface of the global canvas into buffer BUFFER.
  *
  * The parameters WIDTH and HEIGHT define the width and height of the image
- * to be stored in BUFFER; the parameter stride defines its stride -- i.e.,
+ * to be stored in BUFFER; the parameter STRIDE defines its stride -- i.e.,
  * the number of bytes between the start of the rows in the buffer as
  * allocated.
  *
  * The following FORMAT strings are supported:
  *
- *   ARGB32 - each pixel is 32-bit quantity, with alpha in the upper 8 bits,
- *            then red, then green, then blue; the 32-bit quantities are
- *            stored native-endian; pre-multiplied alpha is used;
+ *   ARGB32 - each pixel is a 32-bit quantity, with alpha in the upper 8
+ *            bits, then red, then green, then blue; the 32-bit quantities
+ *            are stored native-endian; pre-multiplied alpha is used;
  *
  *   RGB24  - each pixel is a 32-bit quantity, with the upper 8 bits unused;
  *            red, green, and blue are stored in the remaining 24 bits in
@@ -257,7 +257,7 @@ nclua_debug_get_registry_index (void)
 }
 
 /*-
- * Returns a pointer to the surface of global canvas.
+ * Returns a pointer to the surface of the global canvas.
  *
  * WARNING: This pointer may become invalid after nclua_cycle() is called.
  */
