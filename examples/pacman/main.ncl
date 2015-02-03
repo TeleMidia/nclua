@@ -15,14 +15,14 @@
     </regionBase>
 
     <descriptorBase>
-      <descriptor id="dLua" region="rgLua" focusIndex="0" explicitDur="99s" />
+      <descriptor id="dLua" region="rgLua" focusIndex="0" />
     </descriptorBase>
   </head>
 
   <body>
     <port id="start" component="lua" />
     <media type="application/x-ginga-settings" id="settings">
-      <property name="service.currentKeyMaster" value="0"/>
+      <property name="service.currentKeyMaster" value="lua"/>
     </media>
     <media id="lua" src="game.lua" descriptor="dLua" />
   </body>
