@@ -126,9 +126,10 @@ ncluaw_panic_wrapper (lua_State *L)
   assert (lua_checkstack (L, 1));
   ncluaw_registry_get_field (L, "panic");
   panic = (ncluaw_panic_function_t) integralof (lua_touserdata (L, -1));
+  lua_pop (L, 1);
   if (panic != NULL)
     {
-      panic (ncluaw_get_nw_from_lua_state (L), lua_tostring (L, 1));
+      panic (ncluaw_get_nw_from_lua_state (L), lua_tostring (L, -1));
     }
   else
     {
@@ -136,6 +137,7 @@ ncluaw_panic_wrapper (lua_State *L)
       ncluaw_registry_get_field (L, "lua_panic");
       lua_panic = (lua_CFunction) integralof (lua_touserdata (L, -1));
       assert (lua_panic != NULL);
+      lua_insert (L, -2);
       return lua_panic (L);
     }
 
