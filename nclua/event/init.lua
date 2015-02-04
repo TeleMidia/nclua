@@ -127,8 +127,12 @@ function event._engine:cycle ()
    -- Process input events.
    for _,evt in ipairs {self.INQ:dequeue (self.EVT_MAX)} do
       for _,entry in ipairs (self.handler_list) do
-         if match (evt, entry[2] or {}) and entry[1] (clone (evt)) then
-            break
+         local handler = assert (entry[1])
+         local filter = entry[2]
+         if match (evt, filter or {}) then
+            if handler (clone (evt)) then -- call handler
+               break                      -- consume event
+            end
          end
       end
    end
