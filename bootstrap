@@ -28,5 +28,5 @@ fi
 
 test -f ./ChangeLog || touch ./ChangeLog
 
-$AUTORECONF --install --verbose || exit $?
+$AUTORECONF --force --install --verbose || exit $?
 cd $ORIGDIR
