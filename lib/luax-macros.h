@@ -109,7 +109,7 @@ luax_getfield (lua_State *L, int i, const char *k)
   }                                                     \
   STMT_END
 
-/* Pops the table on top of stack and sets is as the registry of M, i.e.,
+/* Pops the table on top of stack and sets it as the registry of M, i.e.,
    stores the table as the value associated with address M in the Lua
    registry.  */
 #define luax_mregistry_create(L, m)             \
@@ -279,6 +279,10 @@ _luax_dump_stack (lua_State *L, int depth)
     }
   fflush (stderr);
 }
+#else
+# define luax_dump_value(L, i)  /* nothing */
+# define luax_dump_table(L, i)  /* nothing */
+# define luax_dump_stack(L, i)  /* nothing */
 #endif /* DEBUG */
 
 #endif /* LUAX_MACROS_H */
