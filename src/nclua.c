@@ -19,6 +19,7 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <setjmp.h>
 
 #include <lua.h>
 #include <lualib.h>
@@ -36,6 +37,15 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HEIGHT 600
 static ncluaw_t *ncluaw_state;
 static GtkWidget *app;
+static jmp_buf panic_jmp;
+
+static void
+panic (arg_unused (ncluaw_t *nw), const char *message)
+{
+  luax_dump_stack (cast (lua_State *, ncluaw_debug_get_lua_state (nw)));
+  fprintf (stderr, "error: %s\n", message);
+  longjmp (panic_jmp, 1);
+}
 
 #if GTK_CHECK_VERSION(3,8,0)
 static gboolean
@@ -144,6 +154,7 @@ main (int argc, char **argv)
 {
   GtkWidget *canvas;
   char *errmsg = NULL;
+  int status;
 
   gchar *dirname;
   gchar *basename;
@@ -167,6 +178,8 @@ main (int argc, char **argv)
       free (errmsg);
       exit (EXIT_FAILURE);
     }
+
+  ncluaw_at_panic (ncluaw_state, panic);
 
   g_free (dirname);
   g_free (basename);
@@ -201,8 +214,16 @@ main (int argc, char **argv)
   ncluaw_send_ncl_event (ncluaw_state, "presentation", "start", "", NULL);
 
   gtk_widget_show_all (app);
+
+  if (setjmp (panic_jmp))
+    {
+      status = EXIT_FAILURE;
+      goto panic;
+    }
+
   gtk_main ();
 
+ panic:
   ncluaw_close (ncluaw_state);
-  exit (EXIT_SUCCESS);
+  exit (status);
 }
