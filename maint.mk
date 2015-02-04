@@ -64,8 +64,8 @@ gnulib_remote = http://git.savannah.gnu.org/cgit/gnulib.git/plain
 misc_remote = https://github.com/gflima/misc/raw/master
 .PHONY: fetch-remote
 fetch-remote:
-	@fetch () { wget -O "$$2/`basename $$1`" "$$1"; };\
-	fetch $(gnulib_remote)/build-aux/git-log-fix ./build-aux;\
+	@set -e;\
+	fetch () { wget -O "$$2/`basename $$1`" "$$1"; };\
 	fetch $(gnulib_remote)/build-aux/git-version-gen ./build-aux;\
 	fetch $(gnulib_remote)/build-aux/gitlog-to-changelog ./build-aux;\
 	fetch $(gnulib_remote)/build-aux/useless-if-before-free ./build-aux;\
