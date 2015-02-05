@@ -39,9 +39,6 @@ static const int _socket_magic = 0;
 #define socket_registry_create(L)\
   luax_mregistry_create (L, SOCKET_REGISTRY_INDEX)
 
-/* #define socket_regsitry_destroy(L)\ */
-/*   luax_mregistry_destroy (L, SOCKET_REGISTRY_INDEX) */
-
 #define socket_registry_get(L)\
   luax_mregistry_get (L, SOCKET_REGISTRY_INDEX)
 
@@ -53,8 +50,8 @@ typedef struct _socket_t
 } socket_t;
 
 /* Checks if the object at index INDEX is a socket.
-   If CLIENT is non-NULL, stores socket's client handle at *CLIENT.
-   If CONN is non-NULL, stores socket's connection handle at *CONN.  */
+   If CLIENT is non-NULL, stores socket's client handle in *CLIENT.
+   If CONN is non-NULL, stores socket's connection handle in *CONN.  */
 
 static inline socket_t *
 socket_check (lua_State *L, int index, GSocketClient ** client,
@@ -133,7 +130,7 @@ socket_callback_data_ref (lua_State *L, socket_t *sock)
 }
 
 /* Pushes onto stack the value associated with callback-data object DATA,
-   releases its reference in the socket registry, and destroys DATA.  */
+   releases its reference in the socket registry, and frees DATA.  */
 
 static void
 socket_callback_data_unref (socket_callback_data_t *data)
@@ -166,7 +163,9 @@ l_socket_new (lua_State *L)
   luax_optudata (L, 1, SOCKET);
   timeout = (guint) clamp (luaL_optint (L, 2, 0), 0, INT_MAX);
   sock = (socket_t *) lua_newuserdata (L, sizeof (*sock));
+  assert (sock != NULL);
   sock->client = g_socket_client_new ();
+  assert (sock->client != NULL);
   sock->conn = NULL;
   g_socket_client_set_timeout (sock->client, timeout);
   luaL_setmetatable (L, SOCKET);
@@ -426,7 +425,7 @@ l_socket_is_connected (lua_State *L)
 }
 
 /*-
- * socket:is_socket (obj:userdata) -> status: boolean
+ * socket:is_socket (obj:userdata) -> status:boolean
  *
  * Returns true if object OBJ is a socket, or false otherwise.
  */
@@ -542,6 +541,7 @@ l_socket_receive (lua_State *L)
   luaL_argcheck (L, n > 0, 2, "cannot receive zero bytes");
   luaL_checktype (L, 3, LUA_TFUNCTION);
   buf = (char *) lua_newuserdata (L, sizeof (*buf) * n);
+  assert (buf != NULL);
 
   lua_pushcclosure (L, l_socket_receive_callback_closure, 4);
   cb_data = socket_callback_data_ref (L, sock);
