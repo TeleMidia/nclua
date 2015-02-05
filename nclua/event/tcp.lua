@@ -41,7 +41,7 @@ local function check_socket (prefix, name, sock, connected)
       check.throw_bad_type (prefix, name, 'socket', type (sock))
    end
    if connected and not sock:is_connected () then
-      check.throw_bad (prefix, name, 'socket %s is not connected', sock)
+      check.throw_bad (prefix, name, 'socket %s not connected', sock)
    end
    return sock
 end
