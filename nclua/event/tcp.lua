@@ -29,6 +29,9 @@ _ENV = nil
 do
    tcp = engine:new ()
    tcp.class = 'tcp'
+
+   -- Default buffer size (in bytes) of receive requests.
+   tcp.RECEIVE_BUFSIZE = 4096
 end
 
 -- Checks if object SOCK is a socket; if CONNECTED is true, checks if SOCK
@@ -89,9 +92,34 @@ end
 ---
 -- Cycles the TCP engine once.
 --
+
+-- Dispatch the TCP event EVT.
 local function dispatch (evt)
    evt.class = tcp.class
    tcp.OUTQ:enqueue (evt)
+end
+
+local function receive_finished (status, sock, data)
+   if status then
+      if #data > 0 then
+         dispatch {type='data', connection=sock, value=data}
+         sock:receive (tcp.RECEIVE_BUFSIZE, receive_finished)
+      end
+   elseif sock:is_connected () then
+      --
+      -- FIXME: Fix the 'Socket closed' error (cf. Known Bugs in TODO).
+      --
+      dispatch {type='data', error=data}
+   end
+end
+
+local function connect_finished (status, sock, host, port, errmsg)
+   if status then
+      dispatch {type='connect', host=host, port=port, connection=sock}
+      sock:receive (tcp.RECEIVE_BUFSIZE, receive_finished)
+   else
+      dispatch {type='connect', host=host, port=port, error=errmsg}
+   end
 end
 
 local function disconnect_finished (status, sock, errmsg)
@@ -99,29 +127,6 @@ local function disconnect_finished (status, sock, errmsg)
       dispatch {type='disconnect'}
    else
       dispatch {type='disconnect', error=errmsg}
-   end
-end
-
-local function receive_finished (status, sock, data)
-   if status then
-      if #data > 0 then
-         sock:receive (4096, receive_finished)
-         dispatch {type='data', connection=sock, value=data}
-      else
-         sock:disconnect (disconnect_finished) -- eof
-      end
-   elseif sock:is_connected () then
-      -- FIXME: Workaround 'Socket close' error (cf. TODO).
-      dispatch {type='data', error=data}
-   end
-end
-
-local function connect_finished (status, sock, host, port, errmsg)
-   if status then
-      sock:receive (4096, receive_finished)
-      dispatch {type='connect', host=host, port=port, connection=sock}
-   else
-      dispatch {type='connect', host=host, port=port, error=errmsg}
    end
 end
 
@@ -150,6 +155,7 @@ function tcp:cycle ()
          local data = assert (evt.value)
          assert (sock:is_connected ())
          sock:send (data, send_finished)
+         sock:receive (tcp.RECEIVE_BUFSIZE, receive_finished)
 
       elseif evt.type == 'disconnect' then
          local sock = assert (evt.connection)
