@@ -32,6 +32,19 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Registry key for the socket metatable.  */
 #define SOCKET "nclua.event.socket"
 
+/* Socket local registry.  */
+static const int _socket_magic = 0;
+#define SOCKET_REGISTRY_INDEX (deconst (void *, &_socket_magic))
+
+#define socket_registry_create(L)\
+  luax_mregistry_create (L, SOCKET_REGISTRY_INDEX)
+
+/* #define socket_regsitry_destroy(L)\ */
+/*   luax_mregistry_destroy (L, SOCKET_REGISTRY_INDEX) */
+
+#define socket_registry_get(L)\
+  luax_mregistry_get (L, SOCKET_REGISTRY_INDEX)
+
 /* Socket object data.  */
 typedef struct _socket_t
 {
@@ -67,33 +80,6 @@ socket_check (lua_State *L, int index, GSocketClient ** client,
 #define error_throw_socket_not_connected(L, sock)                       \
   (lua_pushfstring (L, "socket %p not connected", (void *) sock),       \
    lua_error (L))
-
-/* Registry key for the socket registry.  The socket registry is a global
-   table used by sockets to pass Lua data to C callbacks.  We use this local
-   registry to avoid polluting the global Lua registry.  */
-#define SOCKET_REGISTRY_INDEX (deconst (void *, &_socket_registry_index))
-static const int _socket_registry_index = 0;
-
-/* Initializes the socket registry.  */
-
-static inline void
-socket_init_registry (lua_State *L)
-{
-  lua_pushvalue (L, LUA_REGISTRYINDEX);
-  lua_newtable (L);
-  lua_rawsetp (L, -2, SOCKET_REGISTRY_INDEX);
-  lua_pop (L, 1);
-}
-
-/* Pushes the socket registry onto stack.  */
-
-static inline void
-socket_get_registry (lua_State *L)
-{
-  lua_pushvalue (L, LUA_REGISTRYINDEX);
-  lua_rawgetp (L, -1, SOCKET_REGISTRY_INDEX);
-  lua_remove (L, -2);
-}
 
 /* Socket callback-data object data.  */
 typedef struct _socket_callback_data_t
@@ -139,7 +125,7 @@ static socket_callback_data_t *
 socket_callback_data_ref (lua_State *L, socket_t *sock)
 {
   socket_callback_data_t *data;
-  socket_get_registry (L);
+  socket_registry_get (L);
   lua_insert (L, -2);
   data = socket_callback_data_new (L, sock, luaL_ref (L, -2));
   lua_pop (L, 1);
@@ -154,7 +140,7 @@ socket_callback_data_unref (socket_callback_data_t *data)
 {
   lua_State *L;
   L = data->L;
-  socket_get_registry (L);
+  socket_registry_get (L);
   lua_rawgeti (L, -1, data->ref);
   luaL_unref (L, -2, data->ref);
   lua_remove (L, -2);
@@ -699,7 +685,8 @@ int
 luaopen_nclua_event_socket (lua_State *L)
 {
   G_TYPE_INIT_WRAPPER ();
-  socket_init_registry (L);
+  lua_newtable (L);
+  socket_registry_create (L);
   luax_newmetatable (L, SOCKET);
   luaL_setfuncs (L, socket_funcs, 0);
   return 1;
