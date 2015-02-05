@@ -27,8 +27,8 @@ eventlibdir = $(lualibdir)/event
 eventdatadir = $(luadatadir)/event
 
 eventlib_LTLIBRARIES =\
-  socket.la\
   stopwatch.la\
+  tcp_socket.la\
   $(NULL)
 
 dist_eventdata_DATA =\
@@ -44,24 +44,24 @@ dist_eventdata_DATA =\
   $(NULL)
 
 if OS_WIN32
-socket_export_symbols = -export-symbols socket.def
-socket_def_dependency = socket.def
-
 stopwatch_export_symbols = -export-symbols stopwatch.def
 stopwatch_def_dependency = stopwatch.def
+
+tcp_socket_export_symbols = -export-symbols tcp_socket.def
+tcp_socket_def_dependency = tcp_socket.def
 endif
 
-CLEANFILES += socket.def stopwatch.def
-socket.def stopwatch.def:
+CLEANFILES += stopwatch.def tcp_socket.def
+stopwatch.def tcp_socket.def :
 	$(AM_V_GEN) (echo EXPORTS;\
 	echo luaopen_nclua_event_`echo "$@" | sed s/\.def//`) >$@
-
-socket_la_DEPENDENCIES = $(socket_def_dependency)
-socket_la_CFLAGS = $(AM_CFLAGS) $(GLIB_CFLAGS) $(GIO_CFLAGS)
-socket_la_LDFLAGS = $(AM_LDFLAGS) $(GLIB_LIBS) $(GIO_LIBS)\
-  $(socket_export_symbols)
 
 stopwatch_la_DEPENDENCIES = $(stopwatch_def_dependency)
 stopwatch_la_CFLAGS = $(AM_CFLAGS) $(GLIB_CFLAGS)
 stopwatch_la_LDFLAGS = $(AM_LDFLAGS) $(GLIB_LIBS)\
   $(stopwatch_export_symbols)
+
+tcp_socket_la_DEPENDENCIES = $(tcp_socket_def_dependency)
+tcp_socket_la_CFLAGS = $(AM_CFLAGS) $(GLIB_CFLAGS) $(GIO_CFLAGS)
+tcp_socket_la_LDFLAGS = $(AM_LDFLAGS) $(GLIB_LIBS) $(GIO_LIBS)\
+  $(tcp_socket_export_symbols)

@@ -36,7 +36,7 @@ local type = type
 
 local tests0 = require ('tests0')
 local canvas = require ('nclua.canvas')
-local socket = require ('nclua.event.socket')
+local socket = require ('nclua.event.tcp_socket')
 local stopwatch = require ('nclua.event.stopwatch')
 _ENV = nil
 

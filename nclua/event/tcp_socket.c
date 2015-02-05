@@ -1,4 +1,4 @@
-/* nclua.event.socket -- Non-blocking sockets.
+/* nclua.event.tcp-socket -- Non-blocking sockets.
    Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
 
 This file is part of NCLua.
@@ -30,7 +30,7 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "luax-macros.h"
 
 /* Registry key for the socket metatable.  */
-#define SOCKET "nclua.event.socket"
+#define SOCKET "nclua.event.tcp_socket"
 
 /* Socket local registry.  */
 static const int _socket_magic = 0;
@@ -679,10 +679,10 @@ static const struct luaL_Reg socket_funcs[] = {
   {NULL, NULL}
 };
 
-int luaopen_nclua_event_socket (lua_State *L);
+int luaopen_nclua_event_tcp_socket (lua_State *L);
 
 int
-luaopen_nclua_event_socket (lua_State *L)
+luaopen_nclua_event_tcp_socket (lua_State *L)
 {
   G_TYPE_INIT_WRAPPER ();
   lua_newtable (L);

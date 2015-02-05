@@ -23,7 +23,7 @@ local TRACE = tests.trace
 
 local pcall = pcall
 
-local socket = require ('nclua.event.socket')
+local socket = require ('nclua.event.tcp_socket')
 local event = require ('nclua.event')
 local engine = event._engine
 _ENV = nil

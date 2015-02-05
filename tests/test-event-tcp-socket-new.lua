@@ -18,13 +18,24 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  ]]--
 local tests = require ('tests')
 local ASSERT = tests.ASSERT
 local ASSERT_ERROR = tests.ASSERT_ERROR
+local ASSERT_CHECK_OBJECT = tests.ASSERT_CHECK_OBJECT
 
-local socket = require ('nclua.event.socket')
+local socket = require ('nclua.event.tcp_socket')
 _ENV = nil
 
--- Check variations to the 'is_socket' call.
+-- Sanity checks.
+ASSERT_ERROR (socket.new, {})
+
+-- Check the returned socket object type.
 local sock = socket.new ()
-ASSERT (socket:is_socket (sock))
-ASSERT (socket:is_socket (nil) == false)
-ASSERT (sock:is_socket (sock))
-ASSERT (sock:is_socket (nil) == false)
+ASSERT_CHECK_OBJECT (sock, 'nclua.event.tcp_socket')
+
+-- Check variations to the 'new' call.
+ASSERT (socket.new ())
+ASSERT (socket.new (0))
+ASSERT (socket:new ())
+ASSERT (socket:new (0))
+ASSERT (sock.new ())
+ASSERT (sock.new (0))
+ASSERT (sock:new ())
+ASSERT (sock:new (0))

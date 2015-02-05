@@ -25,7 +25,7 @@ local TRACE = tests.trace
 local pcall = pcall
 
 local check = require ('nclua.event.check')
-local socket = require ('nclua.event.socket')
+local socket = require ('nclua.event.tcp_socket')
 local tcp = require ('nclua.event.tcp')
 _ENV = nil
 

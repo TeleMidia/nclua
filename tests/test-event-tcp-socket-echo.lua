@@ -26,7 +26,7 @@ local ipairs = ipairs
 local pairs = pairs
 local table = table
 
-local socket = require ('nclua.event.socket')
+local socket = require ('nclua.event.tcp_socket')
 _ENV = nil
 
 local function CYCLE_UNTIL (func)

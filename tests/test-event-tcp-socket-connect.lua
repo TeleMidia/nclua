@@ -22,7 +22,7 @@ local FAIL = tests.FAIL
 local TRACE_SEP = tests.trace_sep
 local TRACE = tests.trace
 
-local socket = require ('nclua.event.socket')
+local socket = require ('nclua.event.tcp_socket')
 _ENV = nil
 
 local function CYCLE_UNTIL (func)

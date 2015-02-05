@@ -23,7 +23,7 @@ local type = type
 
 local check = require ('nclua.event.check')
 local engine = require ('nclua.event.engine')
-local socket = require ('nclua.event.socket')
+local socket = require ('nclua.event.tcp_socket')
 _ENV = nil
 
 do

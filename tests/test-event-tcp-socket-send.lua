@@ -23,7 +23,7 @@ local TRACE_SEP = tests.trace_sep
 local TRACE = tests.trace
 
 local os = os
-local socket = require ('nclua.event.socket')
+local socket = require ('nclua.event.tcp_socket')
 _ENV = nil
 
 local function CYCLE_UNTIL (func)
@@ -31,47 +31,39 @@ local function CYCLE_UNTIL (func)
    tests.socket.cycle_until (func)
 end
 
--- Sanity checks.
+--  Sanity checks.
 local sock = socket.new ()
-ASSERT_ERROR (socket.receive)
-ASSERT_ERROR (socket.receive, sock)
-ASSERT_ERROR (socket.receive, sock, 1)
-ASSERT_ERROR (socket.receive, sock, 1, {})
-ASSERT_ERROR (socket.receive, sock, 0, function () end) -- zero bytes
+ASSERT_ERROR (socket.send)
+ASSERT_ERROR (socket.send, sock)
+ASSERT_ERROR (socket.send, sock, 'abc') -- not connected
 
--- Receive N bytes form local source server and check the result.
--- FIXME: This check is not working on Windows.
-if tests.is_windows () then return end
-
+-- Send N bytes to local sink server and check the result.
 local n = 128 * 2^10            -- 128K
-local tmpfile = tests.rand_file (128 * 2^10)
-local server, host, port = tests.server.new_source (nil, tmpfile)
+local tmpfile = os.tmpname ()
+local server, host, port = tests.server.new_sink (nil, tmpfile)
 server:start ()
-TRACE ('reading data from '..tmpfile)
+TRACE ('writing data to '..tmpfile)
 
 local sock = socket.new ()
 sock:connect (host, port, function (status) ASSERT (status) end)
 CYCLE_UNTIL (function () return sock:is_connected () end)
 
-local count = 0
-local str = ''
 local DONE = false
-local function receive_cb (status, _sock, data)
-   TRACE ('receive:', _sock, #data..' bytes received')
+local function send_cb (status, _sock, data_left)
+   TRACE ('send:', _sock, #data_left..' bytes left')
    ASSERT (status, _sock == sock)
-   count = count + #data
-   str = str..data
-   if #data > 0 then
-      sock:receive (tests.rand_number (4096, 4 * 4096), receive_cb)
+   if #data_left > 0 then
+      sock:send (data_left, send_cb)
    else
-      DONE = true               -- eof
+      DONE = true               -- no more data to send
    end
 end
 
-sock:receive (tests.rand_number (4096, 4 * 4096), receive_cb)
+local str = tests.rand_string (n)
+sock:send (str, send_cb)
 CYCLE_UNTIL (function () return DONE end)
 
-local src = tests.read_file (tmpfile)
-ASSERT (str == src, count == n)
+local sink = tests.read_file (tmpfile)
+ASSERT (str == sink)
 os.remove (tmpfile)
 server:stop ()

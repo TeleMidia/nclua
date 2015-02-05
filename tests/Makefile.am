@@ -117,7 +117,7 @@ AM_TESTS_ENVIRONMENT =\
   export G_DEBUG="all";\
   export G_SLICE="always-malloc";\
   export LD_LIBRARY_PATH="$(top_builddir)/nclua:$(top_builddir)/nclua/event";\
-  export LD_PRELOAD="canvas$(SOEXT):socket$(SOEXT):stopwatch$(SOEXT)";\
+  export LD_PRELOAD="canvas$(SOEXT):stopwatch$(SOEXT):tcp_socket$(SOEXT)";\
   export LUA_PATH="$(top_srcdir)/?.lua;$(top_srcdir)/?/init.lua;$(top_srcdir)/tests/?.lua;;";\
   export LUA_CPATH="$(builddir)/.libs/?$(SOEXT);$(top_builddir)/?$(SOEXT);;";\
   $(NULL)
@@ -165,15 +165,15 @@ scripts += test-event-engine-cycle.lua
 scripts += test-event-stopwatch-api.lua
 scripts += test-event-stopwatch-new.lua
 scripts += test-event-stopwatch-get-time.lua
-# event.socket
-scripts += test-event-socket-api.lua
-scripts += test-event-socket-new.lua
-scripts += test-event-socket-is-socket.lua
-scripts += test-event-socket-connect.lua
-scripts += test-event-socket-send.lua
-scripts += test-event-socket-receive.lua
-scripts += test-event-socket-echo.lua
-scripts += test-event-socket-timeout.lua
+# event.tcp_socket
+scripts += test-event-tcp-socket-api.lua
+scripts += test-event-tcp-socket-new.lua
+scripts += test-event-tcp-socket-is-socket.lua
+scripts += test-event-tcp-socket-connect.lua
+scripts += test-event-tcp-socket-send.lua
+scripts += test-event-tcp-socket-receive.lua
+scripts += test-event-tcp-socket-echo.lua
+scripts += test-event-tcp-socket-timeout.lua
 # event.tcp (handler plugin)
 scripts += test-event-tcp-api.lua
 scripts += test-event-tcp-check.lua

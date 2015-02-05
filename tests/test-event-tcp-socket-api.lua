@@ -18,7 +18,7 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  ]]--
 local tests = require ('tests')
 local ASSERT_CHECK_API = tests.ASSERT_CHECK_API
 
-local socket = require ('nclua.event.socket')
+local socket = require ('nclua.event.tcp_socket')
 _ENV = nil
 
 ASSERT_CHECK_API {
