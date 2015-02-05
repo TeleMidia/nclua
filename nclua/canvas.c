@@ -397,6 +397,7 @@ l_canvas_new (lua_State *L)
     }
 
   canvas = (canvas_t *) lua_newuserdata (L, sizeof (*canvas));
+  assert (canvas != NULL);
   canvas->sfc = sfc;
   canvas->back_sfc = back_sfc;
   canvas->cr = cr;
