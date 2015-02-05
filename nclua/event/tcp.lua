@@ -29,10 +29,10 @@ _ENV = nil
 do
    tcp = engine:new ()
    tcp.class = 'tcp'
-
-   -- Default buffer size (in bytes) of receive requests.
-   tcp.RECEIVE_BUFSIZE = 4096
 end
+
+-- Default buffer size (in bytes) of receive requests.
+local RECEIVE_BUFSIZE = 4096
 
 -- Checks if object SOCK is a socket; if CONNECTED is true, checks if SOCK
 -- is connected.  Returns SOCK if successful, otherwise throws an error.
@@ -103,7 +103,7 @@ local function receive_finished (status, sock, data)
    if status then
       if #data > 0 then
          dispatch {type='data', connection=sock, value=data}
-         sock:receive (tcp.RECEIVE_BUFSIZE, receive_finished)
+         sock:receive (RECEIVE_BUFSIZE, receive_finished)
       end
    elseif sock:is_connected () then
       --
@@ -116,7 +116,7 @@ end
 local function connect_finished (status, sock, host, port, errmsg)
    if status then
       dispatch {type='connect', host=host, port=port, connection=sock}
-      sock:receive (tcp.RECEIVE_BUFSIZE, receive_finished)
+      sock:receive (RECEIVE_BUFSIZE, receive_finished)
    else
       dispatch {type='connect', host=host, port=port, error=errmsg}
    end
@@ -155,7 +155,6 @@ function tcp:cycle ()
          local data = assert (evt.value)
          assert (sock:is_connected ())
          sock:send (data, send_finished)
-         sock:receive (tcp.RECEIVE_BUFSIZE, receive_finished)
 
       elseif evt.type == 'disconnect' then
          local sock = assert (evt.connection)
