@@ -1,12 +1,11 @@
-This is the NCLua library, libnclua.  The NCLua library adds event handling
-and 2D graphics to Lua scripts.  Programs written in C can use libnclua to
-run embedded NCLua scripts, i.e., Lua scripts that use the APIs exported by
-libnclua; Lua scripts can also use libnclua, either through the C API or by
-requiring the appropriated modules -- e.g., 'canvas' for 2D graphics,
-'event' for general event handling, 'event.stopwatch' for stopwatch timers,
-'event.socket' for asynchronous sockets, etc.  The NCLua library comes with
-a standalone interpreter, called nclua (cf. src/nclua.c), which can be used
-to run standalone NCLua scripts.
+The *NCLua* library adds event handling and 2D graphics to Lua scripts.
+Programs written in C can use libnclua to run embedded NCLua scripts, i.e.,
+Lua scripts that use the APIs exported by libnclua; Lua scripts can also use
+libnclua, either through the C API or by requiring the appropriated modules
+-- e.g., 'canvas' for 2D graphics, 'event' for general event handling,
+'event.stopwatch' for stopwatch timers, 'event.socket' for asynchronous
+sockets, etc.  The NCLua library comes with a standalone interpreter, called
+nclua (cf. src/nclua.c), which can be used to run standalone NCLua scripts.
 
 For stable releases and binaries, cf.
 http://www.telemidia.puc-rio.br/~gflima/software/nclua
@@ -19,7 +18,7 @@ Ginga (cf. http://www.ginga.org.br).  The reference implementation of Ginga
 (>= 0.14) uses libnclua to run NCLua scripts.
 
 Dependencies
-============
+------------
 
 * Lua >= 5.2, http://www.lua.org
 * Cairo >= 1.10, http://cairographics.org
@@ -30,7 +29,7 @@ Dependencies
 GTK+ is optional; if not present the standalone interpreter is not built.
 
 Event API
-=========
+---------
 
 For a complete reference, cf. 'User API' section in nclua/event/init.lua
 
@@ -49,7 +48,7 @@ Functions:
 * event.uptime            returns the up-time since script started
 
 Canvas API
-==========
+----------
 
 For a complete reference, cf. nclua/canvas.c
 
@@ -84,7 +83,7 @@ Internal functions (for debugging):
 * canvas:_surface         returns a pointer to canvas content
 
 Embedment API (C code)
-======================
+----------------------
 
 For a complete reference, cf. lib/nclua.h and lib/ncluaw.h
 
@@ -114,8 +113,7 @@ Wrapper functions (ncluaw.h, Lua-free interface):
 * ncluaw_send_pointer_event sends pointer event
 * ncluaw_paint            paints top-level canvas onto memory
 
-============================================================================
-
+---
 Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
 
 Permission is granted to copy, distribute and/or modify this document under
