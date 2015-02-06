@@ -224,7 +224,7 @@ l_socket_connect (lua_State *L)
 }
 
 /*-
- * socket:cycle ()
+ * socket.cycle ()
  *
  * Cycles the socket engine once, i.e., process the pending operations for
  * all sockets, triggering the appropriated callbacks.
