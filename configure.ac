@@ -83,11 +83,13 @@ m4_define([glib_required_version],  [2.32.4])
 m4_define([gtk_required_version],   [3.4.2])
 m4_define([lua_required_version],   [5.2])
 m4_define([pango_required_version], [1.30.0])
+m4_define([soup_required_version],  [2.42])
 AC_SUBST([CAIRO_REQUIRED_VERSION], cairo_required_version)
 AC_SUBST([GLIB_REQUIRED_VERSION], glib_required_version)
 AC_SUBST([GTK_REQUIRED_VERSION], gtk_required_version)
 AC_SUBST([LUA_REQUIRED_VERSION], lua_required_version)
 AC_SUBST([PANGO_REQUIRED_VERSION], pango_required_version)
+AC_SUBST([SOUP_REQUIRED_VERSION], soup_required_version)
 
 # Checks for tools we use.
 AC_PROG_CC
@@ -393,7 +395,12 @@ PKG_CHECK_MODULES([PANGO],
   pangocairo >= pango_required_version], [],
  [AC_MSG_ERROR([Pango >= pango_required_version required.])])
 
-# Check for GTK.
+# Check for SOUP.
+PKG_CHECK_MODULES([SOUP],
+ [libsoup-2.4 >= soup_required_version], [],
+ [AC_MSG_ERROR([SOUP > soup_required_version required.])])
+
+# Check for GTK (optional).
 PKG_CHECK_MODULES([GTK],
  [gtk+-3.0 >= gtk_required_version], [have_gtk=yes], [have_gtk=no])
 AS_IF([test "$have_gtk" = yes],

@@ -37,6 +37,7 @@ local type = type
 local tests0 = require ('tests0')
 local canvas = require ('nclua.canvas')
 local socket = require ('nclua.event.tcp_socket')
+local soup = require ('nclua.event.http_soup')
 local stopwatch = require ('nclua.event.stopwatch')
 _ENV = nil
 
@@ -712,6 +713,23 @@ end
 function tests.socket.cycle_until (func)
    repeat
       socket.cycle ()
+      tests.usleep (10^4)       -- 10ms
+   until func ()
+end
+
+
+----------------------------------  SOUP  ----------------------------------
+
+do
+   tests.soup = {}
+end
+
+---
+-- Calls soup.cycle () until function FUNC returns true.
+--
+function tests.soup.cycle_until (func)
+   repeat
+      soup.cycle ()
       tests.usleep (10^4)       -- 10ms
    until func ()
 end

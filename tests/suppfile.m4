@@ -20,13 +20,16 @@ suppress(do_lookup_by_name,                 GIO GResolver lookup by name)
 suppress(g_resolver_class_intern_init,      GIO GResolver internal init)
 suppress(g_socket_client_class_intern_init, GIO SocketClient internal init)
 suppress(lookup_by_name_async,              GIO GResolver lookup by name)
-
-dnl GIO Proxy, LibProxy, GConf -- used by GIO GResolver.
+suppress(_g_io_module_get_default)
 suppress(g_io_module_load)
 suppress(g_io_module_load_module)
+
+dnl GIO Proxy, LibProxy, GConf -- used by GIO GResolver.
 suppress(g_libproxy_resolver_init)
 suppress(g_libproxy_resolver_lookup_async)
+suppress(g_libproxy_resolver_register)
 suppress(g_proxy_resolver_gnome_init)
+suppress(g_tls_backend_gnutls_register)
 suppress(gconf_client_get_default)
 suppress(get_libproxy_proxies)
 

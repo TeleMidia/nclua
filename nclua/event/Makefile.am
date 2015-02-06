@@ -23,10 +23,13 @@ AM_CPPFLAGS = -I$(top_srcdir)/lib -I$(top_builddir)/lib
 AM_CFLAGS = $(WERROR_CFLAGS) $(WARN_CFLAGS) $(LUA_CFLAGS)
 AM_LDFLAGS = -shared -module -avoid-version  -no-undefined $(LUA_LIBS)
 
+noinst_HEADERS = luax-callback.h
+
 eventlibdir = $(lualibdir)/event
 eventdatadir = $(luadatadir)/event
 
 eventlib_LTLIBRARIES =\
+  http_soup.la\
   stopwatch.la\
   tcp_socket.la\
   $(NULL)
@@ -44,24 +47,57 @@ dist_eventdata_DATA =\
   $(NULL)
 
 if OS_WIN32
-stopwatch_export_symbols = -export-symbols stopwatch.def
-stopwatch_def_dependency = stopwatch.def
-
-tcp_socket_export_symbols = -export-symbols tcp_socket.def
-tcp_socket_def_dependency = tcp_socket.def
+def_dependency =
 endif
 
-CLEANFILES += stopwatch.def tcp_socket.def
-stopwatch.def tcp_socket.def :
-	$(AM_V_GEN) (echo EXPORTS;\
-	echo luaopen_nclua_event_`echo "$@" | sed s/\.def//`) >$@
+# http_soup
+if OS_WIN32
+http_soup_def_dependency = http_soup.def
+def_dependency+= $(http_soup_def_dependency)
+http_soup_export_symbols = -export-symbols $(http_soup_def_dependency)
+endif
+http_soup_la_DEPENDENCIES = $(http_soup_def_dependency)
+http_soup_la_CFLAGS = $(AM_CFLAGS) $(SOUP_CFLAGS)
+http_soup_la_LDFLAGS = $(AM_LDFLAGS) $(SOUP_LIBS)\
+  $(http_soup_export_symbols)
+http_soup_la_SOURCES =\
+  luax-callback.h\
+  http_soup.c\
+  $(NULL)
 
+# stopwatch
+if OS_WIN32
+stopwatch_def_dependency = stopwatch.def
+def_dependency+= $(stopwatch_def_dependency)
+stopwatch_export_symbols = -export-symbols $(stopwatch_def_dependency)
+endif
 stopwatch_la_DEPENDENCIES = $(stopwatch_def_dependency)
 stopwatch_la_CFLAGS = $(AM_CFLAGS) $(GLIB_CFLAGS)
 stopwatch_la_LDFLAGS = $(AM_LDFLAGS) $(GLIB_LIBS)\
   $(stopwatch_export_symbols)
+stopwatch_la_SOURCES =\
+  stopwatch.c\
+  $(NULL)
 
+# tcp_socket
+if OS_WIN32
+tcp_socket_def_dependency = tcp_socket.def
+def_dependency+= $(tcp_socket_def_dependency)
+tcp_socket_export_symbols = -export-symbols $(tcp_socket_def_dependency)
+endif
 tcp_socket_la_DEPENDENCIES = $(tcp_socket_def_dependency)
 tcp_socket_la_CFLAGS = $(AM_CFLAGS) $(GLIB_CFLAGS) $(GIO_CFLAGS)
 tcp_socket_la_LDFLAGS = $(AM_LDFLAGS) $(GLIB_LIBS) $(GIO_LIBS)\
   $(tcp_socket_export_symbols)
+tcp_socket_la_SOURCES =\
+  luax-callback.h\
+  tcp_socket.c\
+  $(NULL)
+
+# Generate .def files if we're on Win32.
+if OS_WIN32
+CLEANFILES += $(def_dependency)
+$(def_dependency):
+	$(AM_V_GEN) (echo EXPORTS;\
+	echo luaopen_nclua_event_`echo "$@" | sed s/\.def//`) >$@
+endif
