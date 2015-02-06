@@ -28,19 +28,10 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "macros.h"
 #include "luax-macros.h"
+#include "luax-callback.h"
 
 /* Registry key for the socket metatable.  */
 #define SOCKET "nclua.event.tcp_socket"
-
-/* Socket local registry.  */
-static const int _socket_magic = 0;
-#define SOCKET_REGISTRY_INDEX (deconst (void *, &_socket_magic))
-
-#define socket_registry_create(L)\
-  luax_mregistry_create (L, SOCKET_REGISTRY_INDEX)
-
-#define socket_registry_get(L)\
-  luax_mregistry_get (L, SOCKET_REGISTRY_INDEX)
 
 /* Socket object data.  */
 typedef struct _socket_t
@@ -65,7 +56,7 @@ socket_check (lua_State *L, int index, GSocketClient ** client,
 }
 
 /* Returns true if socket SOCK is connected.  */
-#define socket_is_connected(sock) \
+#define socket_is_connected(sock)                                       \
   ((sock)->conn != NULL && g_socket_connection_is_connected ((sock)->conn))
 
 /* Throws "socket already connected" error.  */
@@ -77,72 +68,6 @@ socket_check (lua_State *L, int index, GSocketClient ** client,
 #define error_throw_socket_not_connected(L, sock)                       \
   (lua_pushfstring (L, "socket %p not connected", (void *) sock),       \
    lua_error (L))
-
-/* Socket callback-data object data.  */
-typedef struct _socket_callback_data_t
-{
-  lua_State *L;
-  socket_t *socket;
-  int ref;
-} socket_callback_data_t;
-
-/* Creates new callback-data object.  */
-
-static socket_callback_data_t *
-socket_callback_data_new (lua_State *L, socket_t *sock, int ref)
-{
-  socket_callback_data_t *data;
-  data = (socket_callback_data_t *) g_malloc (sizeof (*data));
-  assert (data != NULL);
-  data->L = L;
-  data->socket = sock;
-  data->ref = ref;
-  return data;
-}
-
-/* Destroys the given callback-data object.  */
-#define socket_callback_data_free(data) g_free (data)
-
-/* Gets the Lua state and socket object associated with callback-data object
-   DATA and stores them, respectively, into *L and *SOCKET.  */
-
-static inline void
-socket_callback_data_get_data (socket_callback_data_t *data,
-                               lua_State **L, socket_t **sock)
-{
-  test_and_set (L != NULL, *L, data->L);
-  test_and_set (sock != NULL, *sock, data->socket);
-}
-
-/* Allocates a new callback-data object in the socket registry for the
-   object at the top of stack (and pops the object).  Returns the allocated
-   callback-data object.  */
-
-static socket_callback_data_t *
-socket_callback_data_ref (lua_State *L, socket_t *sock)
-{
-  socket_callback_data_t *data;
-  socket_registry_get (L);
-  lua_insert (L, -2);
-  data = socket_callback_data_new (L, sock, luaL_ref (L, -2));
-  lua_pop (L, 1);
-  return data;
-}
-
-/* Pushes onto stack the value associated with callback-data object DATA,
-   releases its reference in the socket registry, and frees DATA.  */
-
-static void
-socket_callback_data_unref (socket_callback_data_t *data)
-{
-  lua_State *L;
-  L = data->L;
-  socket_registry_get (L);
-  lua_rawgeti (L, -1, data->ref);
-  luaL_unref (L, -2, data->ref);
-  lua_remove (L, -2);
-  socket_callback_data_free (data);
-}
 
 /*-
  * socket.new ([timeout:number])
@@ -210,17 +135,17 @@ __l_socket_gc (lua_State *L)
 static void
 connect_finished (GObject *source, GAsyncResult *result, gpointer data)
 {
-  socket_callback_data_t *cb_data;
+  luax_callback_data_t *cb_data;
   lua_State *L;
   socket_t *sock;
   GSocketConnection *conn;
   GError *error;
 
-  cb_data = (socket_callback_data_t *) data;
-  socket_callback_data_get_data (cb_data, &L, &sock);
+  cb_data = (luax_callback_data_t *) data;
+  luax_callback_data_get_data (cb_data, &L, (void **) &sock);
   assert (sock->client == G_SOCKET_CLIENT (source));
 
-  socket_callback_data_unref (cb_data);
+  luax_callback_data_unref (cb_data);
   assert (lua_type (L, -1) == LUA_TFUNCTION);
 
   error = NULL;
@@ -280,7 +205,7 @@ l_socket_connect (lua_State *L)
   GSocketClient *client;
   const char *host;
   int port;
-  socket_callback_data_t *cb_data;
+  luax_callback_data_t *cb_data;
 
   sock = socket_check (L, 1, &client, NULL);
   if (unlikely (socket_is_connected (sock)))
@@ -291,7 +216,7 @@ l_socket_connect (lua_State *L)
   luaL_checktype (L, 4, LUA_TFUNCTION);
 
   lua_pushcclosure (L, l_socket_connect_callback_closure, 4);
-  cb_data = socket_callback_data_ref (L, sock);
+  cb_data = luax_callback_data_ref (L, sock);
 
   g_socket_client_connect_to_host_async (client, host, (guint16) port, NULL,
                                          connect_finished, cb_data);
@@ -326,20 +251,20 @@ l_socket_cycle (arg_unused (lua_State *L))
 static void
 disconnect_finished (GObject *source, GAsyncResult *result, gpointer data)
 {
-  socket_callback_data_t *cb_data;
+  luax_callback_data_t *cb_data;
   lua_State *L;
   socket_t *sock;
   GIOStream *stream;
   GError *error;
   gboolean status;
 
-  cb_data = (socket_callback_data_t *) data;
-  socket_callback_data_get_data (cb_data, &L, &sock);
+  cb_data = (luax_callback_data_t *) data;
+  luax_callback_data_get_data (cb_data, &L, (void **) &sock);
 
   stream = G_IO_STREAM (sock->conn);
   assert (stream == G_IO_STREAM (source));
 
-  socket_callback_data_unref (cb_data);
+  luax_callback_data_unref (cb_data);
   assert (lua_type (L, -1) == LUA_TFUNCTION);
 
   error = NULL;
@@ -393,7 +318,7 @@ static int
 l_socket_disconnect (lua_State *L)
 {
   socket_t *sock;
-  socket_callback_data_t *cb_data;
+  luax_callback_data_t *cb_data;
 
   sock = socket_check (L, 1, NULL, NULL);
   if (unlikely (!socket_is_connected (sock)))
@@ -402,7 +327,7 @@ l_socket_disconnect (lua_State *L)
   luaL_checktype (L, 2, LUA_TFUNCTION);
 
   lua_pushcclosure (L, l_socket_disconnect_callback_closure, 2);
-  cb_data = socket_callback_data_ref (L, sock);
+  cb_data = luax_callback_data_ref (L, sock);
 
   g_io_stream_close_async (G_IO_STREAM (sock->conn),
                            G_PRIORITY_DEFAULT, NULL,
@@ -453,20 +378,20 @@ l_socket_is_socket (lua_State *L)
 static void
 receive_finished (GObject *source, GAsyncResult *result, gpointer data)
 {
-  socket_callback_data_t *cb_data;
+  luax_callback_data_t *cb_data;
   lua_State *L;
   socket_t *sock;
   GError *error;
   GInputStream *in;
   gssize n_received;
 
-  cb_data = (socket_callback_data_t *) data;
-  socket_callback_data_get_data (cb_data, &L, &sock);
+  cb_data = (luax_callback_data_t *) data;
+  luax_callback_data_get_data (cb_data, &L, (void **) &sock);
 
   in = g_io_stream_get_input_stream (G_IO_STREAM (sock->conn));
   assert (in == G_INPUT_STREAM (source));
 
-  socket_callback_data_unref (cb_data);
+  luax_callback_data_unref (cb_data);
   assert (lua_type (L, -1) == LUA_TFUNCTION);
 
   error = NULL;
@@ -529,7 +454,7 @@ l_socket_receive (lua_State *L)
 {
   socket_t *sock;
   lua_Unsigned n;
-  socket_callback_data_t *cb_data;
+  luax_callback_data_t *cb_data;
   GInputStream *in;
   char *buf;
 
@@ -544,7 +469,7 @@ l_socket_receive (lua_State *L)
   assert (buf != NULL);
 
   lua_pushcclosure (L, l_socket_receive_callback_closure, 4);
-  cb_data = socket_callback_data_ref (L, sock);
+  cb_data = luax_callback_data_ref (L, sock);
 
   in = g_io_stream_get_input_stream (G_IO_STREAM (sock->conn));
   g_input_stream_read_async (in, buf, n, G_PRIORITY_DEFAULT,
@@ -568,20 +493,20 @@ l_socket_receive (lua_State *L)
 static void
 send_finished (GObject *source, GAsyncResult *result, gpointer data)
 {
-  socket_callback_data_t *cb_data;
+  luax_callback_data_t *cb_data;
   lua_State *L;
   socket_t *sock;
   GOutputStream *out;
   GError *error;
   gssize n_sent;
 
-  cb_data = (socket_callback_data_t *) data;
-  socket_callback_data_get_data (cb_data, &L, &sock);
+  cb_data = (luax_callback_data_t *) data;
+  luax_callback_data_get_data (cb_data, &L, (void **) &sock);
 
   out = g_io_stream_get_output_stream (G_IO_STREAM (sock->conn));
   assert (out == G_OUTPUT_STREAM (source));
 
-  socket_callback_data_unref (cb_data);
+  luax_callback_data_unref (cb_data);
   assert (lua_type (L, -1) == LUA_TFUNCTION);
 
   error = NULL;
@@ -647,7 +572,7 @@ l_socket_send (lua_State *L)
   socket_t *sock;
   const char *data;
   size_t n;
-  socket_callback_data_t *cb_data;
+  luax_callback_data_t *cb_data;
   GOutputStream *out;
 
   sock = socket_check (L, 1, NULL, NULL);
@@ -658,7 +583,7 @@ l_socket_send (lua_State *L)
   luaL_checktype (L, 3, LUA_TFUNCTION);
 
   lua_pushcclosure (L, l_socket_send_callback_closure, 3);
-  cb_data = socket_callback_data_ref (L, sock);
+  cb_data = luax_callback_data_ref (L, sock);
 
   out = g_io_stream_get_output_stream (G_IO_STREAM (sock->conn));
   g_output_stream_write_async (out, data, n, G_PRIORITY_DEFAULT,
@@ -686,7 +611,6 @@ luaopen_nclua_event_tcp_socket (lua_State *L)
 {
   G_TYPE_INIT_WRAPPER ();
   lua_newtable (L);
-  socket_registry_create (L);
   luax_newmetatable (L, SOCKET);
   luaL_setfuncs (L, socket_funcs, 0);
   return 1;
