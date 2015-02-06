@@ -93,7 +93,7 @@ end
 -- Cycles the TCP engine once.
 --
 
--- Dispatch the TCP event EVT.
+-- Dispatch TCP event EVT.
 local function dispatch (evt)
    evt.class = tcp.class
    tcp.OUTQ:enqueue (evt)
@@ -147,7 +147,7 @@ function tcp:cycle ()
       if evt.type == 'connect' then
          local host = assert (evt.host)
          local port = assert (evt.port)
-         local sock = socket.new (evt.timeout or 0)
+         local sock = assert (socket.new (evt.timeout or 0))
          sock:connect (host, port, connect_finished)
 
       elseif evt.type == 'data' then
