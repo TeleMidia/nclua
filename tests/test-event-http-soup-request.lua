@@ -56,8 +56,8 @@ ASSERT_ERROR (soup.request, session, 'GET', URI, {['X-test']='\n'}, '',
 
 -- Force an HTTP error.
 local DONE = false
-local function request_cb (status, soup, code, headers, body)
-   TRACE (status, soup, code)
+local function request_cb (status, soup, method, uri, code, headers, body)
+   TRACE (status, method, uri, soup, code)
    -- tests.dump (headers)
    -- TRACE (body)
    ASSERT (status == true)
@@ -72,8 +72,8 @@ CYCLE_UNTIL (function () return DONE end)
 -- Make a successful request and checks the response body.
 local response_body = ''
 local DONE = false
-local function request_cb (status, soup, code, headers, body)
-   TRACE (status, soup, code)
+local function request_cb (status, soup, method, uri, code, headers, body)
+   TRACE (status, soup, method, uri, code)
    tests.dump (headers)
    ASSERT (status == true)
    ASSERT (code == 200)

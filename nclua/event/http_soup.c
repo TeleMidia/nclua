@@ -144,13 +144,19 @@ l_soup_is_soup (lua_State *L)
  * is finished, i.e., when the response is available.
  *
  * If the response was successfully received, calls CALLBACK as follows:
- * CALLBACK(true, soup, status_code, headers, body), where STATUS_CODE is
- * the HTTP status code associated with the response, HEADERS is a table
- * containing the response headers, and BODY is a string containing the
- * response body.
+ *
+ *     CALLBACK(true, soup, method, uri, status_code, headers, body),
+ *
+ * where STATUS_CODE is the HTTP status code associated with the response,
+ * HEADERS is a table containing the response headers, and BODY is a string
+ * containing the response body.
  *
  * Otherwise, if the response could no be received, calls CALLBACK as
- * follows: CALLBACK(false, soup, errmsg), where ERRMSG is an error message.
+ * follows:
+ *
+ *     CALLBACK(false, soup, method, uri, errmsg),
+ *
+ * where ERRMSG is an error message.
  */
 static void
 request_finished (arg_unused (SoupSession *session),
@@ -202,13 +208,15 @@ l_soup_request_callback_closure (lua_State *L)
 
       lua_pushvalue (L, 1);     /* true */
       luax_pushupvalue (L, 1);  /* soup */
+      luax_pushupvalue (L, 2);  /* method */
+      luax_pushupvalue (L, 3);  /* uri */
       lua_pushvalue (L, 2);     /* status_code */
       lua_pushvalue (L, 3);     /* headers */
       lua_pushvalue (L, 4);     /* body */
 
-      luax_pushupvalue (L, 2);  /* callback */
-      lua_insert (L, -6);
-      lua_call (L, 5, 0);
+      luax_pushupvalue (L, 4);  /* callback */
+      lua_insert (L, -8);
+      lua_call (L, 7, 0);
     }
   else
     {
@@ -217,11 +225,13 @@ l_soup_request_callback_closure (lua_State *L)
 
       lua_pushvalue (L, 1);     /* false */
       luax_pushupvalue (L, 1);  /* soup */
+      luax_pushupvalue (L, 2);  /* method */
+      luax_pushupvalue (L, 3);  /* uri */
       lua_pushvalue (L, 2);     /* errmsg */
 
-      luax_pushupvalue (L, 2);  /* callback */
-      lua_insert (L, -4);
-      lua_call (L, 3, 0);
+      luax_pushupvalue (L, 4);  /* callback */
+      lua_insert (L, -6);
+      lua_call (L, 5, 0);
     }
   return 0;
 }
@@ -274,8 +284,10 @@ l_soup_request (lua_State *L)
     }
 
   lua_pushvalue (L, 1);         /* soup */
+  lua_pushvalue (L, 2);         /* method */
+  lua_pushvalue (L, 3);         /* uri */
   lua_pushvalue (L, 6);         /* callback */
-  lua_pushcclosure (L, l_soup_request_callback_closure, 2);
+  lua_pushcclosure (L, l_soup_request_callback_closure, 4);
   cb_data = luax_callback_data_ref (L, soup);
 
   soup_session_queue_message (soup->session, message,
