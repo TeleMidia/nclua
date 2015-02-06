@@ -282,7 +282,7 @@ _luax_dump_stack (lua_State *L, int depth)
 #else
 # define luax_dump_value(L, i)  /* nothing */
 # define luax_dump_table(L, i)  /* nothing */
-# define luax_dump_stack(L, i)  /* nothing */
+# define luax_dump_stack(L)     /* nothing */
 #endif /* DEBUG */
 
 #endif /* LUAX_MACROS_H */
