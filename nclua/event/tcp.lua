@@ -143,7 +143,7 @@ end
 function tcp:cycle ()
    while not tcp.INQ:is_empty () do
       local evt = tcp.INQ:dequeue ()
-      assert (evt.class == 'tcp')
+      assert (evt.class == tcp.class)
       if evt.type == 'connect' then
          local host = assert (evt.host)
          local port = assert (evt.port)
