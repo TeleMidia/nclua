@@ -111,7 +111,7 @@ __l_soup_gc (lua_State *L)
 }
 
 /*-
- * soup:cycle ()
+ * soup.cycle ()
  *
  * Cycles the soup engine one, i.e., process the pending requests for all
  * sessions, triggering the appropriate callbacks.
