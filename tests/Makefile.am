@@ -179,6 +179,9 @@ scripts += test-event-tcp-api.lua
 scripts += test-event-tcp-check.lua
 scripts += test-event-tcp-filter.lua
 scripts += test-event-tcp-engine.lua
+# event.http (handler plugin)
+scripts += test-event-http-api.lua
+scripts += test-event-http-check.lua
 # event.http_soup
 scripts += test-event-http-soup-api.lua
 scripts += test-event-http-soup-new.lua
