@@ -37,6 +37,19 @@ typedef struct _soup_t
   SoupSession *session;         /* session handle */
 } soup_t;
 
+/* Check if the object at index INDEX is a soup object.
+   If SESSION is non-null, stores the object's session
+   handle in *SESSION.  */
+
+static inline soup_t *
+soup_check (lua_State *L, int index, SoupSession **session)
+{
+  soup_t *soup;
+  soup = (soup_t *) luaL_checkudata (L, index, SOUP);
+  test_and_set (session != NULL, *session, soup->session);
+  return soup;
+}
+
 /* List of known HTTP methods.  */
 static const char *const soup_method_list[] = {
   "GET", "POST", NULL
@@ -52,42 +65,27 @@ static const char *const soup_method_list[] = {
   (lua_pushfstring (L, "invalid header %s '%s'", field, value), \
    lua_error (L))
 
-/* Soup callback-data object data.  */
-typedef struct _soup_callback_data_t
-{
-  lua_State *L;
-  soup_t *soup;
-  int ref;
-} soup_callback_data_t;
-
-/* Check if the object at index INDEX is a soup object.
-   If SESSION is non-null, stores the object's session
-   handle in *SESSION.  */
-
-static inline soup_t *
-soup_check (lua_State *L, int index, SoupSession ** session)
-{
-  soup_t *soup;
-  soup = (soup_t *) luaL_checkudata (L, index, SOUP);
-  test_and_set (session != NULL, *session, soup->session);
-  return soup;
-}
-
 /*-
- * soup.new ([options:table])
- * soup:new ([options:table])
+ * soup.new ([timeout:number])
+ * soup:new ([timeout:number])
  *     -> soup:userdata
  *
  * Creates a new soup session.
+ *
+ * If TIMEOUT is given, set the timeout for soup:request() to TIMEOUT
+ * seconds.
  */
 static int
 l_soup_new (lua_State *L)
 {
   soup_t *soup;
+  guint timeout;
 
   luax_optudata (L, 1, SOUP);
+  timeout = (guint) clamp (luaL_optint (L, 2, 0), 0, INT_MAX);
   soup = (soup_t *) lua_newuserdata (L, sizeof (*soup));
-  soup->session = soup_session_new ();
+  assert (soup != NULL);
+  soup->session = soup_session_new_with_options ("timeout", timeout, NULL);
   assert (soup->session != NULL);
   luaL_setmetatable (L, SOUP);
 

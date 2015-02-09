@@ -62,8 +62,9 @@ function http:check (evt)
    end
    check.event.option ('method', evt.method, method_list)
    check.event.string ('uri', evt.uri)
-   check.event.table ('headers', evt.headers)
-   check.event.string ('body', evt.body)
+   check.event.table ('headers', evt.headers, {})
+   check.event.string ('body', evt.body, '')
+   check.event.number ('timeout', evt.timeout, 0)
    return evt
 end
 
@@ -82,7 +83,7 @@ function http:filter (class, uri, method, session)
    if session ~= nil then
       check_arg_soup ('session', session)
    end
-   return {class=http.class, uri=uri, method=method, session=soup}
+   return {class=http.class, uri=uri, method=method, session=session}
 end
 
 ---
@@ -111,12 +112,12 @@ function http:cycle ()
       assert (evt.class == http.class)
       local session = evt.session
       if session == nil then
-         session = soup:new ()
+         session = soup:new (evt.timeout or 0)
       end
-      local method = assert (evt.method)
+      local method = (assert (evt.method)):upper ()
       local uri = assert (evt.uri)
-      local headers = assert (evt.headers)
-      local body = assert (evt.body)
+      local headers = assert (evt.headers or {})
+      local body = assert (evt.body or '')
       session:request (method, uri, headers, body, request_finished)
    end
    soup.cycle ()
