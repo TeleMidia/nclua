@@ -20,7 +20,7 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 int
 main (void)
 {
-  /* Check if call fails when 'require' fails.   */
+  /* Check if call fails when require fails.   */
   TEST_BEGIN
   {
     lua_State *L;
@@ -29,8 +29,8 @@ main (void)
 
     saved_path = g_getenv ("LUA_PATH");
     saved_cpath = g_getenv ("LUA_CPATH");
-    g_setenv ("LUA_PATH", INVALID_PATH, TRUE);
-    g_setenv ("LUA_CPATH", INVALID_PATH, TRUE);
+    ASSERT (g_setenv ("LUA_PATH", INVALID_PATH, TRUE));
+    ASSERT (g_setenv ("LUA_CPATH", INVALID_PATH, TRUE));
 
     L = LUA_NEWSTATE ();
     ASSERT (nclua_open (L, 800, 600, NULL) != LUA_OK);
@@ -38,8 +38,8 @@ main (void)
     ASSERT_LUA_GETTOP (L, 1);
     lua_close (L);
 
-    g_setenv ("LUA_PATH", saved_path, TRUE);
-    g_setenv ("LUA_CPATH", saved_cpath, TRUE);
+    ASSERT (g_setenv ("LUA_PATH", saved_path, TRUE));
+    ASSERT (g_setenv ("LUA_CPATH", saved_cpath, TRUE));
   }
   TEST_END;
 
@@ -74,7 +74,7 @@ main (void)
   {
     lua_State *L;
     const char *unknown[] = {"unknown", NULL};
-    const char *invalid[] = {"socket", NULL};
+    const char *invalid[] = {"stopwatch", NULL};
 
     L = LUA_NEWSTATE ();
 
@@ -95,7 +95,8 @@ main (void)
   /* Check valid call.  */
   TEST_BEGIN
   {
-    const char *list[] = {"key", "ncl", "pointer", "tcp", "user", NULL};
+    const char *list[] = {"http", "key", "ncl", "pointer",
+                          "tcp", "user", NULL};
     lua_State *L;
 
     L = LUA_NEWSTATE ();
