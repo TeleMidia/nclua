@@ -29,7 +29,6 @@ local pairs = pairs
 local type = type
 
 local event = event
-
 _ENV = nil
 
 -- Table of pending connection requests.  Maps a co-routine object to a
@@ -60,6 +59,17 @@ local function current ()
    return co, assert (ESTABLISHED[co])
 end
 
+---
+-- Executes function F under blocking TCP context.
+--
+function tcp.execute (f, ...)
+   resume (coroutine.create (f), ...)
+end
+
+---
+-- Connects to host HOST at port PORT.
+-- Returns true if successful, otherwise returns false plus error message.
+--
 local function connect_finished (e)
    for co, t in pairs (PENDING) do
       if t.host == e.host and t.port == e.port then
@@ -78,41 +88,6 @@ local function connect_finished (e)
 end
 event.register (connect_finished, {class='tcp', type='connect'})
 
-local function disconnect_finished (e)
-   local co = ESTABLISHED_REV[e.connection]
-   if co == nil then
-      return false              -- nothing to do
-   end
-   resume (co, e.error == nil, e.error)
-   return true                  -- consume event
-end
-event.register (disconnect_finished, {class='tcp', type='disconnect'})
-
-local function receive_finished (e)
-   local co = ESTABLISHED_REV[e.connection]
-   if co == nil then
-      return false              -- nothing to do
-   end
-   if e.error == nil then
-      resume (co, e.value)
-   else
-      resume (co, false, e.error)
-   end
-   return true                  -- consume event
-end
-event.register (receive_finished, {class='tcp', type='data'})
-
----
--- Execute function F.
---
-function tcp.execute (f, ...)
-   resume (coroutine.create (f), ...)
-end
-
----
--- Connects to host HOST at port PORT.
--- Returns true if successful, otherwise returns false plus error message.
---
 function tcp.connect (host, port)
    local co = assert (coroutine.running ())
    PENDING[co] = {
@@ -135,6 +110,16 @@ end
 -- Closes the current connection.
 -- Returns true if successful, otherwise returns false plus error message.
 --
+local function disconnect_finished (e)
+   local co = ESTABLISHED_REV[e.connection]
+   if co == nil then
+      return false              -- nothing to do
+   end
+   resume (co, e.error == nil, e.error)
+   return true                  -- consume event
+end
+event.register (disconnect_finished, {class='tcp', type='disconnect'})
+
 function tcp.disconnect (data)
    local _, conn = current ()
    return event.post {
@@ -163,6 +148,20 @@ end
 -- Returns the received data if successful, otherwise returns false plus
 -- error message.
 --
+local function receive_finished (e)
+   local co = ESTABLISHED_REV[e.connection]
+   if co == nil then
+      return false              -- nothing to do
+   end
+   if e.error == nil then
+      resume (co, e.value)
+   else
+      resume (co, false, e.error)
+   end
+   return true                  -- consume event
+end
+event.register (receive_finished, {class='tcp', type='data'})
+
 function tcp.receive ()
    local co, _ = current ()
    return coroutine.yield (co)
