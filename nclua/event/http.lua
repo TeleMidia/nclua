@@ -98,6 +98,7 @@ end
 
 local function request_finished (status, session, method, uri,
                                  code, headers, body)
+   local method = method:lower ()
    if status then
       dispatch {session=session, method=method, uri=uri, code=code,
                 headers=headers, body=body}
