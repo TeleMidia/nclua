@@ -15,31 +15,51 @@ License for more details.
 You should have received a copy of the GNU General Public License
 along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  ]]--
 
--- Makes a simple HTTP request using the basic TCP API and
--- outputs the received header and content on stdout.
+-- Make a simple HTTP request using the TCP API and print the response.
 
 local assert = assert
+local coroutine = coroutine
+local ipairs = ipairs
+local os = os
 local print = print
 local tonumber = tonumber
+local tostring = tostring
 
+local canvas = canvas
 local event = event
 local tcp = assert (require 'tcp')
 
 _ENV = nil
 
+-- Screen size.
+local WIDTH, HEIGHT = canvas:attrSize ()
+
+-- Colors (background, foreground, and footer).
+local BG_COLOR, FG_COLOR, FT_COLOR = 'black', 'lime', 'blue'
+canvas:attrColor (BG_COLOR)
+canvas:clear ()
+
+-- Font.
+canvas:attrFont ('monospace', 12)
+
 local function normalize (s)
    return s:gsub ('\r', '')
 end
 
-local function separator (text)
-   local maxcol = 76
-   if #text >= maxcol then return text end
-   local pad = ('-'):rep ((maxcol - #text)/2)
-   return pad..text..pad
+local function clamp (x, min, max)
+   if x < min then return min end
+   if x > max then return max end
+   return x
 end
 
+-- Main.
 tcp.execute (
    function ()
+      local text = 'Connecting to server...'
+      local w, h = canvas:measureText (text)
+      canvas:attrColor (FG_COLOR)
+      canvas:drawText ((WIDTH - w)/2, (HEIGHT - h)/2, text)
+      canvas:flush ()
 
       -- Connect to server.
       assert (tcp.connect ('www.telemidia.puc-rio.br', 80))
@@ -53,7 +73,6 @@ Accept-Language: en-US,en
 Accept-Encoding: identity
 
 ]]))
-
       -- Collect header.
       local buf = ''
       local init, i, j, tries = 1, nil, nil, 50
@@ -72,25 +91,73 @@ Accept-Encoding: identity
       end
 
       local header = assert (normalize (buf:sub (1, i - 1)))
-      local content = assert (normalize (buf:sub (j + 1)))
+      local body = assert (normalize (buf:sub (j + 1)))
 
-      -- Collect content.
+      -- Collect body.
       local length = tonumber (buf:match ('Content%-Length:%s*(%d+)'))
+      assert (length > 0)
       repeat
-         content = content .. normalize (assert (tcp.receive ()))
-      until #content >= length
-      content = content:sub (1, length) -- trim
-
-      -- Print content.
-      print (separator ('Begin Header'))
-      print (header)
-      print (separator ('End Header'))
-      print (separator ('Begin Content'))
-      print (content)
-      print (separator ('End Content'))
+         body = body .. normalize (assert (tcp.receive ()))
+      until #body >= length
+      body = body:sub (1, length) -- trim
       tcp.disconnect ()
 
-      -- Done.
-      event.post {class='ncl', type='presentation', action='stop', label=''}
+      -- Print body.
+      local pages = {{text='', height=0}}
+      local i = 1
+      for line in body:gmatch ('(.-\n)') do
+         local w, h = canvas:measureText (line)
+         if pages[i].height + h > HEIGHT then
+            i = i + 1
+            pages[i] = {text=line, height=h}
+         else
+            pages[i].text = pages[i].text..line
+            local _, height = canvas:measureText (pages[i].text)
+            pages[i].height = height
+         end
+      end
+      local co = assert (coroutine.running ())
+      local CURRENT_PAGE = 1
+      event.register (
+         function (e)
+            if e.key == 'q' then -- done
+               event.post {
+                  class='ncl',
+                  type='presentation',
+                  action='stop',
+                  label='',
+               }
+               return true      -- consume
+            end
+            if e.key == 'PAGE_UP' or e.key == 'BACKSPACE' then
+               CURRENT_PAGE = clamp (CURRENT_PAGE - 1, 1, #pages)
+            elseif e.key == 'PAGE_DOWN' or e.key == 'SPACE' then
+               CURRENT_PAGE = clamp (CURRENT_PAGE + 1, 1, #pages)
+            elseif e.key == 'HOME' then
+               CURRENT_PAGE = 1
+            elseif e.key == 'END' then
+               CURRENT_PAGE = #pages
+            end
+            canvas:attrColor (BG_COLOR)
+            canvas:clear ()
+            canvas:attrColor (FG_COLOR)
+            canvas:drawText (0, 0, pages[CURRENT_PAGE].text)
+
+            -- Print footer.
+            local text = ("Press <SPACE>/<BACKSPACE> to scroll or 'q' to quit -- %d%%")
+               :format (CURRENT_PAGE * 100 / #pages)
+            local w, h = canvas:measureText (text)
+            canvas:attrColor (FT_COLOR)
+            canvas:drawText (0, HEIGHT - h, text)
+            canvas:flush ()
+
+            coroutine.resume (co)
+         end,
+         {class='key', type='press'}
+      )
+      event.post ('in', {class='key', type='press', key='ENTER'})
+      while true do
+         coroutine.yield ()
+      end
    end
 )
