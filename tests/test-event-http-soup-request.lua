@@ -30,7 +30,7 @@ local function CYCLE_UNTIL (func)
 end
 
 -- A valid URI.
-local URI = 'https://github.com/gflima/nclua/raw/master/README.md'
+local URI = 'https://github.com/gflima/nclua/raw/master/AUTHORS'
 
 -- Sanity checks.
 local session = soup.new ()
@@ -81,8 +81,8 @@ local function request_cb (status, soup, method, uri, code, headers, body)
    DONE = true
 end
 
-session:request ('GET', URI, {}, '', request_cb)
+session:request ('GET', URI, {Accept='text/plain'}, '', request_cb)
 CYCLE_UNTIL (function () return DONE end)
 
-local readme = tests.read_file (tests.mk.top_srcdir..'/README.md')
-ASSERT (response_body == readme)
+local authors = tests.read_file (tests.mk.top_srcdir..'/AUTHORS')
+ASSERT (response_body == authors)

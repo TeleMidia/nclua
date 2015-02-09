@@ -42,7 +42,7 @@ end
 http:send {
    class='http',
    method='GET',
-   uri='https://github.com/gflima/nclua/raw/master/README.md',
+   uri='https://github.com/gflima/nclua/raw/master/AUTHORS',
 }
 
 local evt = AWAIT ()
@@ -52,7 +52,7 @@ for k,v in pairs (evt.headers) do
 end
 TRACE('get:', evt.class, evt.method, evt.uri, evt.session,
       headers, evt.body)
-local readme = tests.read_file (tests.mk.top_srcdir..'/README.md')
+local readme = tests.read_file (tests.mk.top_srcdir..'/AUTHORS')
 ASSERT (evt.body == readme)
 
 -- Force an error.
