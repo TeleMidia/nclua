@@ -47,7 +47,7 @@ static const int _ncluaw_magic = 0;
 
 /* List of NCLua Event plugins to be loaded by ncluaw_open().  */
 static const char *plugin_list[] = {
-  "key", "ncl", "pointer", "tcp", "user", NULL
+  "http", "key", "ncl", "pointer", "tcp", "user", NULL
 };
 
 /* Fail-safe malloc.  */
