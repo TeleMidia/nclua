@@ -35,12 +35,6 @@ NCLua TODO -- Tasks that need implementing.                    -*-outline-*-
 
     If no input file is given, nclua should read input from stdin.
 
-  + nclua/event: Add new event classes
-
-    Some useful classes:
-      http/https    HTTP/HTTPS support (maybe via libsoup)
-      crypto        basic cryptography
-
   + src/nclua.c: Add widgets to the player window
 
     It would be useful to have a menu bar and status bar.  The latter, for
