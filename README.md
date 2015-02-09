@@ -5,8 +5,8 @@ libnclua, either through the C API or by requiring the appropriated modules
 -- e.g., `canvas` for 2D graphics, `event` for general event handling,
 `event.stopwatch` for stopwatch timers, `event.tcp_socket` for asynchronous
 TCP sockets, `event.http_soup` for asynchronous HTTP requests, etc.  The
-NCLua library comes with a standalone interpreter, called nclua
-(cf. src/nclua.c), which can be used to run standalone NCLua scripts.
+NCLua library comes with a standalone interpreter, called `nclua`
+(cf. `src/nclua.c`), which can be used to run standalone NCLua scripts.
 
 For stable releases and binaries, cf.
 http://www.telemidia.puc-rio.br/~gflima/software/nclua.
@@ -25,7 +25,7 @@ Dependencies
 * Cairo >= 1.10, http://cairographics.org
 * GLib >= 2.32, https://developer.gnome.org/glib
 * Pango >= 1.30, http://www.pango.org
-* Libsoup >= 2.42, https://developer.gnome.org/libsoup/
+* Libsoup >= 2.42, https://developer.gnome.org/libsoup
 * GTK+ >= 3.4.2, http://www.gtk.org
 
 GTK+ is optional; if it is not present, the standalone NCLua interpreter is
@@ -34,9 +34,9 @@ not built.
 Event API
 ---------
 
-For a complete reference, cf. *User API* section in `nclua/event/init.lua`.
+For a complete reference, cf. User API section in `nclua/event/init.lua`.
 
-Event Classes:
+Event classes:
 * `ncl`      NCL (Nested Context Language) events
 * `key`      keyboard input
 * `pointer`  mouse input
