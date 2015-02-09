@@ -179,14 +179,16 @@ scripts += test-event-tcp-api.lua
 scripts += test-event-tcp-check.lua
 scripts += test-event-tcp-filter.lua
 scripts += test-event-tcp-engine.lua
-# event.http (handler plugin)
-scripts += test-event-http-api.lua
-scripts += test-event-http-check.lua
 # event.http_soup
 scripts += test-event-http-soup-api.lua
 scripts += test-event-http-soup-new.lua
 scripts += test-event-http-soup-is-soup.lua
 scripts += test-event-http-soup-request.lua # requires network
+# event.http (handler plugin)
+scripts += test-event-http-api.lua
+scripts += test-event-http-check.lua
+scripts += test-event-http-filter.lua
+scripts += test-event-http-engine.lua
 # event.user (handler plugin)
 scripts += test-event-user-api.lua
 scripts += test-event-user-check.lua

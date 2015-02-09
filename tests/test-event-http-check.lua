@@ -42,10 +42,8 @@ ASSERT_ERROR_CHECK {class='unknown'}
 -- Check bad session.
 ASSERT_ERROR_CHECK {class='http', session=0}
 
--- Check missing method.
+-- Check missing or bad method.
 ASSERT_ERROR_CHECK {class='http'}
-
--- Check bad method.
 ASSERT_ERROR_CHECK {class='http', method='unknown'}
 
 -- Check missing or bad URI.
@@ -53,14 +51,11 @@ ASSERT_ERROR_CHECK {class='http', method='get'}
 ASSERT_ERROR_CHECK {class='http', session=soup:new (),
                     method='get', uri={}}
 
--- Check missing or bad headers.
-ASSERT_ERROR_CHECK {class='http', method='post', uri='http://github.com/'}
+-- Check bad headers.
 ASSERT_ERROR_CHECK {class='http', method='post', uri='http://github.com/',
                     headers=function () end}
 
--- Check missing or bad body.
-ASSERT_ERROR_CHECK {class='http', method='post', uri='http://github.com/',
-                    headers={}, body=nil}
+-- Check bad body.
 ASSERT_ERROR_CHECK {class='http', method='post', uri='http://github.com/',
                     headers={}, body=function ()end}
 
@@ -68,7 +63,7 @@ ASSERT_ERROR_CHECK {class='http', method='post', uri='http://github.com/',
 local evt = {class='http', method='post',
              uri='http://www.telemidia.puc-rio.br/',
              headers={['Content-Type']='text/html'},
-             body='xyz'}
+             body='moving'}
 
 ASSERT (http:check (evt))
 

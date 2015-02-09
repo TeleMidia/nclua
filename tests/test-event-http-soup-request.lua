@@ -69,7 +69,7 @@ session:request ('POST', 'http://laws.deinf.ufma.br/404', {}, '',
                  request_cb)
 CYCLE_UNTIL (function () return DONE end)
 
--- Make a successful request and checks the response body.
+-- Make a successful request and check the response body.
 local response_body = ''
 local DONE = false
 local function request_cb (status, soup, method, uri, code, headers, body)

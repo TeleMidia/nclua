@@ -23,9 +23,19 @@ local ASSERT_CHECK_OBJECT = tests.ASSERT_CHECK_OBJECT
 local soup = require ('nclua.event.http_soup')
 _ENV = nil
 
+-- Sanity checks.
+ASSERT_ERROR (soup.new, {})
+
 -- Check the returned soup object type.
-local soup = soup.new ()
-ASSERT_CHECK_OBJECT (soup, 'nclua.event.http_soup')
+local session = soup.new ()
+ASSERT_CHECK_OBJECT (session, 'nclua.event.http_soup')
 
 -- Check variations to the 'new' call.
 ASSERT (soup.new ())
+ASSERT (soup.new (0))
+ASSERT (soup:new ())
+ASSERT (soup:new (0))
+ASSERT (session.new ())
+ASSERT (session.new (0))
+ASSERT (session:new ())
+ASSERT (session:new (0))
