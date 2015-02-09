@@ -1,4 +1,4 @@
-/* luax-callback.h -- Macros for passing Lua objects to C callbacks.
+/* luax-callback.h -- Functions for passing Lua objects to C callbacks.
    Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
 
 This file is part of NCLua.
