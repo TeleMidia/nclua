@@ -19,11 +19,9 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  ]]--
 
 local assert = assert
 local coroutine = coroutine
-local ipairs = ipairs
 local os = os
 local print = print
 local tonumber = tonumber
-local tostring = tostring
 
 local canvas = canvas
 local event = event

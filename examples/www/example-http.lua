@@ -23,7 +23,6 @@ local ipairs = ipairs
 local os = os
 local pairs = pairs
 local print = print
-local table = table
 
 local canvas = canvas
 local event = event

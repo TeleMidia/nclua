@@ -26,7 +26,6 @@ local tcp = {}
 local assert = assert
 local coroutine = coroutine
 local pairs = pairs
-local type = type
 
 local event = event
 _ENV = nil
