@@ -176,19 +176,19 @@ request_finished (arg_unused (SoupSession *session),
       const char *name;
       const char *value;
 
-      lua_pushboolean (L, TRUE);                 /* true */
-      lua_pushinteger (L, message->status_code); /* status_code */
-      lua_newtable (L);                          /* headers */
+      lua_pushboolean (L, TRUE);
+      lua_pushinteger (L, message->status_code);
+      lua_newtable (L);
       soup_message_headers_iter_init (&it, message->response_headers);
       while (soup_message_headers_iter_next (&it, &name, &value))
         luax_setstringfield (L, -1, name, value);
-      lua_pushlstring (L, message->response_body->data, /* body */
+      lua_pushlstring (L, message->response_body->data,
                        (size_t) message->response_body->length);
       lua_call (L, 4, 0);
     }
   else
     {
-      lua_pushboolean (L, FALSE); /* false, errmsg */
+      lua_pushboolean (L, FALSE);
       lua_pushstring (L, soup_status_get_phrase (message->status_code));
       lua_call (L, 2, 0);
     }
@@ -255,7 +255,7 @@ l_soup_request (lua_State *L)
 
   message = soup_message_new (soup_method_list[method], uri);
   if (unlikely (message == NULL))
-    return error_throw_invalid_uri(L, uri);
+    return error_throw_invalid_uri (L, uri);
 
   soup_message_body_append (message->request_body,
                             SOUP_MEMORY_COPY, body, n);
@@ -275,8 +275,8 @@ l_soup_request (lua_State *L)
           if (strpbrk (value, "\r\n"))
             return error_throw_invalid_header (L, "value", value);
 
-          soup_message_headers_append (message->request_headers,
-                                       name, value);
+          soup_message_headers_append (message->request_headers, name,
+                                       value);
         }
       lua_pop (L, 1);
     }

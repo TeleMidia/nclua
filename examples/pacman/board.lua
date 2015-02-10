@@ -31,7 +31,6 @@ Board = {
    pacman = nil,
 }
 
-
 -- Public methods.
 
 
@@ -77,7 +76,6 @@ function Board:new (pathname)
    return o
 end
 
-
 
 -- Returns Ghosts array.
 
@@ -85,14 +83,12 @@ function Board:get_ghosts ()
    return self.ghosts
 end
 
-
 
 -- Returns Pacman.
 
 function Board:get_pacman ()
    return self.pacman
 end
-
 
 
 -- Returns the coordinates of (I,J)'s next cell in direction DIR.
@@ -109,7 +105,6 @@ function Board:next (i, j, dir)
    end
    return i, j
 end
-
 
 
 -- Reset all actors to their initial configuration.

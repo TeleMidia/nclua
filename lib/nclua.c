@@ -75,7 +75,8 @@ require (lua_State *L, const char *name)
  * an error message onto stack.
  */
 int
-nclua_open (lua_State *L, int width, int height, const char *const *plugins)
+nclua_open (lua_State *L, int width, int height,
+            const char *const *plugins)
 {
   int top;
   int err;

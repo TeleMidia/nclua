@@ -160,7 +160,7 @@ cairox_surface_create_from_file (const char *path, cairo_surface_t **dup)
   if (unlikely (pixbuf == NULL))
     {
       cairo_status_t status = (error->domain == G_FILE_ERROR)
-        ? CAIRO_STATUS_FILE_NOT_FOUND : CAIRO_STATUS_READ_ERROR;
+          ? CAIRO_STATUS_FILE_NOT_FOUND : CAIRO_STATUS_READ_ERROR;
       g_error_free (error);
       return status;
     }
@@ -219,7 +219,8 @@ cairox_surface_get_rotation_bounding_box (cairo_surface_t *src,
    CAIRO_STATUS_SUCCESS if successful, or an error status otherwise.  */
 
 static cairo_status_t
-cairox_surface_rotate_and_flip (cairo_surface_t *src, cairo_surface_t **dup,
+cairox_surface_rotate_and_flip (cairo_surface_t *src,
+                                cairo_surface_t **dup,
                                 double r, int fx, int fy)
 {
   cairo_surface_t *sfc;

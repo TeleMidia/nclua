@@ -33,7 +33,6 @@ Display = {
    ghosts_frame = nil,
 }
 
-
 -- Module globals.
 
 -- Screen dimensions.
@@ -104,7 +103,6 @@ do
                                                ..suffixes[i]..'.png')
    end
 end
-
 
 -- Exported functions.
 
@@ -184,7 +182,6 @@ function Display:new (board)
    return o
 end
 
-
 
 -- Draws an animation into gameboard at cell (I,J)
 
@@ -195,7 +192,6 @@ function Display:draw_anim (cvs, frame, i, j)
    canvas:compose (x, y, cvs)
 end
 
-
 
 -- Draws a static image into gameboard at cell (I,J).
 
@@ -204,7 +200,6 @@ function Display:draw_img (cvs, i, j)
    local y = self.gameboard.pad_top + (i - 1) * TILE_SIZE
    canvas:compose (x, y, cvs)
 end
-
 
 
 -- Draws scoreboard.
@@ -225,7 +220,6 @@ function Display:draw_scoreboard (level, lives)
          self.scoreboard.pacman_live)
    end
 end
-
 
 
 -- Shows win/lose end message.
@@ -265,7 +259,6 @@ local function end_message (win)
 end
 Display.end_message = end_message
 
-
 
 -- Redraw everything.
 
@@ -300,7 +293,6 @@ function Display:redraw (level, lives)
    else
       self:draw_img (PACMAN_DEAD, pacman.pos.i, pacman.pos.j)
    end
-
 
    -- Draw Ghosts.
    local ghosts = self.board_ref:get_ghosts ()

@@ -207,7 +207,7 @@ main (int argc, char **argv)
   gtk_widget_add_tick_callback (canvas, (GtkTickCallback) cycle_callback,
                                 NULL, NULL);
 #else
-  g_timeout_add (1000/60, (GSourceFunc) cycle_callback, canvas);
+  g_timeout_add (1000 / 60, (GSourceFunc) cycle_callback, canvas);
 #endif
 
   /* NCL */

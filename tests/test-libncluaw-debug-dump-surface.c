@@ -36,7 +36,8 @@ main (void)
     ASSERT (err != LUA_OK);
     TRACE ("%s", luaL_checkstring (L, -1));
 
-    ASSERT (!ncluaw_debug_dump_surface ((ncluaw_t *) L, INVALID_PATH, &msg));
+    ASSERT (!ncluaw_debug_dump_surface
+            ((ncluaw_t *) L, INVALID_PATH, &msg));
     TRACE ("%s", msg);
 
     ASSERT (streq (luaL_checkstring (L, -1), msg));

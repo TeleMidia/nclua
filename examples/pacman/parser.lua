@@ -38,7 +38,6 @@ do
    end
 end
 
-
 
 -- Remove non-mapped symbols from STR.  Returns the cleaned string.
 
@@ -55,14 +54,12 @@ local function clean (str)
    return str
 end
 
-
 
 -- Split STR into lines.  Returns the lines table.
 
 local function lines (str)
    return { str:match ((str:gsub ("[^\n]*\n", "([^\n]*)\n"))) }
 end
-
 
 
 -- Parse level STR.  Returns level grid.
@@ -100,7 +97,6 @@ local function _parse (str)
    assert (pacman_found, 'Pacman not found')
    return grid
 end
-
 
 -- Exported functions.
 

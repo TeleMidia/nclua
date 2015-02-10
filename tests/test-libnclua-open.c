@@ -95,8 +95,9 @@ main (void)
   /* Check valid call.  */
   TEST_BEGIN
   {
-    const char *list[] = {"http", "key", "ncl", "pointer",
-                          "tcp", "user", NULL};
+    const char *list[] = {
+      "http", "key", "ncl", "pointer", "tcp", "user", NULL
+    };
     lua_State *L;
 
     L = LUA_NEWSTATE ();

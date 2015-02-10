@@ -99,4 +99,4 @@ luax_callback_data_unref (luax_callback_data_t *cb_data)
   free (cb_data);
 }
 
-#endif  /* LUAX_CALLBACK_H */
+#endif /* LUAX_CALLBACK_H */

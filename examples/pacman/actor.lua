@@ -27,7 +27,6 @@ Actor = {
    board = nil,
 }
 
-
 -- Public methods.
 
 
@@ -39,7 +38,6 @@ function Actor:new ()
    self.__index = self
    return o
 end
-
 
 
 -- Returns an array containing all possible directions.
@@ -57,7 +55,6 @@ function Actor:get_possible_dirs ()
    return dirs
 end
 
-
 
 -- Returns true if actor cannot transpose TILE.
 
@@ -70,7 +67,6 @@ function Actor:is_barrier (tile)
    return false
 end
 
-
 
 -- Updates actor configuration.
 
@@ -81,7 +77,6 @@ function Actor:move ()
    self:collect ()
    self:collisions ()
 end
-
 
 
 -- Updates actor position according to its current direction.
@@ -95,7 +90,6 @@ function Actor:update_pos ()
    self.pos.j = j
 end
 
-
 -- `Abstract' methods.  Specializations must implement these.
 
 
@@ -105,14 +99,12 @@ function Actor:collect ()
    assert (false, 'This method must be implemented')
 end
 
-
 
 -- Check for collisions.
 
 function Actor:collisions ()
    assert (false, 'This method must be implemented')
 end
-
 
 
 -- Sets actor state to NAME.
@@ -121,14 +113,12 @@ function Actor:set_state (name)
    assert (false, 'This method must be implemented')
 end
 
-
 
 -- Returns a snapshot (shallow copy) of this actor.
 
 function Actor:snapshot ()
    assert (false, 'This method must be implemented')
 end
-
 
 
 -- Reset actor to its initial configuration.
@@ -137,14 +127,12 @@ function Actor:reset ()
    assert (false, 'This method must be implemented')
 end
 
-
 
 -- Updates actor direction.
 
 function Actor:update_dir ()
    assert (false, 'This method must be implemented')
 end
-
 
 
 -- Updates actor current state.

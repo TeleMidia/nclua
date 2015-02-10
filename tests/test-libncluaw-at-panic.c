@@ -36,8 +36,8 @@ main (void)
     ncluaw_t *nw;
     lua_State *L;
 
-    nw = ncluaw_open (TOP_SRCDIR "/tests/libnclua-echo.lua",
-                      800, 600, NULL);
+    nw = ncluaw_open (TOP_SRCDIR "/tests/libnclua-echo.lua", 800, 600,
+                      NULL);
     ASSERT (nw != NULL);
 
     ASSERT (ncluaw_at_panic (nw, NULL) == NULL);

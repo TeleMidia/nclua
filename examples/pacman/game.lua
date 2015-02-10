@@ -26,7 +26,6 @@ local function exists (pathname)
    return true
 end
 
-
 
 -- Game main loop.
 
@@ -90,7 +89,6 @@ do
       end
    )
 end
-
 
 
 -- Event handler.

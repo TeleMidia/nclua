@@ -24,7 +24,6 @@ local PACMAN_STATES = {
    ['DEAD'] = { name = 'DEAD' },
 }
 
-
 -- Actor interface implementation.
 
 
@@ -44,7 +43,6 @@ function ActorPacman:new (i, j, board)
    o.state = {}; o:set_state ('OK')
    return o
 end
-
 
 
 function ActorPacman:collect ()
@@ -75,7 +73,6 @@ function ActorPacman:collect ()
    end
 end
 
-
 
 function ActorPacman:collisions ()
    if self.state.name ~= 'OK' then return end
@@ -88,7 +85,6 @@ function ActorPacman:collisions ()
       end
    end
 end
-
 
 
 function ActorPacman:set_state (name)
@@ -111,14 +107,12 @@ function ActorPacman:set_state (name)
    end
 end
 
-
 
 function ActorPacman:reset ()
    self.dir = 'NONE'
    self.pos = { i = self.start_pos.i, j = self.start_pos.j }
    self:set_state ('OK')
 end
-
 
 
 -- Updates Pacman direction using user input.
@@ -142,7 +136,6 @@ function ActorPacman:update_dir ()
       end
    end
 end
-
 
 
 function ActorPacman:update_state ()
