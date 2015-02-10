@@ -26,7 +26,7 @@ bootstrap:
 	./bootstrap
 	./configure CFLAGS="" $(OPTIONS) $(EXTRA)
 
-dist_get_version_from_makefile :=\
+dist_get_version_from_makefile =\
   `perl -wlne '/^VERSION\s*=\s*(.*)$$/ and print $$1;' Makefile`
 
 .PHONY: dist-deb
@@ -90,18 +90,32 @@ VC_LIST_LUA = `$(vc_list) '*.lua'`
 VC_LIST_MK  = `$(vc_list) '*.mk'`
 VC_LIST_SH  = `$(vc_list) '*.sh'`
 
-perl_after_indent_type_list :=\
-  GAsyncResult GObject GdkEventKey GdkFrameClock GtkWidget\
-  cairo_rectangle_int_t cairo_surface_t cairo_t canvas_t lua_State\
-  ncluaw_event_t ncluaw_t socket_callback_data_t socket_t
+perl_after_indent_type_list =\
+  GAsyncResult\
+  GObject\
+  GdkEventKey\
+  GdkFrameClock\
+  GtkWidget\
+  SoupMessage\
+  SoupSession\
+  cairo_rectangle_int_t\
+  cairo_surface_t\
+  cairo_t\
+  canvas_t\
+  lua_State\
+  luax_callback_data_t\
+  ncluaw_event_t\
+  ncluaw_t\
+  socket_t\
+  $(NULL)
 
-perl_after_indent :=\
+perl_after_indent =\
   s:{\s+([\w\"]):{$$1:g;\
   s:([\w\"\-])\s+}:$$1}:g;\
   $$t=join "|", qw($(perl_after_indent_type_list));\
   s:($$t)(\s\*+)\s+(\w):$$1$$2$$3:g;
 
-perl_after_indent_join_empty_lines=\
+perl_after_indent_join_empty_lines =\
   my @files = @ARGV;\
   $$^I = "~";\
   for my $$file (@files) {\
@@ -113,25 +127,29 @@ perl_after_indent_join_empty_lines=\
     }\
   }
 
+INDENT ?= indent
+INDENT_OPTIONS = --else-endif-column0 --gnu-style --indent-label-1\
+  -l76 --leave-preprocessor-space --no-tabs
+
 .PHONY: indent
 indent:
-	@indent -gnu -nut -lps -par -cp0 -il-1 $(VC_LIST_C)
-	@indent -gnu -nut -lps -par -cp0 -il-1 $(VC_LIST_C)
+	@$(INDENT) $(INDENT_OPTIONS) $(VC_LIST_C)
+	@$(INDENT) $(INDENT_OPTIONS) $(VC_LIST_C)
 	@perl -i'~' -wple '$(perl_after_indent)' $(VC_LIST_C)
 	@perl -we '$(perl_after_indent_join_empty_lines)'\
 	  $(VC_LIST_C) $(VC_LIST_LUA)
 
-perl_list_c_names :=\
+perl_list_c_names =\
   (/^()()(\w+)\s*\(/ or /^(static\s+)?(const\s+)?\w+\s+\**(\w+)\s+=/)\
   and print "$$ARGV:$$.:$$3";\
   eof and close ARGV;
 
-perl_list_lua_names :=\
+perl_list_lua_names =\
   (/^(local\s+)?function\s*([\w\.]+?)\s*\(/ or /^(local\s+)?(\w+)\s*=/)\
   and print "$$ARGV:$$.:$$2";\
   eof and close ARGV;
 
-perl_list_mk_names :=\
+perl_list_mk_names =\
   (/^([\w\-]+?):/ or /^(\w+\s*)=/)\
   and print "$$ARGV:$$.:$$1";\
   eof and close ARGV;
@@ -172,7 +190,7 @@ sc-base:
 	@./build-aux/syntax-check\
 	  $(VC_LIST_C) $(VC_LIST_LUA) $(VC_LIST_PL) $(VC_LIST_SH)
 
-perl_sc_copyright_exclude :=\
+perl_sc_copyright_exclude =\
   s:\bexamples/luarocks/.*::g;\
   s:\blib/(macros|luax-macros)\.h\b::g;\
   $(NULL)
@@ -188,15 +206,15 @@ sc-copyright:
 	  $$(echo $(VC_LIST_AM) $(VC_LIST_MK) $(VC_LIST_SH)\
 	   | perl -wple '$(perl_sc_copyright_exclude)')
 
-perl_sc_make_indent :=\
+perl_sc_make_indent =\
   /^\t?\ \S/ and print "$$ARGV:$$.:\n-->$$_\n";\
   eof and close ARGV;
 
 sc-make-indent:
 	@perl -wnle '$(perl_sc_make_indent)' $(VC_LIST_AM) $(VC_LIST_MK)
 
-COPYRIGHT_YEAR := 2015
-COPYRIGHT_HOLDER := PUC-Rio/Laboratorio TeleMidia
+COPYRIGHT_YEAR = 2015
+COPYRIGHT_HOLDER = PUC-Rio/Laboratorio TeleMidia
 perl_update_copyright :=\
   s:(\W*Copyright\s\(C\)\s\d+)-?\d*(\s\Q$(COPYRIGHT_HOLDER)\E\b)\
    :$$1-$(COPYRIGHT_YEAR)$$2:x;
