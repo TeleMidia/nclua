@@ -112,12 +112,22 @@ LUA_LOG_COMPILER = $(_VALGRIND) $(builddir)/lua
 SH_LOG_COMPILER = $(SHELL)
 
 # Setup tests environment.
+canvas_so = canvas$(SOEXT)
+stopwatch_so = stopwatch$(SOEXT)
+if BUILD_EVENT_HTTP
+http_soup_so = http_soup$(SOEXT)
+endif
+if BUILD_EVENT_TCP
+tcp_socket_so = tcp_socket$(SOEXT)
+endif
+LD_PRELOAD = $(canvas_so):$(stopwatch_so):$(http_soup_so):$(tcp_socket_so)
+
 AM_TESTS_ENVIRONMENT =\
   export MALLOC_CHECK_=1;\
   export G_DEBUG="all";\
   export G_SLICE="always-malloc";\
   export LD_LIBRARY_PATH="$(top_builddir)/nclua:$(top_builddir)/nclua/event";\
-  export LD_PRELOAD="canvas$(SOEXT):stopwatch$(SOEXT):tcp_socket$(SOEXT)";\
+  export LD_PRELOAD="$(LD_PRELOAD)";\
   export LUA_PATH="$(top_srcdir)/?.lua;$(top_srcdir)/?/init.lua;$(top_srcdir)/tests/?.lua;;";\
   export LUA_CPATH="$(builddir)/.libs/?$(SOEXT);$(top_builddir)/?$(SOEXT);;";\
   $(NULL)
@@ -165,6 +175,8 @@ scripts += test-event-engine-cycle.lua
 scripts += test-event-stopwatch-api.lua
 scripts += test-event-stopwatch-new.lua
 scripts += test-event-stopwatch-get-time.lua
+
+if BUILD_EVENT_TCP
 # event.tcp_socket
 scripts += test-event-tcp-socket-api.lua
 scripts += test-event-tcp-socket-new.lua
@@ -179,6 +191,9 @@ scripts += test-event-tcp-api.lua
 scripts += test-event-tcp-check.lua
 scripts += test-event-tcp-filter.lua
 scripts += test-event-tcp-engine.lua
+endif
+
+if BUILD_EVENT_HTTP
 # event.http_soup
 scripts += test-event-http-soup-api.lua
 scripts += test-event-http-soup-new.lua
@@ -189,6 +204,8 @@ scripts += test-event-http-api.lua
 scripts += test-event-http-check.lua
 scripts += test-event-http-filter.lua
 scripts += test-event-http-engine.lua
+endif
+
 # event.user (handler plugin)
 scripts += test-event-user-api.lua
 scripts += test-event-user-check.lua

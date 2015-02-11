@@ -23,16 +23,12 @@ AM_CPPFLAGS = -I$(top_srcdir)/lib -I$(top_builddir)/lib
 AM_CFLAGS = $(WERROR_CFLAGS) $(WARN_CFLAGS) $(LUA_CFLAGS)
 AM_LDFLAGS = -shared -module -avoid-version  -no-undefined $(LUA_LIBS)
 
+EXTRA_DIST =
 noinst_HEADERS = luax-callback.h
 
+eventlib_LTLIBRARIES =
 eventlibdir = $(lualibdir)/event
 eventdatadir = $(luadatadir)/event
-
-eventlib_LTLIBRARIES =\
-  http_soup.la\
-  stopwatch.la\
-  tcp_socket.la\
-  $(NULL)
 
 dist_eventdata_DATA =\
   check.lua\
@@ -42,15 +38,28 @@ dist_eventdata_DATA =\
   ncl.lua\
   pointer.lua\
   queue.lua\
-  tcp.lua\
   user.lua\
   $(NULL)
+
+if BUILD_EVENT_HTTP
+dist_eventdata_DATA+= http.lua
+else
+EXTRA_DIST+= http.lua
+endif
+
+if BUILD_EVENT_TCP
+dist_eventdata_DATA+= tcp.lua
+else
+EXTRA_DIST+= tcp.lua
+endif
 
 if OS_WIN32
 def_dependency =
 endif
 
 # http_soup
+if BUILD_EVENT_HTTP
+eventlib_LTLIBRARIES+= http_soup.la
 if OS_WIN32
 http_soup_def_dependency = http_soup.def
 def_dependency+= $(http_soup_def_dependency)
@@ -64,8 +73,10 @@ http_soup_la_SOURCES =\
   luax-callback.h\
   http_soup.c\
   $(NULL)
+endif
 
 # stopwatch
+eventlib_LTLIBRARIES+= stopwatch.la
 if OS_WIN32
 stopwatch_def_dependency = stopwatch.def
 def_dependency+= $(stopwatch_def_dependency)
@@ -80,6 +91,8 @@ stopwatch_la_SOURCES =\
   $(NULL)
 
 # tcp_socket
+if BUILD_EVENT_TCP
+eventlib_LTLIBRARIES+= tcp_socket.la
 if OS_WIN32
 tcp_socket_def_dependency = tcp_socket.def
 def_dependency+= $(tcp_socket_def_dependency)
@@ -93,6 +106,7 @@ tcp_socket_la_SOURCES =\
   luax-callback.h\
   tcp_socket.c\
   $(NULL)
+endif
 
 # Generate .def files if we're on Win32.
 if OS_WIN32

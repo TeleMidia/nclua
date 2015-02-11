@@ -384,28 +384,41 @@ AH_VERBATIM([G_TYPE_INIT_WRAPPER],
 ])
 AC_MSG_RESULT([$must_call_g_type_init])
 
-# Check for GIO.
-PKG_CHECK_MODULES([GIO],
- [gio-2.0 >= glib_required_version], [],
- [AC_MSG_ERROR([GIO > glib_required_version required.])])
-
 # Check for Pango.
 PKG_CHECK_MODULES([PANGO],
  [pango >= pango_required_version dnl
   pangocairo >= pango_required_version], [],
  [AC_MSG_ERROR([Pango >= pango_required_version required.])])
 
+# Check for GIO.
+PKG_CHECK_MODULES([GIO],
+ [gio-2.0 >= glib_required_version], [have_gio=yes], [have_gio=no])
+AS_IF([test "$have_gio" = yes],
+ [AC_DEFINE([HAVE_GIO], [1], [Define to 1 if we have gio-2.0])
+  AC_DEFINE([BUILD_EVENT_TCP], [1],
+    [Define to 1 if tcp event class is to be built.])])
+AM_CONDITIONAL([HAVE_GIO], [test "$have_gio" = yes])
+AM_CONDITIONAL([BUILD_EVENT_TCP], [test "$have_gio" = yes])
+
 # Check for SOUP.
 PKG_CHECK_MODULES([SOUP],
- [libsoup-2.4 >= soup_required_version], [],
- [AC_MSG_ERROR([SOUP > soup_required_version required.])])
+ [libsoup-2.4 >= soup_required_version], [have_soup=yes], [have_soup=no])
+AS_IF([test "$have_soup" = yes],
+ [AC_DEFINE([HAVE_SOUP], [1], [Define to 1 if we have Libsoup-2.4])
+  AC_DEFINE([BUILD_EVENT_HTTP], [1],
+    [Define to 1 if http event class is to be built.])])
+AM_CONDITIONAL([HAVE_SOUP], [test "$have_soup" = yes])
+AM_CONDITIONAL([BUILD_EVENT_HTTP], [test "$have_soup" = yes])
 
 # Check for GTK (optional).
 PKG_CHECK_MODULES([GTK],
  [gtk+-3.0 >= gtk_required_version], [have_gtk=yes], [have_gtk=no])
 AS_IF([test "$have_gtk" = yes],
- [AC_DEFINE([HAVE_GTK], [1], [Define to 1 if we have GTK+-3.0.])])
+ [AC_DEFINE([HAVE_GTK], [1], [Define to 1 if we have GTK+-3.0.])
+  AC_DEFINE([BUILD_NCLUA_BIN], [1],
+   [Define to 1 if nclua binary is to be built.])])
 AM_CONDITIONAL([HAVE_GTK], [test "$have_gtk" = yes])
+AM_CONDITIONAL([BUILD_NCLUA_BIN], [test "$have_gtk" = yes])
 
 AC_CONFIG_FILES([
 Makefile
@@ -429,4 +442,8 @@ AC_MSG_NOTICE([summary of main build options:
   Warning flags:      ${WERROR_CFLAGS} ${WARN_CFLAGS}
   Library types:      Shared=${enable_shared}, Static=${enable_static}
   Valgrind:           ${VALGRIND}
+
+  Build tcp:          $have_gio	(requires gio-2.0)
+  Build http:         $have_soup	(requires soup-2.4)
+  Build nclua bin:    $have_gtk	(requires gtk+-3.0)
 ])
