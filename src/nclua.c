@@ -154,7 +154,7 @@ main (int argc, char **argv)
 {
   GtkWidget *canvas;
   char *errmsg = NULL;
-  int status;
+  int status = EXIT_SUCCESS;
 
   gchar *dirname;
   gchar *basename;
