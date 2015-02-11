@@ -50,8 +50,8 @@ socket_check (lua_State *L, int index, GSocketClient ** client,
 {
   socket_t *sock;
   sock = (socket_t *) luaL_checkudata (L, index, SOCKET);
-  test_and_set (client != NULL, *client, sock->client);
-  test_and_set (conn != NULL, *conn, sock->conn);
+  set_if_nonnull (client, sock->client);
+  set_if_nonnull (conn, sock->conn);
   return sock;
 }
 

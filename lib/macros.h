@@ -151,30 +151,74 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define EXIT_FAILURE 1
 #endif
 
+#undef ASSERT_NOT_REACHED
 #define ASSERT_NOT_REACHED (assert (!"reached"), abort ())
-#define CONCAT(x, y)     CONCAT_ (x, y)
-#define CONCAT_(x, y)    x##y
-#define STRINGIFY(s)     STRINGIFY_ (s)
-#define STRINGIFY_(s)    #s
-#define nelementsof(x)   (sizeof (x) / sizeof (x[0]))
-#define integralof(x)    (((char *)(x)) - ((char *) 0))
-#define pointerof(x)     ((void *)((char *) 0 + ((size_t) x)))
-#define ssizeof(x)       ((ptrdiff_t) sizeof (x))
-#define isodd(n)         ((n) & 1)
-#define iseven(n)        (!isodd (n))
-#define sign(x)          ((x) >= 0.0 ? 1 : -1)
-#define max(x, y)        (((x) > (y)) ? (x) : (y))
-#define min(x, y)        (((x) < (y)) ? (x) : (y))
-#define clamp(x, lo, hi) (min (max (x, lo), hi))
-#define radians(x)       (x * M_PI / 180)
-#define degrees(x)       (x * 180 / M_PI)
-#define streq(a, b)      ((*(a) == *(b)) && strcmp (a, b) == 0)
 
-#define cast(t, x)       ((t)(x))
-#define deconst(t, x)    ((t)(ptrdiff_t)(const void *)(x))
+#undef CONCAT
+#define CONCAT(x, y) CONCAT_ (x, y)
+
+#undef CONCAT_
+#define CONCAT_(x, y) x##y
+
+#undef STRINGIFY
+#define STRINGIFY(s) STRINGIFY_ (s)
+
+#undef STRINGIFY_
+#define STRINGIFY_(s) #s
+
+#undef nelementsof
+#define nelementsof(x) (sizeof (x) / sizeof (x[0]))
+
+#undef integralof
+#define integralof(x) (((char *)(x)) - ((char *) 0))
+
+#undef pointerof
+#define pointerof(x) ((void *)((char *) 0 + ((size_t) x)))
+
+#undef ssizeof
+#define ssizeof(x) ((ptrdiff_t) sizeof (x))
+
+#undef isodd
+#define isodd(n) ((n) & 1)
+
+#undef iseven
+#define iseven(n) (!isodd (n))
+
+#undef sign
+#define sign(x) ((x) >= 0.0 ? 1 : -1)
+
+#undef max
+#define max(x, y) (((x) > (y)) ? (x) : (y))
+
+#undef min
+#define min(x, y) (((x) < (y)) ? (x) : (y))
+
+#undef clamp
+#define clamp(x, lo, hi) (min (max (x, lo), hi))
+
+#undef radians
+#define radians(x) (x * M_PI / 180)
+
+#undef degrees
+#define degrees(x) (x * 180 / M_PI)
+
+#undef streq
+#define streq(a, b) ((*(a) == *(b)) && strcmp (a, b) == 0)
+
+#undef cast
+#define cast(t, x) ((t)(x))
+
+#undef deconst
+#define deconst(t, x) ((t)(ptrdiff_t)(const void *)(x))
+
+#undef devolatile
 #define devolatile(t, x) ((t)(ptrdiff_t)(volatile void *)(x))
-#define dequalify(t, x)  ((t)(ptrdiff_t)(const volatile void *)(x))
-#define test_and_set(c, x, y) STMT_BEGIN {if (c) x = y; } STMT_END
+
+#undef dequalify
+#define dequalify(t, x) ((t)(ptrdiff_t)(const volatile void *)(x))
+
+#undef set_if_nonnull
+#define set_if_nonnull(a, x) STMT_BEGIN {if (a) *(a) = (x); } STMT_END
 
 #if !defined round && defined HAVE_ROUND && !HAVE_ROUND
 # define round(x) floor (((double) (x)) + .5)

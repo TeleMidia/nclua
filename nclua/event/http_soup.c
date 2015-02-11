@@ -46,7 +46,7 @@ soup_check (lua_State *L, int index, SoupSession **session)
 {
   soup_t *soup;
   soup = (soup_t *) luaL_checkudata (L, index, SOUP);
-  test_and_set (session != NULL, *session, soup->session);
+  set_if_nonnull (session, soup->session);
   return soup;
 }
 

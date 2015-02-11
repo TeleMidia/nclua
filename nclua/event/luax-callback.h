@@ -76,8 +76,8 @@ static void
 luax_callback_data_get_data (luax_callback_data_t *cb_data,
                              lua_State **L, void **data)
 {
-  test_and_set (L != NULL, *L, cb_data->L);
-  test_and_set (data != NULL, *data, cb_data->data);
+  set_if_nonnull (L, cb_data->L);
+  set_if_nonnull (data, cb_data->data);
 }
 
 /* Pushes onto stack the object associated with callback-data object CB_DATA

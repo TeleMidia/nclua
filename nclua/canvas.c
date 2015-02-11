@@ -71,7 +71,7 @@ canvas_check (lua_State *L, int index, cairo_t **cr)
 {
   canvas_t *canvas;
   canvas = (canvas_t *) luaL_checkudata (L, index, CANVAS);
-  test_and_set (cr != NULL, *cr, canvas->cr);
+  set_if_nonnull (cr, canvas->cr);
   return canvas;
 }
 
