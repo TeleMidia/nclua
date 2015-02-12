@@ -19,7 +19,7 @@
 include $(top_srcdir)/build-aux/Makefile.am.common
 
 AM_CPPFLAGS = -I$(top_srcdir)/lib -I$(top_builddir)/lib\
- -DTOP_SRCDIR=\"$(top_srcdir)\" -DTOP_BUILDDIR=\"$(top_builddir)\"
+  -DTOP_SRCDIR=\"$(top_srcdir)\" -DTOP_BUILDDIR=\"$(top_builddir)\"
 
 AM_CFLAGS = $(WERROR_CFLAGS) $(WARN_CFLAGS)\
   $(LUA_CFLAGS) $(CAIRO_CFLAGS) $(GLIB_CFLAGS)
