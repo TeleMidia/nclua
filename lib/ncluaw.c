@@ -173,7 +173,7 @@ ncluaw_event_clone (const ncluaw_event_t *evt)
       dup->u.ncl.action = xstrdup (evt->u.ncl.action);
       dup->u.ncl.name = xstrdup (evt->u.ncl.name);
       dup->u.ncl.value = (evt->u.ncl.value != NULL)
-          ? xstrdup (evt->u.ncl.value) : NULL;
+        ? xstrdup (evt->u.ncl.value) : NULL;
       break;
 
     case NCLUAW_EVENT_POINTER:
@@ -236,22 +236,22 @@ ncluaw_event_equals (const ncluaw_event_t *e1, const ncluaw_event_t *e2)
     {
     case NCLUAW_EVENT_KEY:
       result = streq (e1->u.key.type, e2->u.key.type)
-          && streq (e1->u.key.key, e2->u.key.key);
+        && streq (e1->u.key.key, e2->u.key.key);
       break;
 
     case NCLUAW_EVENT_NCL:
       result = streq (e1->u.ncl.type, e2->u.ncl.type)
-          && streq (e1->u.ncl.action, e2->u.ncl.action)
-          && streq (e1->u.ncl.name, e2->u.ncl.name)
-          && ((e1->u.ncl.value == NULL && e2->u.ncl.value == NULL)
-              || (e1->u.ncl.value && e2->u.ncl.value
-                  && streq (e1->u.ncl.value, e2->u.ncl.value)));
+        && streq (e1->u.ncl.action, e2->u.ncl.action)
+        && streq (e1->u.ncl.name, e2->u.ncl.name)
+        && ((e1->u.ncl.value == NULL && e2->u.ncl.value == NULL)
+            || (e1->u.ncl.value && e2->u.ncl.value
+                && streq (e1->u.ncl.value, e2->u.ncl.value)));
       break;
 
     case NCLUAW_EVENT_POINTER:
       result = streq (e1->u.pointer.type, e2->u.pointer.type)
-          && e1->u.pointer.x == e2->u.pointer.x
-          && e1->u.pointer.y == e2->u.pointer.y;
+        && e1->u.pointer.x == e2->u.pointer.x
+        && e1->u.pointer.y == e2->u.pointer.y;
       break;
 
     case NCLUAW_EVENT_UNKNOWN:

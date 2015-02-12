@@ -200,8 +200,8 @@ canvas_color_table_index (const char *name, double *r, double *g, double *b)
 
   key.name = name;
   match = (canvas_color_table_t *)
-      bsearch (&key, canvas_color_table, nelementsof (canvas_color_table),
-               sizeof (*canvas_color_table), canvas_color_table_compar);
+    bsearch (&key, canvas_color_table, nelementsof (canvas_color_table),
+             sizeof (*canvas_color_table), canvas_color_table_compar);
   if (match == NULL)
     return FALSE;
 

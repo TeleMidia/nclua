@@ -160,7 +160,7 @@ cairox_surface_create_from_file (const char *path, cairo_surface_t **dup)
   if (unlikely (pixbuf == NULL))
     {
       cairo_status_t status = (error->domain == G_FILE_ERROR)
-          ? CAIRO_STATUS_FILE_NOT_FOUND : CAIRO_STATUS_READ_ERROR;
+        ? CAIRO_STATUS_FILE_NOT_FOUND : CAIRO_STATUS_READ_ERROR;
       g_error_free (error);
       return status;
     }
