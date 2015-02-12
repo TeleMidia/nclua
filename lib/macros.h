@@ -28,6 +28,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdlib.h>
 #include <string.h>
 
+#undef GNUC_PREREQ
+
 #if defined __GNUC__ && defined __GNUC_MINOR__
 # define GNUC_PREREQ(major, minor)\
    ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((major) << 16) + (minor))
@@ -35,11 +37,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define GNUC_PREREQ(major, minor) 0
 #endif
 
+#undef ATTRIBUTE_CONST
+
 #if GNUC_PREREQ (2,5)
 # define ATTRIBUTE_CONST __attribute__ ((__const__))
 #else
 # define ATTRIBUTE_CONST
 #endif
+
+#undef ATTRIBUTE_UNUSED
 
 #if GNUC_PREREQ (2,5)
 # define ATTRIBUTE_UNUSED __attribute ((__unused__))
@@ -47,11 +53,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define ATTRIBUTE_UNUSED
 #endif
 
+#undef ATTRIBUTE_PRINTF_FORMAT
+
 #if GNUC_PREREQ (2,5)
-# define ATTRIBUTE_PRINTF_FORMAT(fmt, va) __attribute__ ((__format__ (__printf__, fmt, va)))
+# define ATTRIBUTE_PRINTF_FORMAT(fmt, va)\
+  __attribute__ ((__format__ (__printf__, fmt, va)))
 #else
 # define ATTRIBUTE_PRINTF_FORMAT(fmt, va)
 #endif
+
+#undef ATTRIBUTE_MALLOC
 
 #if GNUC_PREREQ (2,96)
 # define ATTRIBUTE_MALLOC __attribute__ ((__malloc__))
@@ -59,11 +70,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define ATTRIBUTE_MALLOC
 #endif
 
+#undef ATTRIBUTE_PURE
+
 #if GNUC_PREREQ (2,96)
 # define ATTRIBUTE_PURE __attribute__ ((__pure__))
 #else
 # define ATTRIBUTE_PURE
 #endif
+
+#undef ATTRIBUTE_NOINLINE
 
 #if GNUC_PREREQ (3,1)
 # define ATTRIBUTE_NOINLINE __attribute__ ((__noinline__))
@@ -71,11 +86,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define ATTRIBUTE_NOINLINE
 #endif
 
+#undef ATTRIBUTE_USED
+
 #if GNUC_PREREQ (3,1)
 # define ATTRIBUTE_USED __attribute__ ((__used__))
 #else
 # define ATTRIBUTE_USED
 #endif
+
+#undef ATTRIBUTE_DEPRECATED
 
 #if GNUC_PREREQ (3,2)
 # define ATTRIBUTE_DEPRECATED __attribute__ ((__deprecated__))
@@ -83,23 +102,33 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define ATTRIBUTE_DEPRECATED
 #endif
 
+#undef ATTRIBUTE_NONNULL
+
 #if GNUC_PREREQ (3,3)
 # define ATTRIBUTE_NONNULL(params) __attribute__ ((__nonnull__ params))
 #else
 # define ATTRIBUTE_NONNULL(params)
 #endif
 
+#undef ATTRIBUTE_WARN_UNUSED_RESULT
+
 #if GNUC_PREREQ (3,4)
-# define ATTRIBUTE_WARN_UNUSED_RESULT __attribute__ ((__warn_unused_result__))
+# define ATTRIBUTE_WARN_UNUSED_RESULT\
+  __attribute__ ((__warn_unused_result__))
 #else
 # define ATTRIBUTE_WARN_UNUSED_RESULT
 #endif
+
+#undef ATTRIBUTE_ARTIFICIAL
 
 #if GNUC_PREREQ (4,3)
 # define ATTRIBUTE_ARTIFICIAL __attribute__ ((__artificial__))
 #else
 # define ATTRIBUTE_ARTIFICIAL
 #endif
+
+#undef STMT_BEGIN
+#undef STMT_END
 
 #if defined __GNUC__ && !defined __STRICT_ANSI__ && !defined __cplusplus
 # define STMT_BEGIN (void)(
@@ -117,19 +146,39 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define inline __inline
 #endif
 
-#define arg_nonnull(arg)   ATTRIBUTE_NONNULL (arg)
-#define arg_unused(arg)    arg ATTRIBUTE_UNUSED
-#define ATTR_CONST         ATTRIBUTE_CONST
-#define ATTR_DEPRECATED    ATTRIBUTE_DEPRECATED
-#define ATTR_MALLOC        ATTRIBUTE_MALLOC
+#undef arg_nonnull
+#define arg_nonnull(arg) ATTRIBUTE_NONNULL (arg)
+
+#undef arg_unused
+#define arg_unused(arg) arg ATTRIBUTE_UNUSED
+
+#undef ATTR_CONST
+#define ATTR_CONST ATTRIBUTE_CONST
+
+#undef ATTR_DEPRECATED
+#define ATTR_DEPRECATED ATTRIBUTE_DEPRECATED
+
+#undef ATTR_MALLOC
+#define ATTR_MALLOC ATTRIBUTE_MALLOC
+
+#undef ATTR_PRINTF_FORMAT
 #define ATTR_PRINTF_FORMAT ATTRIBUTE_PRINTF_FORMAT
-#define ATTR_PURE          ATTRIBUTE_PURE
-#define ATTR_UNUSED        ATTRIBUTE_UNUSED
-#define ATTR_USE_RESULT    ATTRIBUTE_WARN_UNUSED_RESULT
+
+#undef ATTR_PURE
+#define ATTR_PURE ATTRIBUTE_PURE
+
+#undef ATTR_UNUSED
+#define ATTR_UNUSED ATTRIBUTE_UNUSED
+
+#undef ATTR_USE_RESULT
+#define ATTR_USE_RESULT ATTRIBUTE_WARN_UNUSED_RESULT
+
+#undef likely
+#undef unlikely
 
 #if GNUC_PREREQ (3,0)
-# define likely(cond)    __builtin_expect((cond), 1)
-# define unlikely(cond)  __builtin_expect((cond), 0)
+# define likely(cond) __builtin_expect((cond), 1)
+# define unlikely(cond) __builtin_expect((cond), 0)
 #else
 # define likely(cond)
 # define unlikely(cond)
