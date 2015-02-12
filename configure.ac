@@ -432,18 +432,29 @@ src/Makefile
 tests/Makefile
 ])
 
+AS_IF([test "$have_gio" = no],
+ [have_gio="$have_gio	(requires gio-2.0 >= glib_required_version)"])
+
+AS_IF([test "$have_soup" = no],
+ [have_soup="$have_soup	(requires libsoup-2.4 >= soup_required_version)"])
+
+AS_IF([test "$have_gtk" = no],
+ [have_gtk="$have_gtk	(requires gkt+-3.0 >= gtk_required_version)"])
+
 AC_OUTPUT
 AC_MSG_NOTICE([summary of main build options:
 
   Version:            ${VERSION}
   Host type:          ${host}
   Install prefix:     ${prefix}
-  Compiler:           cc: ${CC} cflags: ${CFLAGS} cppflags: ${CPPFLAGS}
+  Compiler:           ${CC}
+  Cflags:             ${CFLAGS}
+  Cppflags:           ${CPPFLAGS}
   Warning flags:      ${WERROR_CFLAGS} ${WARN_CFLAGS}
   Library types:      Shared=${enable_shared}, Static=${enable_static}
   Valgrind:           ${VALGRIND}
 
-  Build tcp:          $have_gio	(requires gio-2.0)
-  Build http:         $have_soup	(requires soup-2.4)
-  Build nclua bin:    $have_gtk	(requires gtk+-3.0)
+  Build tcp:          ${have_gio}
+  Build http:         ${have_soup}
+  Build nclua binary: ${have_gtk}
 ])
