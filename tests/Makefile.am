@@ -59,18 +59,34 @@ noinst_SCRIPTS += $(builddir)/env.sh $(builddir)/gdb.cfg
 CLEANFILES += $(builddir)/env.sh $(builddir)/gdb.cfg
 
 perl_env_sh_get_tests_environment =\
-  /^AM_TESTS_ENVIRONMENT\s*=\s*\\\n(.*?).\$$\(NULL\)/sm and printf "$$1";
+  /^AM_TESTS_ENVIRONMENT\s*=\s*\\\n(.*?).\$$\(NULL\)/sm and printf "$$1";\
+  $(NULL)
 
+if OS_WIN32
+WINROOT = C:/MinGW/msys/1.0
+perl_env_sh_expand_variables =\
+  s/^\s*//g; s/\\//g;\
+  s,\$$\(SOEXT\),$(SOEXT),g;\
+  s,\$$\(builddir\),$(WINROOT)$(abs_builddir),g;\
+  s,\$$\(srcdir\),$(WINTROOT)$(abs_srcdir),g;\
+  s,\$$\(top_builddir\),$(WINROOT)$(abs_top_builddir),g;\
+  s,\$$\(top_srcdir\),$(WINROOT)$(abs_top_srcdir),g;\
+  s,/,\\,g;\
+  $(NULL)
+else
 perl_env_sh_expand_variables =\
   s/^\s*//g; s/\\//g;\
   s:\$$\(SOEXT\):$(SOEXT):g;\
   s:\$$\(builddir\):$(abs_builddir):g;\
   s:\$$\(srcdir\):$(abs_srcdir):g;\
   s:\$$\(top_builddir\):$(abs_top_builddir):g;\
-  s:\$$\(top_srcdir\):$(abs_top_srcdir):g;
+  s:\$$\(top_srcdir\):$(abs_top_srcdir):g;\
+  $(NULL)
+endif
 
 perl_env_sh_remove_ld_preload =\
-  /^\s*export\s*LD_PRELOAD=/ or print;
+  /^\s*export\s*LD_PRELOAD=/ or print;\
+  $(NULL)
 
 $(builddir)/env.sh: $(srcdir)/Makefile
 	$(AM_V_GEN)cat $(srcdir)/Makefile\
