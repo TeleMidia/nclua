@@ -1105,7 +1105,7 @@ l_canvas_clear (lua_State *L)
   x = luaL_optnumber (L, 2, 0);
   y = luaL_optnumber (L, 3, 0);
   w = luaL_optnumber (L, 4, canvas->width);
-  h = luaL_optnumber (L, 5, canvas->width);
+  h = luaL_optnumber (L, 5, canvas->height);
 
   cairo_save (cr);
   cairo_reset_clip (cr);
