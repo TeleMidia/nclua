@@ -61,7 +61,7 @@ perl_dist_get_version:=\
 dist_get_version = $(shell perl -wlne '$(perl_dist_get_version)' Makefile)
 VERSION = $(call dist_get_version)
 
-# Outputs the project version.
+# Outputs project version.
 .PHONY: dist-get-version
 dist-get-version:
 	@echo $(VERSION)
@@ -200,7 +200,7 @@ INDENT_VC_LIST_C =\
   $(call vc_list_exclude, $(VC_LIST_C), $(INDENT_EXCLUDE))\
   $(NULL)
 
-# Formats the source code.
+# Formats source code.
 .PHONY: indent
 indent:
 	@$(INDENT) $(INDENT_OPTIONS) $(INDENT_VC_LIST_C)
@@ -239,13 +239,13 @@ list-c-names:
 list-lua-names:
 	@perl -wnle '$(perl_list_lua_names)' $(VC_LIST_LUA)
 
-# Lists names of Makefile functions and variables.
+# Lists names of Makefile targets and variables.
 .PHONY: list-mk-names
 list-mk-names:
 	@perl -wnle '$(perl_list_mk_names)' $(VC_LIST_MK)
 
 
-# Checks if maintainer-clean does its job.
+# Checks for untracked files.
 .PHONY: maintainer-clean-diff
 maintainer-clean-diff:
 	@test `git ls-files --other | wc -l` -ne 0 &&\
@@ -262,13 +262,6 @@ SC_AVOID_IF_BEFORE_FREE_ALIASES:=\
   ncluaw_event_free\
   pango_font_description_free\
   $(NULL)
-
-# Checks for useless if before free().
-SC_RULES+= sc-avoid-if-before-free
-sc-avoid-if-before-free:
-	@./build-aux/useless-if-before-free\
-	  $(SC_AVOID_IF_BEFORE_FREE_ALIASES:%=--name=%)\
-	  $(VC_LIST_C) && exit 1 || :;
 
 
 SC_BASE_EXCLUDE:=\
@@ -311,7 +304,7 @@ SC_COPYRIGHT_LIST_SH =\
     $(VC_LIST_AC) $(VC_LIST_AM) $(VC_LIST_MK) $(VC_LIST_PL) $(VC_LIST_SH),\
     $(SC_COPYRIGHT_EXCLUDE_SH))
 
-# Checks copyright headers.
+# Checks copyright notice.
 SC_RULES+= sc-copyright
 sc-copyright:
 	@./build-aux/syntax-check-copyright -b='/*' -e='*/'\
@@ -333,6 +326,14 @@ sc-make-indent:
 	@perl -wnle '$(perl_sc_make_indent)' $(VC_LIST_AM) $(VC_LIST_MK)
 
 
+# Checks for useless if before free().
+SC_RULES+= sc-useless-if-before-free
+sc-useless-if-before-free:
+	@./build-aux/useless-if-before-free\
+	  $(SC_AVOID_IF_BEFORE_FREE_ALIASES:%=--name=%)\
+	  $(VC_LIST_C) && exit 1 || :;
+
+
 # Run all syntax checks.
 .PHONY: syntax-check
 .PHONY: $(SC_RULES)
@@ -346,7 +347,7 @@ perl_update_copyright:=\
   s:(\W*Copyright\s\(C\)\s\d+)-?\d*(\s\Q$(COPYRIGHT_HOLDER)\E\b)\
    :$$1-$(COPYRIGHT_YEAR)$$2:x;
 
-# Updates copyright notice.
+# Updates copyright year.
 .PHONY: update-copyright
 update-copyright:
 	perl -i'~' -wple '$(perl_update_copyright)' $(VC_LIST_ALL)
