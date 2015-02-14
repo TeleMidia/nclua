@@ -59,6 +59,22 @@ EXTRA_DIST =\
   maint.mk\
   $(NULL)
 
+# Generate README from README.md if we have Perl.
+if HAVE_PERL
+BUILT_SOURCES+= README
+CLEANFILES+= README
+EXTRA_DIST+= README
+endif
+
+perl_strip_md_id_or_path_re = [\w\.\-/:]
+perl_strip_md =\
+  s, , ,g;\
+  s,`($(perl_strip_md_id_or_path_re)+)`,$$1,g;\
+  s,\[[^\]]+]\(($(perl_strip_md_id_or_path_re)+)\),$$1,g;\
+  $(NULL)
+README:
+	$(AM_V_GEN)$(PERL) -wple '$(perl_strip_md)' README.md > $@
+
 DISTCLEANFILES =\
   config.cache\
   $(NULL)
