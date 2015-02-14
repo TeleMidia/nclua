@@ -38,7 +38,7 @@ Event API
 ---------
 
 For a complete reference, cf. User API section in
-[init.lua](nclua/event/init.lua).
+[nclua/event/init.lua](nclua/event/init.lua).
 
 Event classes:
 * `ncl`      NCL (Nested Context Language) events
@@ -58,7 +58,7 @@ Functions:
 Canvas API
 ----------
 
-For a complete reference, cf. [](nclua/canvas.c).
+For a complete reference, cf. [nclua/canvas.c](nclua/canvas.c).
 
 Functions:
 * `canvas.new`            creates a new canvas
@@ -93,9 +93,7 @@ Internal functions (for debugging):
 Embedment API (C code)
 ----------------------
 
-For a complete reference, cf. `lib/nclua.h` and `lib/ncluaw.h`.
-
-Core functions (`lib/nclua.h`):
+Core functions (cf. [lib/nclua.h](lib/nclua.h)):
 * `nclua_open`            opens the library
 * `nclua_close`           closes the library
 * `nclua_cycle`           processes pending events
@@ -103,7 +101,7 @@ Core functions (`lib/nclua.h`):
 * `nclua_send`            sends an event
 * `nclua_paint`           paints top-level canvas onto memory
 
-Wrapper functions (`lib/ncluaw.h`, Lua-free interface):
+Wrapper functions (cf. [lib/ncluaw.h](lib/nclua.h), Lua-free interface):
 * `ncluaw_event_key_init` initializes key event
 * `ncluaw_event_ncl_init` initializes NCL event
 * `ncluaw_event_pointer_init` initializes pointer event
