@@ -22,7 +22,6 @@ all: usage
 
 
 # Prints usage message and exits.
-
 perl_usage =\
   BEGIN {\
     $$/ = "";\
@@ -44,8 +43,8 @@ usage:
 	@perl -wnle '$(perl_usage)' $(ME)
 
 
-OPTIONS ?= --enable-ansi --enable-debug --enable-gcc-warnings
-EXTRA ?=
+OPTIONS?= --enable-ansi --enable-debug --enable-gcc-warnings
+EXTRA?=
 
 # Bootstraps project for debugging.
 .PHONY: bootstrap
