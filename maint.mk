@@ -94,7 +94,9 @@ dist-win32:
 	make install;\
 	cp ./AUTHORS ./$$package-win32/AUTHORS.txt;\
 	cp ./COPYING ./$$package-win32/COPYING.txt;\
-	cp ./README.md ./$$package-win32/README.md.txt;\
+	if test -f ./README; then\
+	  cp ./README ./$$package-win32/README.txt;\
+	fi;\
 	find ./$$package-win32 -name '*.la' -delete;\
 	zip -r ./$$package-win32.zip ./$$package-win32;\
 	rm -rf ./$$package-win32;\
