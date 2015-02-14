@@ -225,7 +225,7 @@ perl_list_lua_names:=\
 perl_list_mk_names:=\
   (/^([\w\-]+?):/ or /^(\w+\s*)=/)\
   and print "$$ARGV:$$.:$$1";\
-  eof and close ARGV;
+  eof and close ARGV;\
   $(NULL)
 
 # Lists names of C functions and variables.
