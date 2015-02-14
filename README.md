@@ -26,13 +26,15 @@ Dependencies
 * Cairo >= 1.10, http://cairographics.org
 * GLib >= 2.32, https://developer.gnome.org/glib
 * Pango >= 1.30, http://www.pango.org
+
+Optional:
 * GIO >= 2.32, https://developer.gnome.org/gio
 * Libsoup >= 2.42, https://developer.gnome.org/libsoup
 * GTK+ >= 3.4.2, http://www.gtk.org
 
 GIO is required by the `tcp` event class; Libsoup is required by the `http`
-event class; an GTK+ is required by the `nclua` binary.  If these libraries
-are not found, the corresponding modules are not built.
+event class; an GTK+ is required by the `nclua` binary.  These libraries are
+optional, if they are not found the corresponding modules are not built.
 
 Event API
 ---------
@@ -93,7 +95,7 @@ Internal functions (for debugging):
 Embedment API (C code)
 ----------------------
 
-Core functions (cf. [lib/nclua.h](lib/nclua.h)):
+Core functions (cf. [lib/nclua.c](lib/nclua.c)):
 * `nclua_open`            opens the library
 * `nclua_close`           closes the library
 * `nclua_cycle`           processes pending events
@@ -101,7 +103,7 @@ Core functions (cf. [lib/nclua.h](lib/nclua.h)):
 * `nclua_send`            sends an event
 * `nclua_paint`           paints top-level canvas onto memory
 
-Wrapper functions (cf. [lib/ncluaw.h](lib/nclua.h), Lua-free interface):
+Wrapper functions (cf. [lib/ncluaw.c](lib/ncluaw.c), Lua-free interface):
 * `ncluaw_event_key_init` initializes key event
 * `ncluaw_event_ncl_init` initializes NCL event
 * `ncluaw_event_pointer_init` initializes pointer event
