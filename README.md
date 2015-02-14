@@ -6,7 +6,7 @@ libnclua, either through the C API or by requiring the appropriated modules
 `event.stopwatch` for stopwatch timers, `event.tcp_socket` for asynchronous
 TCP sockets, `event.http_soup` for asynchronous HTTP requests, etc.  The
 NCLua library comes with a standalone interpreter, called `nclua`
-(cf. [src/nclua.c](src/nclua.c)), which can be used to run standalone NCLua
+(cf. [src/nclua.c](src/nclua.c)), which can be used to run standalone NCLua
 scripts.
 
 For stable releases and binaries, cf.
@@ -16,12 +16,13 @@ For the latest sources, cf.
 https://github.com/gflima/nclua.
 
 NCLua is the Lua dialect used by the Brazilian digital TV middleware, called
-Ginga (cf. http://www.ginga.org.br).  The reference implementation of Ginga
-(>= 0.14) uses libnclua to run NCLua scripts.
+Ginga (cf. http://www.ginga.org.br).  The reference implementation of
+Ginga (>= 0.14) uses libnclua to run NCLua scripts.
 
 Dependencies
 ------------
 
+Required:
 * Lua >= 5.2, http://www.lua.org
 * Cairo >= 1.10, http://cairographics.org
 * GLib >= 2.32, https://developer.gnome.org/glib
@@ -35,27 +36,6 @@ Optional:
 GIO is required by the `tcp` event class; Libsoup is required by the `http`
 event class; an GTK+ is required by the `nclua` binary.  These libraries are
 optional, if they are not found the corresponding modules are not built.
-
-Event API
----------
-
-For a complete reference, cf. User API section in
-[nclua/event/init.lua](nclua/event/init.lua).
-
-Event classes:
-* `ncl`      NCL (Nested Context Language) events
-* `key`      keyboard input
-* `pointer`  mouse input
-* `http`     HTTP requests
-* `tcp`      TCP/IP messages
-* `user`     user defined
-
-Functions:
-* `event.post`            posts event into input or output queues
-* `event.register`        registers event handler
-* `event.timer`           sets up timer that calls a function when expired
-* `event.unregister`      unregisters event handler
-* `event.uptime`          returns the up-time since script started
 
 Canvas API
 ----------
@@ -92,8 +72,31 @@ Internal functions (for debugging):
 * `canvas:_dump_to_memory`  dumps canvas content to memory address
 * `canvas:_surface`         returns a pointer to canvas content
 
-Embedment API (C code)
-----------------------
+Event API
+---------
+
+For a complete reference, cf. User API section in
+[nclua/event/init.lua](nclua/event/init.lua).
+
+Event classes:
+* `ncl`      NCL (Nested Context Language) events
+* `key`      keyboard input
+* `pointer`  mouse input
+* `http`     HTTP requests
+* `tcp`      TCP/IP messages
+* `user`     user defined
+
+Functions:
+* `event.post`            posts event into input or output queues
+* `event.register`        registers event handler
+* `event.timer`           sets up timer that calls a function when expired
+* `event.unregister`      unregisters event handler
+* `event.uptime`          returns the up-time since script started
+
+Libnclua API (C code)
+---------------------
+
+The libnclua API is used by C programs to run NCLua scripts.
 
 Core functions (cf. [lib/nclua.c](lib/nclua.c)):
 * `nclua_open`            opens the library
