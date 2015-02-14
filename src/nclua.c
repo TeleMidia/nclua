@@ -143,9 +143,39 @@ keyboard_callback (arg_unused (GtkWidget *widget), GdkEventKey *e,
     }
 
   ncluaw_send_key_event (ncluaw_state, (const char *) type, key);
-  if (free_key)
+  if (free_key)                 /* do not remove */
     g_free (deconst (char *, key));
 
+  return TRUE;
+}
+
+static gboolean
+pointer_motion_callback (arg_unused (GtkWidget *widget), GdkEventMotion *e,
+                         arg_unused (const char *type))
+{
+  ncluaw_send_pointer_event (ncluaw_state, "move", (int) e->x, (int) e->y);
+  return TRUE;
+}
+
+static gboolean
+pointer_click_callback (arg_unused (GtkWidget *widget), GdkEventButton *e,
+                        arg_unused (gpointer data))
+{
+  const char *type;
+
+  switch (e->type)
+    {
+    case GDK_BUTTON_PRESS:
+      type = "press";
+      break;
+    case GDK_BUTTON_RELEASE:
+      type = "release";
+      break;
+    default:
+      return TRUE;              /* nothing to do */
+    }
+
+  ncluaw_send_pointer_event (ncluaw_state, type, (int) e->x, (int) e->y);
   return TRUE;
 }
 
@@ -202,7 +232,22 @@ main (int argc, char **argv)
 
   canvas = gtk_drawing_area_new ();
   assert (canvas != NULL);      /* cannot fail */
-  g_signal_connect (canvas, "draw", G_CALLBACK (draw_callback), NULL);
+  gtk_widget_add_events (canvas, GDK_BUTTON_PRESS_MASK
+                         | GDK_BUTTON_RELEASE_MASK
+                         | GDK_POINTER_MOTION_MASK);
+
+  g_signal_connect (canvas, "button-press-event",
+                    G_CALLBACK (pointer_click_callback), NULL);
+
+  g_signal_connect (canvas, "button-release-event",
+                    G_CALLBACK (pointer_click_callback), NULL);
+
+  g_signal_connect (canvas, "motion-notify-event",
+                    G_CALLBACK (pointer_motion_callback), NULL),
+
+  g_signal_connect (canvas, "draw",
+                    G_CALLBACK (draw_callback), NULL);
+
   gtk_container_add (GTK_CONTAINER (app), canvas);
 
 #if GTK_CHECK_VERSION(3,8,0)
