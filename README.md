@@ -2,11 +2,12 @@ The NCLua library adds event handling and 2D graphics to Lua scripts.
 Programs written in C can use libnclua to run embedded NCLua scripts, i.e.,
 Lua scripts that use the APIs exported by libnclua; Lua scripts can also use
 libnclua, either through the C API or by requiring the appropriated modules
--- e.g., `canvas` for 2D graphics, `event` for general event handling,
+-- e.g., `canvas` for 2D graphics, event for general event handling,
 `event.stopwatch` for stopwatch timers, `event.tcp_socket` for asynchronous
 TCP sockets, `event.http_soup` for asynchronous HTTP requests, etc.  The
 NCLua library comes with a standalone interpreter, called `nclua`
-(cf. `src/nclua.c`), which can be used to run standalone NCLua scripts.
+(cf. [src/nclua.c](src/nclua.c)), which can be used to run standalone NCLua
+scripts.
 
 For stable releases and binaries, cf.
 http://www.telemidia.puc-rio.br/~gflima/software/nclua.
@@ -21,17 +22,17 @@ Ginga (cf. http://www.ginga.org.br).  The reference implementation of Ginga
 Dependencies
 ------------
 
-* Lua >= 5.2, http://www.lua.org.
-* Cairo >= 1.10, http://cairographics.org.
-* GLib >= 2.32, https://developer.gnome.org/glib.
-* Pango >= 1.30, http://www.pango.org.
+* Lua >= 5.2, http://www.lua.org
+* Cairo >= 1.10, http://cairographics.org
+* GLib >= 2.32, https://developer.gnome.org/glib
+* Pango >= 1.30, http://www.pango.org
+* GIO >= 2.32, https://developer.gnome.org/gio
+* Libsoup >= 2.42, https://developer.gnome.org/libsoup
+* GTK+ >= 3.4.2, http://www.gtk.org
 
-Optional:
-* GIO >= 2.32, https://developer.gnome.org/gio, required by the `tcp` event
-  class.
-* Libsoup >= 2.42, https://developer.gnome.org/libsoup, required by the
-  `http` event class.
-* GTK+ >= 3.4.2, http://www.gtk.org, required by the `nclua` binary.
+GIO is required by the `tcp` event class; Libsoup is required by the `http`
+event class; an GTK+ is required by the `nclua` binary.  If these libraries
+are not found, the corresponding modules are not built.
 
 Event API
 ---------
@@ -57,7 +58,7 @@ Functions:
 Canvas API
 ----------
 
-For a complete reference, cf. `nclua/canvas.c`.
+For a complete reference, cf. [](nclua/canvas.c).
 
 Functions:
 * `canvas.new`            creates a new canvas
