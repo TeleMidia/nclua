@@ -21,20 +21,23 @@ Ginga (cf. http://www.ginga.org.br).  The reference implementation of Ginga
 Dependencies
 ------------
 
-* Lua >= 5.2, http://www.lua.org
-* Cairo >= 1.10, http://cairographics.org
-* GLib >= 2.32, https://developer.gnome.org/glib
-* Pango >= 1.30, http://www.pango.org
-* Libsoup >= 2.42, https://developer.gnome.org/libsoup
-* GTK+ >= 3.4.2, http://www.gtk.org
+* Lua >= 5.2, http://www.lua.org.
+* Cairo >= 1.10, http://cairographics.org.
+* GLib >= 2.32, https://developer.gnome.org/glib.
+* Pango >= 1.30, http://www.pango.org.
 
-GTK+ is optional; if it is not present, the standalone NCLua interpreter is
-not built.
+Optional:
+* GIO >= 2.32, https://developer.gnome.org/gio, required by the `tcp` event
+  class.
+* Libsoup >= 2.42, https://developer.gnome.org/libsoup, required by the
+  `http` event class.
+* GTK+ >= 3.4.2, http://www.gtk.org, required by the `nclua` binary.
 
 Event API
 ---------
 
-For a complete reference, cf. User API section in `nclua/event/init.lua`.
+For a complete reference, cf. User API section in
+[init.lua](nclua/event/init.lua).
 
 Event classes:
 * `ncl`      NCL (Nested Context Language) events
