@@ -180,7 +180,8 @@ perl_indent_join_empty_lines:=\
 INDENT?= indent
 INDENT_OPTIONS:=\
   --else-endif-column0\
-  --gnu-style --indent-label-1\
+  --gnu-style\
+  --indent-label-1\
   --leave-preprocessor-space\
   --no-tabs\
   -l76\
@@ -254,17 +255,6 @@ maintainer-clean-diff:
 	    git ls-files --other; exit 1;  } || :
 
 
-SC_AVOID_IF_BEFORE_FREE_ALIASES:=\
-  cairo_destroy\
-  cairo_region_destroy\
-  cairo_surface_destroy\
-  g_free\
-  luax_callback_data_unref\
-  ncluaw_event_free\
-  pango_font_description_free\
-  $(NULL)
-
-
 SC_BASE_EXCLUDE:=\
   examples/pacman/%\
   examples/luarocks/%\
@@ -327,11 +317,21 @@ sc-make-indent:
 	@perl -wnle '$(perl_sc_make_indent)' $(VC_LIST_AM) $(VC_LIST_MK)
 
 
+SC_USELESS_IF_BEFORE_FREE_ALIASES:=\
+  cairo_destroy\
+  cairo_region_destroy\
+  cairo_surface_destroy\
+  g_free\
+  luax_callback_data_unref\
+  ncluaw_event_free\
+  pango_font_description_free\
+  $(NULL)
+
 # Checks for useless if before free().
 SC_RULES+= sc-useless-if-before-free
 sc-useless-if-before-free:
 	@./build-aux/useless-if-before-free\
-	  $(SC_AVOID_IF_BEFORE_FREE_ALIASES:%=--name=%)\
+	  $(SC_USELESS_IF_BEFORE_FREE_ALIASES:%=--name=%)\
 	  $(VC_LIST_C) && exit 1 || :;
 
 
