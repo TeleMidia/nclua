@@ -39,6 +39,7 @@ main (int argc, const char **argv)
     }
 
   L = luaL_newstate ();
+  assert (L != NULL);           /* out of memory */
   luaL_openlibs (L);
 
   status = luaL_loadfile (L, argv[1]) || lua_pcall (L, 0, 0, 0);

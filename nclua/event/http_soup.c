@@ -84,9 +84,9 @@ l_soup_new (lua_State *L)
   luax_optudata (L, 1, SOUP);
   timeout = (guint) clamp (luaL_optint (L, 2, 0), 0, INT_MAX);
   soup = (soup_t *) lua_newuserdata (L, sizeof (*soup));
-  assert (soup != NULL);
+  assert (soup != NULL);        /* cannot fail */
   soup->session = soup_session_new_with_options ("timeout", timeout, NULL);
-  assert (soup->session != NULL);
+  assert (soup->session != NULL); /* cannot fail */
   luaL_setmetatable (L, SOUP);
 
   return 1;

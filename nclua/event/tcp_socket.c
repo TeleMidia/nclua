@@ -88,9 +88,9 @@ l_socket_new (lua_State *L)
   luax_optudata (L, 1, SOCKET);
   timeout = (guint) clamp (luaL_optint (L, 2, 0), 0, INT_MAX);
   sock = (socket_t *) lua_newuserdata (L, sizeof (*sock));
-  assert (sock != NULL);
+  assert (sock != NULL);        /* cannot fail */
   sock->client = g_socket_client_new ();
-  assert (sock->client != NULL);
+  assert (sock->client != NULL); /* cannot fail */
   sock->conn = NULL;
   g_socket_client_set_timeout (sock->client, timeout);
   luaL_setmetatable (L, SOCKET);
@@ -466,7 +466,7 @@ l_socket_receive (lua_State *L)
   luaL_argcheck (L, n > 0, 2, "cannot receive zero bytes");
   luaL_checktype (L, 3, LUA_TFUNCTION);
   buf = (char *) lua_newuserdata (L, sizeof (*buf) * n);
-  assert (buf != NULL);
+  assert (buf != NULL);         /* cannot fail */
 
   lua_pushcclosure (L, l_socket_receive_callback_closure, 4);
   cb_data = luax_callback_data_ref (L, sock);

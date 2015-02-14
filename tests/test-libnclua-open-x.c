@@ -25,6 +25,7 @@ main (void)
   {
     lua_State *L;
     L = luaL_newstate ();
+    assert (L != NULL);
     nclua_open (L, 800, 600, NULL);
   }
   TEST_END;

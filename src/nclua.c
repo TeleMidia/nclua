@@ -185,6 +185,7 @@ main (int argc, char **argv)
   g_free (basename);
 
   app = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  assert (app != NULL);         /* cannot fail */
   gtk_window_set_title (GTK_WINDOW (app), "NCLua");
   gtk_widget_set_size_request (app, WIDTH, HEIGHT);
   gtk_window_set_resizable (GTK_WINDOW (app), FALSE);
@@ -200,6 +201,7 @@ main (int argc, char **argv)
                     deconst (void *, "release"));
 
   canvas = gtk_drawing_area_new ();
+  assert (canvas != NULL);      /* cannot fail */
   g_signal_connect (canvas, "draw", G_CALLBACK (draw_callback), NULL);
   gtk_container_add (GTK_CONTAINER (app), canvas);
 

@@ -66,7 +66,7 @@ xmalloc (size_t n)
 {
   void *p;
   p = malloc (n);
-  assert (p != NULL);
+  assert (p != NULL);           /* out of memory */
   return p;
 }
 
@@ -292,6 +292,7 @@ ncluaw_open (const char *path, int width, int height, char **errmsg)
   int err;
 
   L = luaL_newstate ();
+  assert (L != NULL);           /* out of memory */
   luaL_openlibs (L);
   err = nclua_open (L, width, height, plugin_list);
   if (unlikely (err != LUA_OK))

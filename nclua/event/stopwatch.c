@@ -73,7 +73,7 @@ l_stopwatch_new (lua_State *L)
 
   luax_optudata (L, 1, STOPWATCH);
   clock = (stopwatch_t *) lua_newuserdata (L, sizeof (*clock));
-  assert (clock != NULL);
+  assert (clock != NULL);       /* cannot fail */
   clock->t0 = 0;
   clock->state = STOPPED;
   luaL_setmetatable (L, STOPWATCH);

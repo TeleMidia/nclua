@@ -168,6 +168,7 @@ l_canvas_intersect (lua_State *L)
   r1.height = luaL_checkint (L, 8);
 
   region = cairo_region_create_rectangle (&r0);
+  assert (region != NULL);      /* cannot fail */
   err = cairo_region_status (region);
   if (unlikely (err != CAIRO_STATUS_SUCCESS))
     {
