@@ -272,7 +272,8 @@ AS_IF([test "$enable_gcc_warnings" = yes],
        [nclua_cv_clang=yes],
        [nclua_cv_clang=no])])
   AS_IF([test "$nclua_cv_clang" = yes],
-   [gl_WARN_ADD([-Wno-tautological-constant-out-of-range-compare])
+   [gl_WARN_ADD([-Wno-switch-enum])
+    gl_WARN_ADD([-Wno-tautological-constant-out-of-range-compare])
     gl_WARN_ADD([-Wno-unused-command-line-argument])])
 
   gl_WARN_ADD([-fdiagnostics-show-option])
