@@ -216,13 +216,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define STRINGIFY_(s) #s
 
 #undef nelementsof
-#define nelementsof(x) (sizeof (x) / sizeof (x[0]))
+#define nelementsof(x) (sizeof (x) / sizeof ((x)[0]))
 
 #undef integralof
 #define integralof(x) (((char *)(x)) - ((char *) 0))
 
 #undef pointerof
-#define pointerof(x) ((void *)((char *) 0 + ((size_t) x)))
+#define pointerof(x) ((void *)((char *) 0 + ((size_t)(x))))
 
 #undef ssizeof
 #define ssizeof(x) ((ptrdiff_t) sizeof (x))
@@ -243,16 +243,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define min(x, y) (((x) < (y)) ? (x) : (y))
 
 #undef clamp
-#define clamp(x, lo, hi) (min (max (x, lo), hi))
+#define clamp(x, lo, hi) (min (max ((x), (lo)), (hi)))
 
 #undef radians
-#define radians(x) (x * M_PI / 180)
+#define radians(x) ((x) * M_PI / 180)
 
 #undef degrees
-#define degrees(x) (x * 180 / M_PI)
+#define degrees(x) ((x) * 180 / M_PI)
 
 #undef streq
-#define streq(a, b) ((*(a) == *(b)) && strcmp (a, b) == 0)
+#define streq(a, b) ((*(a) == *(b)) && strcmp ((a), (b)) == 0)
 
 #undef cast
 #define cast(t, x) ((t)(x))
