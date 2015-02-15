@@ -68,11 +68,15 @@ endif
 
 perl_strip_md_id_or_path_re = [\w\.\-/:]
 perl_strip_md =\
+  BEGIN { my $$n = 1; }\
   s, , ,g;\
   s,`($(perl_strip_md_id_or_path_re)+)`,$$1,g;\
+  s,^!.*$$,,g;\
   s,\[[^\]]+]\(($(perl_strip_md_id_or_path_re)+)\),$$1,g;\
-  /^[^!]/ and print;\
+  $$n > 2 and print;\
+  $$n++;\
   $(NULL)
+
 README: README.md
 	$(AM_V_GEN)$(PERL) -wnle '$(perl_strip_md)' README.md > $@
 
