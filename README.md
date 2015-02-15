@@ -35,10 +35,9 @@ Optional:
 * Libsoup >= 2.42, https://developer.gnome.org/libsoup
 * GTK+ >= 3.4.2, http://www.gtk.org
 
-GIO is required by the `tcp` event class, Libsoup is required by the `http`
-event class, and GTK+ is required by the `nclua` binary.  These libraries
-are optional, if they are not present the corresponding modules are not
-built.
+GIO is used by the `tcp` event class, Libsoup is used by the `http` event
+class, and GTK+ is used by the `nclua` binary.  These libraries are
+optional, if they are not present the corresponding modules are not built.
 
 Canvas API
 ----------
