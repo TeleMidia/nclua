@@ -63,7 +63,7 @@ Functions:
 * `canvas:drawLine`       draws a line
 * `canvas:drawPolygon`    draws a polygon
 * `canvas:drawRect`       draws a rectangle
-* `canvas:drawRect`       draws a rectangle with rounded corners
+* `canvas:drawRoundRect`  draws a rectangle with rounded corners
 * `canvas:drawText`       draws text
 * `canvas:flush`          commits the pending operations
 * `canvas:measureText`    measures text
