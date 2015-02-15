@@ -71,9 +71,10 @@ perl_strip_md =\
   s, , ,g;\
   s,`($(perl_strip_md_id_or_path_re)+)`,$$1,g;\
   s,\[[^\]]+]\(($(perl_strip_md_id_or_path_re)+)\),$$1,g;\
+  /^[^!]/ and print;\
   $(NULL)
-README:
-	$(AM_V_GEN)$(PERL) -wple '$(perl_strip_md)' README.md > $@
+README: README.md
+	$(AM_V_GEN)$(PERL) -wnle '$(perl_strip_md)' README.md > $@
 
 DISTCLEANFILES =\
   config.cache\
