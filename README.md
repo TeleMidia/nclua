@@ -1,4 +1,4 @@
-![alt text](http://www.telemidia.puc-rio.br/~gflima/software/nclua/logo.png "NCLua = NCL + Lua")
+![NCLua](http://www.telemidia.puc-rio.br/~gflima/software/nclua/nclua.png)
 
 The NCLua library adds event handling and 2D graphics to Lua scripts.
 Programs written in C can use libnclua to run embedded NCLua scripts, i.e.,
