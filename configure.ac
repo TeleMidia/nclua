@@ -255,7 +255,6 @@ AS_IF([test "$enable_gcc_warnings" = yes],
   gl_WARN_ADD([-Wredundant-decls])
   gl_WARN_ADD([-Wsign-compare])
   gl_WARN_ADD([-Wsign-conversion])
-  gl_WARN_ADD([-Wswitch-enum])
   gl_WARN_ADD([-Wundef])
 
   # FIXME: The following is broken; C++ keyword 'and' appears in GTK header.
