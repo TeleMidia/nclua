@@ -68,13 +68,12 @@ endif
 
 perl_strip_md_id_or_path_re = [\w\.\-/:]
 perl_strip_md =\
-  BEGIN { my $$n = 1; }\
+  BEGIN { my $$n = 0; }\
   s, , ,g;\
   s,`($(perl_strip_md_id_or_path_re)+)`,$$1,g;\
   s,^!.*$$,,g;\
   s,\[[^\]]+]\(($(perl_strip_md_id_or_path_re)+)\),$$1,g;\
-  $$n > 2 and print;\
-  $$n++;\
+  ++$$n > 2 and print;\
   $(NULL)
 
 README: README.md
