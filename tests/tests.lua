@@ -209,7 +209,7 @@ end
 
 function tests.dump (...)
    local args = {...}
-   local n = tests.maxi (args)
+   local n = tests.maxi (args) or 0
    for i=1,n do
       dump (args[i])
       cat ('\n')
