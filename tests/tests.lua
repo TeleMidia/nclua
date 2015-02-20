@@ -34,10 +34,20 @@ local table = table
 local tostring = tostring
 local type = type
 
+local function optrequire (name)
+   local t = {pcall (require, name)}
+   if t[1] == false then
+      return nil, t[2]
+   else
+      return table.unpack (t, 2)
+   end
+end
+tests.optrequire = optrequire
+
 local tests0 = require ('tests0')
 local canvas = require ('nclua.canvas')
-local socket = require ('nclua.event.tcp_socket')
-local soup = require ('nclua.event.http_soup')
+local socket = optrequire ('nclua.event.tcp_socket')
+local soup = optrequire ('nclua.event.http_soup')
 local stopwatch = require ('nclua.event.stopwatch')
 _ENV = nil
 
