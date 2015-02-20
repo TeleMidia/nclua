@@ -24,12 +24,7 @@ local TRACE_SEP = tests.trace_sep
 local canvas = require ('nclua.canvas')
 _ENV = nil
 
-local epsilon = nil
-if tests.cairo_version (1, 12) then
-   epsilon = 0                  -- 0%
-else
-   epsilon = .05                -- 5%
-end
+local epsilon = nil             -- default (0%)
 
 -- Sanity checks.
 local c = tests.canvas.new ()
@@ -45,12 +40,10 @@ c:attrAntiAlias ('none')
 c:drawPolygon ('fill')(0,0)(w/2,h/2)(w,0)()
 ASSERT (tests.canvas.check_ref (c, 1, epsilon))
 
-if tests.cairo_version (1, 12) then
-   tests.canvas.clear (c)
-   c:attrAntiAlias ('default')
-   c:drawPolygon ('fill')(0,0)(w/2,h/2)(w,0)()
-   ASSERT (tests.canvas.check_ref (c, 2))
-end
+tests.canvas.clear (c)
+c:attrAntiAlias ('default')
+c:drawPolygon ('fill')(0,0)(w/2,h/2)(w,0)()
+ASSERT (tests.canvas.check_ref (c, 2))
 
 -- Check if drawPolygon() honors clip.
 local c, w, h = tests.canvas.new ()
@@ -93,4 +86,4 @@ tests.iter (
    end
 )
 
-ASSERT (tests.canvas.check_ref (c, 6, epsilon * 6))
+ASSERT (tests.canvas.check_ref (c, 6, epsilon))

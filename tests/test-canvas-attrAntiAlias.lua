@@ -48,7 +48,7 @@ ASSERT (c:attrAntiAlias () == 'default')
 
 -- Check all supported modes.
 local list = {'default', 'none', 'gray', 'subpixel'}
-if tests.cairo_version (1, 12) then
+if tests.cairo_check_version (1, 12) then
    table.insert (list, 'fast')
    table.insert (list, 'good')
    table.insert (list, 'best')

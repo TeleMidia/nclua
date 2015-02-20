@@ -22,12 +22,7 @@ local GET_SAMPLE = tests.canvas.get_sample
 local TRACE = tests.trace
 local TRACE_SEP = tests.trace_sep
 
-local epsilon = nil
-if tests.cairo_version (1, 12) then
-   epsilon = 0                  -- 0%
-else
-   epsilon = .05                -- 5%
-end
+local epsilon = nil             -- default (0%)
 
 local canvas = require ('nclua.canvas')
 _ENV = nil

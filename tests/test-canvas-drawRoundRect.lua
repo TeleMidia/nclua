@@ -25,12 +25,7 @@ local math = math
 local canvas = require ('nclua.canvas')
 _ENV = nil
 
-local epsilon = nil
-if tests.cairo_version (1, 12) then
-   epsilon = 0                  -- 0%
-else
-   epsilon = .05                -- 5%
-end
+local epsilon = nil             -- default (0%)
 
 -- Sanity checks.
 local c = tests.canvas.new ()
@@ -89,4 +84,4 @@ tests.iter (
       c:drawRoundRect (mode, x, y, w, h, radius)
    end
 )
-ASSERT (tests.canvas.check_ref (c, 6, epsilon * 2))
+ASSERT (tests.canvas.check_ref (c, 6, epsilon))

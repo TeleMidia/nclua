@@ -39,12 +39,10 @@ c:attrAntiAlias ('none')
 c:drawLine (0, 0, w, h)
 ASSERT (tests.canvas.check_ref (c, 1))
 
-if tests.cairo_version (1, 12) then
-   tests.canvas.clear (c)
-   c:attrAntiAlias ('default')
-   c:drawLine (0, 0, w, h)
-   ASSERT (tests.canvas.check_ref (c, 2))
-end
+tests.canvas.clear (c)
+c:attrAntiAlias ('default')
+c:drawLine (0, 0, w, h)
+ASSERT (tests.canvas.check_ref (c, 2))
 
 -- Check if drawLine() honors clip.
 local c, w, h = tests.canvas.new ()

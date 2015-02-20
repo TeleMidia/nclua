@@ -24,12 +24,7 @@ local TRACE_SEP = tests.trace_sep
 local canvas = require ('nclua.canvas')
 _ENV = nil
 
-local epsilon = nil
-if tests.cairo_version (1, 12) then
-   epsilon = 0                  -- 0%
-else
-   epsilon = .05                -- 5%
-end
+local epsilon = nil             -- default (0%)
 
 -- Sanity checks.
 local c = tests.canvas.new ()
@@ -49,17 +44,15 @@ c:attrFont ('Bitstream Vera Sans', 30)
 c:drawText (0, 0, '000')
 ASSERT (tests.canvas.check_ref (c, 1))
 
-if tests.cairo_version (1, 12) then
-   tests.canvas.clear (c)
-   c:attrAntiAlias ('default')
-   c:drawText (0, 0, '000')
-   ASSERT (tests.canvas.check_ref (c, 2))
-else
-   tests.canvas.clear (c)
-   c:attrAntiAlias ('gray')
-   c:drawText (0, 0, '000')
-   ASSERT (tests.canvas.check_ref (c, 3))
-end
+tests.canvas.clear (c)
+c:attrAntiAlias ('default')
+c:drawText (0, 0, '000')
+ASSERT (tests.canvas.check_ref (c, 2))
+
+tests.canvas.clear (c)
+c:attrAntiAlias ('gray')
+c:drawText (0, 0, '000')
+ASSERT (tests.canvas.check_ref (c, 3))
 
 -- Check if drawText() honors clip.
 local c, w, h = tests.canvas.new ()
@@ -106,4 +99,4 @@ tests.iter (
       c:drawText (mode, x, y, text)
    end
 )
-ASSERT (tests.canvas.check_ref (c, 7, epsilon * 6))
+ASSERT (tests.canvas.check_ref (c, 7))

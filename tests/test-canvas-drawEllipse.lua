@@ -39,12 +39,10 @@ c:attrAntiAlias ('none')
 c:drawEllipse ('frame', w/2, h/2, w/2, h/2, 0, 360)
 ASSERT (tests.canvas.check_ref (c, 1))
 
-if tests.cairo_version (1, 12) then
-   tests.canvas.clear (c)
-   c:attrAntiAlias ('default')
-   c:drawEllipse ('frame', w/2, h/2, w/2, h/2, 0, 360)
-   ASSERT (tests.canvas.check_ref (c, 2))
-end
+tests.canvas.clear (c)
+c:attrAntiAlias ('default')
+c:drawEllipse ('frame', w/2, h/2, w/2, h/2, 0, 360)
+ASSERT (tests.canvas.check_ref (c, 2))
 
 -- Check if drawEllipse() honors clip.
 local c, w, h = tests.canvas.new ()

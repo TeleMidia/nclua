@@ -69,7 +69,11 @@ local c = tests.canvas.new (1, 1)
 c:attrColor (24, 10, 10, 127)
 c:clear ()
 local t = {c:pixel (0, 0)}
-ASSERT (t[1] == 22, t[2] == 8, t[3] == 8, t[4] == 127)
+if tests.cairo_check_version (1, 14, 0) then
+   ASSERT (t[1] == 24, t[2] == 10, t[3] == 10, t[4] == 127)
+else
+   ASSERT (t[1] == 22, t[2] == 8, t[3] == 8, t[4] == 127)
+end
 
 -- Make some pseudo-random calls and check the result.
 local c, cw, ch = tests.canvas.new ()
