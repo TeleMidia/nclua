@@ -45,3 +45,12 @@ suppress(pango_language_get_default)
 dnl Fontconfig -- used by pango.
 suppress(FcDefaultSubstitute)
 suppress(FcFontMatch)
+
+dnl Soup.
+suppress(g_cancellable_class_init)
+suppress(g_tls_connection_class_init)
+suppress(soup_auth_manager_class_init)
+suppress(soup_connection_class_init)
+suppress(soup_message_class_init)
+suppress(soup_session_class_init)
+suppress(soup_socket_class_init)
