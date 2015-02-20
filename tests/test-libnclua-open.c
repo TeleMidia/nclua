@@ -96,7 +96,17 @@ main (void)
   TEST_BEGIN
   {
     const char *list[] = {
-      "http", "key", "ncl", "pointer", "tcp", "user", NULL
+#if BUILD_EVENT_HTTP
+      "http",
+#endif
+      "key",
+      "ncl",
+      "pointer",
+#if BUILD_EVENT_TCP
+      "tcp",
+#endif
+      "user",
+      NULL
     };
     lua_State *L;
 
