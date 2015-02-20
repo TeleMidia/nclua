@@ -32,6 +32,34 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "macros.h"
 
 /*-
+ * tests0.dir_exists (path:string) -> status:boolean
+ *
+ * Returns true if PATH points to a directory.
+ */
+static int
+l_dir_exists (lua_State *L)
+{
+  const char *path;
+  path = luaL_checkstring (L, 1);
+  lua_pushboolean (L, g_file_test (path, G_FILE_TEST_IS_DIR));
+  return 1;
+}
+
+/*-
+ * tests0.file_exists (path:string) -> status:boolean
+ *
+ * Returns true if PATH points to a regular file.
+ */
+static int
+l_file_exists (lua_State *L)
+{
+  const char *path;
+  path = luaL_checkstring (L, 1);
+  lua_pushboolean (L, g_file_test (path, G_FILE_TEST_IS_REGULAR));
+  return 1;
+}
+
+/*-
  * tests0.get_monotonic_time () -> us:number
  *
  * Returns a monotonic time-stamp in microseconds.
@@ -120,12 +148,13 @@ l_xrand (lua_State *L)
 /********************************* CAIRO **********************************/
 
 /*-
- * tests0.cairo_version (major, minor, micro:number) -> status:boolean
+ * tests0.cairo_check_version (major, minor, micro:number)
+ *       -> status:boolean
  *
  * Returns true if cairo version is greater or equal than the given version.
  */
 static int
-l_cairo_version (lua_State *L)
+l_cairo_check_version (lua_State *L)
 {
   if (CAIRO_VERSION_MAJOR >= luaL_checkint (L, 1)
       && CAIRO_VERSION_MINOR >= luaL_optint (L, 2, 0)
@@ -139,6 +168,20 @@ l_cairo_version (lua_State *L)
     }
 
   return 1;
+}
+
+/*-
+ * tests0.cairo_get_version () -> major, minor, micro:number
+ *
+ * Returns the major, minor, and micro version of cairo.
+ */
+static int
+l_cairo_get_version (lua_State *L)
+{
+  lua_pushinteger (L, CAIRO_VERSION_MAJOR);
+  lua_pushinteger (L, CAIRO_VERSION_MINOR);
+  lua_pushinteger (L, CAIRO_VERSION_MICRO);
+  return 3;
 }
 
 /********************************* CANVAS *********************************/
@@ -270,13 +313,16 @@ l_canvas_surface_equals (lua_State *L)
 }
 
 static const struct luaL_Reg tests0_funcs[] = {
+  {"cairo_check_version", l_cairo_check_version},
+  {"cairo_get_version", l_cairo_get_version},
+  {"canvas_intersect", l_canvas_intersect},
+  {"canvas_surface_equals", l_canvas_surface_equals},
+  {"dir_exists", l_dir_exists},
+  {"file_exists", l_file_exists},
   {"get_monotonic_time", l_get_monotonic_time},
   {"testudata", l_testudata},
   {"usleep", l_usleep},
   {"xrand", l_xrand},
-  {"cairo_version", l_cairo_version},
-  {"canvas_intersect", l_canvas_intersect},
-  {"canvas_surface_equals", l_canvas_surface_equals},
   {NULL, NULL}
 };
 

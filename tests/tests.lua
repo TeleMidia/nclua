@@ -349,6 +349,20 @@ function tests.read_file (file)
    return result
 end
 
+---
+-- Returns true if PATH points to a directory.
+--
+do
+   tests.dir_exists = tests0.dir_exists
+end
+
+---
+-- Returns true if PATH points to a regular file.
+--
+do
+   tests.file_exists = tests0.file_exists
+end
+
 
 -------------------------- Random data generators --------------------------
 
@@ -567,7 +581,10 @@ end
 ---------------------------------- CAIRO -----------------------------------
 
 do
-   tests.cairo_version = tests0.cairo_version
+   tests.cairo_check_version = tests0.cairo_check_version
+   tests.cairo_get_version = tests0.cairo_get_version
+   tests.CAIRO_MAJOR, tests.CAIRO_MINOR, tests.CAIRO_MICRO
+      = tests.cairo_get_version ()
 end
 
 
@@ -615,9 +632,21 @@ end
 --
 -- If EPSILON is given, admit difference in EPSILON * 100% of the pixels.
 --
+local REF_CAIRO_DIRS = {
+   ('ref-cairo-%d-%d'):format (tests.CAIRO_MAJOR, tests.CAIRO_MINOR),
+   'ref-cairo-any',
+}
 function tests.canvas.check_ref (canvas, serial, epsilon)
    local name = debug.getinfo (2).short_src
-   local path = name:gsub ('%.lua', '-'..serial..'-ref.png')
+   local base = name:gsub ('%.lua', '-'..serial..'-ref.png')
+   local path = nil
+   for _, dir in ipairs (REF_CAIRO_DIRS) do
+      path = dir..'/'..base
+      if tests.file_exists (path) then
+         break
+      end
+   end
+   assert (path, path)
    local ref = assert (canvas:new (path), path)
    return tests.canvas.surface_equals (canvas:_surface (),
                                        ref:_surface (),
@@ -629,7 +658,15 @@ end
 --
 function tests.canvas.dump_ref (canvas, serial)
    local name = debug.getinfo (2).short_src
-   local path = name:gsub ('%.lua', '-'..serial..'-ref.png')
+   local base = name:gsub ('%.lua', '-'..serial..'-ref.png')
+   local path = nil
+   for _, dir in ipairs (REF_CAIRO_DIRS) do
+      if tests.dir_exists (dir) then
+         path = dir..'/'..base
+         break
+      end
+   end
+   assert (path, path)
    tests.trace (('*** DUMPING REF: %s ***'):format (path))
    return assert (canvas:_dump_to_file (path))
 end
