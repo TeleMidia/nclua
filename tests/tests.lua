@@ -336,7 +336,7 @@ end
 function tests.tmpname ()
    local name = os.tmpname ()
    if tests.is_windows () then
-      return name:gsub ('\\', '-slash-')
+      return name:gsub ('\\', 'xslashx')
    else
       return name
    end
