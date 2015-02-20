@@ -113,24 +113,26 @@ ASSERT (tests.objeq (
               {end_time=30, func=f3, cancel=c4}}))
 do
    CYCLE (15)
-   ASSERT (CALL_LOG[1],
+
+   ASSERT (CALL_LOG[1] ~= nil,
            CALL_LOG[1].func == 'f2',
            numeq (CALL_LOG[1].time, 1))
-   ASSERT (CALL_LOG[2],
+
+   ASSERT (CALL_LOG[2] ~= nil,
            CALL_LOG[2].func == 'f1',
            numeq (CALL_LOG[2].time, 10))
    c2 ()
 
-   CYCLE (16)
-   ASSERT (CALL_LOG[3],
+   CYCLE (31)
+   ASSERT (CALL_LOG[3] ~= nil,
            CALL_LOG[3].func == 'f3',
-		   numeq (CALL_LOG[3].time, 30))
+           numeq (CALL_LOG[3].time, 30))
    c1 = event.timer (0, f1)
    c2 = event.timer (0, f2)
    c1 ()
    c2 ()
 
-   CYCLE (20)
+   CYCLE (40)
    ASSERT (CALL_LOG, #CALL_LOG == 3)
 end
 
