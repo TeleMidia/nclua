@@ -70,7 +70,7 @@ ASSERT (#engine.timer_list == 0)
 engine:reset ()
 
 local epsilon
-if tests.mk._VALGRIND then
+if tests.mk._VALGRIND or tests.is_windows () then
    epsilon = 10                 -- 10ms
 else
    epsilon = 1                  -- 1ms
@@ -80,9 +80,9 @@ local function numeq (x, y)
    return tests.numeq (x, y, epsilon)
 end
 
+local t0 = event.uptime ()
 local function CYCLE (ms)
    TRACE ('cycling for '..ms..'ms')
-   local t0 = event.uptime ()
    while event.uptime () - t0 < ms do
       engine:cycle ()
    end
@@ -90,8 +90,9 @@ end
 
 local CALL_LOG = {}
 local function _f (name)
-   TRACE (name..' called')
-   table.insert (CALL_LOG, {func=name, time=event.uptime ()})
+   local time = event.uptime ()
+   TRACE (name..' called at '..time..'ms')
+   table.insert (CALL_LOG, {func=name, time=time})
 end
 
 local f1 = function () return _f ('f1') end
@@ -112,19 +113,25 @@ ASSERT (tests.objeq (
               {end_time=30, func=f3, cancel=c4}}))
 do
    CYCLE (15)
-   ASSERT (CALL_LOG[1].func == 'f2', numeq (CALL_LOG[1].time, 1))
-   ASSERT (CALL_LOG[2].func == 'f1', numeq (CALL_LOG[2].time, 10))
+   ASSERT (CALL_LOG[1],
+           CALL_LOG[1].func == 'f2',
+           numeq (CALL_LOG[1].time, 1))
+   ASSERT (CALL_LOG[2],
+           CALL_LOG[2].func == 'f1',
+           numeq (CALL_LOG[2].time, 10))
    c2 ()
 
    CYCLE (16)
-   ASSERT (CALL_LOG[3].func == 'f3', numeq (CALL_LOG[3].time, 30))
+   ASSERT (CALL_LOG[3],
+           CALL_LOG[3].func == 'f3',
+		   numeq (CALL_LOG[3].time, 30))
    c1 = event.timer (0, f1)
    c2 = event.timer (0, f2)
    c1 ()
    c2 ()
 
    CYCLE (20)
-   ASSERT (#CALL_LOG == 3)
+   ASSERT (CALL_LOG, #CALL_LOG == 3)
 end
 
 ASSERT (tests.objeq (engine.timer_list, {}))
