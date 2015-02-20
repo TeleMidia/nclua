@@ -67,7 +67,7 @@ ASSERT (evt.error and #evt.error > 0)
 TRACE ('error:', evt.error)
 
 -- Force a timeout.
-local tmpfile = os.tmpname ()
+local tmpfile = tests.tmpname ()
 local server, host, port = tests.server.new_sink (nil, tmpfile)
 server:start ()
 TRACE ('writing data to '..tmpfile)

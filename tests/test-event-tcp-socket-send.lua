@@ -39,7 +39,7 @@ ASSERT_ERROR (socket.send, sock, 'abc') -- not connected
 
 -- Send N bytes to local sink server and check the result.
 local n = 128 * 2^10            -- 128K
-local tmpfile = os.tmpname ()
+local tmpfile = tests.tmpname ()
 local server, host, port = tests.server.new_sink (nil, tmpfile)
 server:start ()
 TRACE ('writing data to '..tmpfile)

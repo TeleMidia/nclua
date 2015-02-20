@@ -34,6 +34,9 @@ local table = table
 local tostring = tostring
 local type = type
 
+---
+-- Fail-safe require.
+--
 local function optrequire (name)
    local t = {pcall (require, name)}
    if t[1] == false then
@@ -279,6 +282,29 @@ function tests.proj (i, ...)
 end
 
 ---
+-- Returns N if N is in the interval [LOWER,UPPER].
+-- If LOWER is given and N < LOWER, returns LOWER.
+-- If UPPER is given and N > UPPER, returns UPPER.
+--
+function tests.range (lower, n, upper)
+   if lower and n < lower then
+      return lower
+   elseif upper and n > upper then
+      return upper
+   else
+      return n
+   end
+end
+
+---
+-- Delay for a specified amount of time.
+--
+do
+   tests.sleep = function (s) tests.usleep (s * 10^6) end
+   tests.usleep = tests0.usleep
+end
+
+---
 -- Outputs arguments to stdout prefixed with a time-stamp.
 --
 function tests.trace (...)
@@ -300,36 +326,34 @@ function tests.trace_sep ()
    tests._trace_sep_number = tests._trace_sep_number + 1
 end
 
+
+---------------------------- File manipulation  ----------------------------
+
 ---
--- Writes string STR to file FILE.
+-- Wrapper to os.tmpname; it workarounds bogus names returned by
+-- os.tmpname() on MinGW.
 --
-function tests.write_file (s, file)
-   local file = assert (io.open (file, 'wb'))
-   assert (file:write (str))
-   file:close ()
+function tests.tmpname ()
+   local name = os.tmpname ()
+   if tests.is_windows () then
+      return name:gsub ('\\', '-slash-')
+   else
+      return name
+   end
 end
 
 ---
--- Delay for a specified amount of time.
+-- Returns true if PATH points to a directory.
 --
 do
-   tests.sleep = function (s) tests.usleep (s * 10^6) end
-   tests.usleep = tests0.usleep
+   tests.dir_exists = tests0.dir_exists
 end
 
 ---
--- Returns N if N is in the interval [LOWER,UPPER].
--- If LOWER is given and N < LOWER, returns LOWER.
--- If UPPER is given and N > UPPER, returns UPPER.
+-- Returns true if PATH points to a regular file.
 --
-function tests.range (lower, n, upper)
-   if lower and n < lower then
-      return lower
-   elseif upper and n > upper then
-      return upper
-   else
-      return n
-   end
+do
+   tests.file_exists = tests0.file_exists
 end
 
 ---
@@ -350,17 +374,12 @@ function tests.read_file (file)
 end
 
 ---
--- Returns true if PATH points to a directory.
+-- Writes string STR to file FILE.
 --
-do
-   tests.dir_exists = tests0.dir_exists
-end
-
----
--- Returns true if PATH points to a regular file.
---
-do
-   tests.file_exists = tests0.file_exists
+function tests.write_file (s, file)
+   local file = assert (io.open (file, 'wb'))
+   assert (file:write (str))
+   file:close ()
 end
 
 
@@ -420,7 +439,7 @@ end
 -- longer needed.
 --
 local function rand_file (f_rand_string, size)
-   local tmp = os.tmpname ()
+   local tmp = tests.tmpname ()
    local file = assert (io.open (tmp, 'wb'))
    assert (file:write (f_rand_string (size)))
    file:close ()
@@ -724,7 +743,7 @@ end
 --
 function tests.server.start (server)
    server.pid = nil
-   server.pidfile = os.tmpname ()
+   server.pidfile = tests.tmpname ()
    local str = ('sh %s/server.sh %s --verbose --pid="%s" --port=%d %s')
       :format (tests.mk.srcdir,
                tests.mk.srcdir,

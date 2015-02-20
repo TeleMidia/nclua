@@ -39,7 +39,7 @@ local _w, _h = c:attrSize ()
 ASSERT (w == 50, h == 50, _w == 50, _h == 50)
 
 -- Check the size of a canvas created from file-path.
-local tmpfile = os.tmpname ()
+local tmpfile = tests.tmpname ()
 ASSERT (c:_dump_to_file (tmpfile))
 
 local c, w, h = canvas.new (tmpfile)
