@@ -45,6 +45,13 @@ NCLua TODO -- Tasks that need implementing.                    -*-outline-*-
     These could be given via command-line options, environment variables, or
     a configuration file (e.g., ~/.nclua).
 
+  + tests/server.pl: Add HTTP support
+
+    Currently, the server understands no application protocol.  If we add to
+    it basic HTTP support (via --http), we could remove the requirement of
+    an Internet connection from the HTTP tests, viz., http event class and
+    http_sock stuff.
+
   + List the problems with the ABNT standard
 
     E.g., the standard establishes that the size canvas:attrFont() is given
