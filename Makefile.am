@@ -45,6 +45,7 @@ dist-hook:
 
 EXTRA_DIST =\
   .version\
+  README.md\
   bootstrap\
   build-aux/git-log-fix\
   build-aux/git-version-gen\
