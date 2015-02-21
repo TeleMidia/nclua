@@ -2,7 +2,7 @@ NCLua TODO -- Tasks that need implementing.                    -*-outline-*-
 
 * KNOWN BUGS
 
-  + nclua/event/socket.c: Pending operations on disconnect_finished()
+  + nclua/event/socket.c: Pending operations on disconnect_finished().
 
     The disconnect_finished() function should cancel pending send or receive
     operations.  Otherwise, the 'disconnect' event will cause these
@@ -12,19 +12,17 @@ NCLua TODO -- Tasks that need implementing.                    -*-outline-*-
 
 * FEATURES OR PROBLEMS
 
-  + Generate API documentation
-
-  + lib/ncluaw.c: Check event syntax in ncluaw_send()
+  + lib/ncluaw.c: Check event syntax in ncluaw_send().
 
     The ncluaw_send() function should check the syntax its event parameter.
 
-  + nclua/canvas.c: Add canvas:_resize (new_w, new_h)
+  + nclua/canvas.c: Add canvas:_resize (new_w, new_h).
 
     Currently, it is not possible to resize the surface of a canvas.  In
     fact, you can allocate another canvas and then compose the original one
-    scaled onto the new canvas, but this is not a "true" resize operation.
+    scaled onto the new canvas, but this is not a true resize operation.
 
-  + src/nclua.c: Add options to the nclua standalone player
+  + src/nclua.c: Add options to the nclua standalone player.
 
     Some useful options:
       --version     print version information
@@ -35,24 +33,26 @@ NCLua TODO -- Tasks that need implementing.                    -*-outline-*-
 
     If no input file is given, nclua should read input from stdin.
 
-  + src/nclua.c: Add widgets to the player window
+  + src/nclua.c: Add widgets to the player window.
 
     It would be useful to have a menu bar and status bar.  The latter, for
     example, could show the current frame-rate.
 
-  + src/nclua.c: Add support to configuration options
+  + src/nclua.c: Add support to configuration options.
 
     These could be given via command-line options, environment variables, or
     a configuration file (e.g., ~/.nclua).
 
-  + tests/server.pl: Add HTTP support
+  + tests/server.pl: Add HTTP support.
 
-    Currently, the server understands no application protocol.  If we add to
-    it basic HTTP support (via --http), we could remove the requirement of
-    an Internet connection from the HTTP tests, viz., http event class and
-    http_sock stuff.
+    Currently, the server understands no application protocol.  If we basic
+    HTTP support to it, e.g., via a --http flag, we could remove the
+    requirement of an Internet connection from the HTTP tests, viz., http
+    event class and http_sock stuff.
 
-  + List the problems with the ABNT standard
+  + Generate API documentation.
+
+  + List the problems with the ABNT standard.
 
     E.g., the standard establishes that the size canvas:attrFont() is given
     in pixels.  This is probably wrong; most APIs support only point values.
@@ -60,13 +60,13 @@ NCLua TODO -- Tasks that need implementing.                    -*-outline-*-
 
 * OPTIMIZATION AND CLEAN UP
 
-  + src/nclua.c: Improve GTK+ to NCLua key event mapping
+  + src/nclua.c: Improve GTK+ to NCLua key event mapping.
 
-  + build-aux/syntax-check-copyright: Make it project independent
+  + build-aux/syntax-check-copyright: Make it project independent.
 
     This way we can use it in other projects (cf. syntax-check).
 
-  + configure.ac: Move coverage checks to separated file
+  + configure.ac: Move coverage checks to separated file.
 
     E.g., configure.ac.coverage.
 
