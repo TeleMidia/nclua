@@ -65,7 +65,7 @@ local function request_cb (status, soup, method, uri, code, headers, body)
    DONE = true
 end
 
-session:request ('POST', 'http://laws.deinf.ufma.br/404', {}, '',
+session:request ('POST', 'http://www.puc-rio.br/404', {}, '',
                  request_cb)
 CYCLE_UNTIL (function () return DONE end)
 
