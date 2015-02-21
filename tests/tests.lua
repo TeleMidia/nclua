@@ -330,6 +330,27 @@ end
 ---------------------------- File manipulation  ----------------------------
 
 ---
+-- Returns the filename part of PATH.
+--
+function tests.basename (path)
+   return path:match ('^.*/([^/]*)$') or path
+end
+
+---
+-- Returns the directory part of PATH.
+--
+function tests.dirname (path)
+   return path:match ('^(.*)/[^/]*$') or '.'
+end
+
+---
+-- Concatenate the given arguments to make a path.
+--
+function tests.mkpath (...)
+   return table.concat ({...}, '/')
+end
+
+---
 -- Wrapper to os.tmpname; it workarounds bogus names returned by
 -- os.tmpname() on MinGW.
 --
@@ -656,11 +677,12 @@ local REF_CAIRO_DIRS = {
    'ref-cairo-any',
 }
 function tests.canvas.check_ref (canvas, serial, epsilon)
-   local name = debug.getinfo (2).short_src
-   local base = name:gsub ('%.lua', '-'..serial..'-ref.png')
+   local s = debug.getinfo (2).short_src
+   local root = tests.dirname (s)
+   local base = tests.basename (s):gsub ('%.lua', '-'..serial..'-ref.png')
    local path = nil
    for _, dir in ipairs (REF_CAIRO_DIRS) do
-      path = dir..'/'..base
+      path = tests.mkpath (root, dir, base)
       if tests.file_exists (path) then
          break
       end
@@ -676,12 +698,13 @@ end
 -- Dumps a new reference picture with the given serial.
 --
 function tests.canvas.dump_ref (canvas, serial)
-   local name = debug.getinfo (2).short_src
-   local base = name:gsub ('%.lua', '-'..serial..'-ref.png')
+   local s = debug.getinfo (2).short_src
+   local root = tests.dirname (s)
+   local base = tests.basename (s):gsub ('%.lua', '-'..serial..'-ref.png')
    local path = nil
    for _, dir in ipairs (REF_CAIRO_DIRS) do
       if tests.dir_exists (dir) then
-         path = dir..'/'..base
+         path = tests.mkpath (root, dir, base)
          break
       end
    end
