@@ -88,8 +88,8 @@ perl_env_sh_remove_ld_preload =\
   /^\s*export\s*LD_PRELOAD=/ or print;\
   $(NULL)
 
-$(builddir)/env.sh: $(srcdir)/Makefile
-	$(AM_V_GEN)cat $(srcdir)/Makefile\
+$(builddir)/env.sh:
+	$(AM_V_GEN)cat $(builddir)/Makefile\
 	  | $(PERL) -00 -wnle '$(perl_env_sh_get_tests_environment)'\
 	  | $(PERL) -wple '$(perl_env_sh_expand_variables)'\
 	  | $(PERL) -wnle '$(perl_env_sh_remove_ld_preload)' > $@
