@@ -141,7 +141,9 @@ VC_LIST_SH:= $(shell git ls-files '*.sh')
 perl_after_indent_type_list:=\
   GAsyncResult\
   GObject\
+  GdkEventButton\
   GdkEventKey\
+  GdkEventMotion\
   GdkFrameClock\
   GtkWidget\
   SoupMessage\

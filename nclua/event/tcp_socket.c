@@ -90,7 +90,7 @@ l_socket_new (lua_State *L)
   sock = (socket_t *) lua_newuserdata (L, sizeof (*sock));
   assert (sock != NULL);        /* cannot fail */
   sock->client = g_socket_client_new ();
-  assert (sock->client != NULL); /* cannot fail */
+  assert (sock->client != NULL);        /* cannot fail */
   sock->conn = NULL;
   g_socket_client_set_timeout (sock->client, timeout);
   luaL_setmetatable (L, SOCKET);

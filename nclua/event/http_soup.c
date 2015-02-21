@@ -86,7 +86,7 @@ l_soup_new (lua_State *L)
   soup = (soup_t *) lua_newuserdata (L, sizeof (*soup));
   assert (soup != NULL);        /* cannot fail */
   soup->session = soup_session_new_with_options ("timeout", timeout, NULL);
-  assert (soup->session != NULL); /* cannot fail */
+  assert (soup->session != NULL);       /* cannot fail */
   luaL_setmetatable (L, SOUP);
 
   return 1;

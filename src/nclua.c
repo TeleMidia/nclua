@@ -150,8 +150,8 @@ keyboard_callback (arg_unused (GtkWidget *widget), GdkEventKey *e,
 }
 
 static gboolean
-pointer_motion_callback (arg_unused (GtkWidget *widget), GdkEventMotion *e,
-                         arg_unused (const char *type))
+pointer_motion_callback (arg_unused (GtkWidget *widget),
+                         GdkEventMotion *e, arg_unused (const char *type))
 {
   ncluaw_send_pointer_event (ncluaw_state, "move", (int) e->x, (int) e->y);
   return TRUE;
@@ -243,10 +243,9 @@ main (int argc, char **argv)
                     G_CALLBACK (pointer_click_callback), NULL);
 
   g_signal_connect (canvas, "motion-notify-event",
-                    G_CALLBACK (pointer_motion_callback), NULL),
+                    G_CALLBACK (pointer_motion_callback), NULL);
 
-  g_signal_connect (canvas, "draw",
-                    G_CALLBACK (draw_callback), NULL);
+  g_signal_connect (canvas, "draw", G_CALLBACK (draw_callback), NULL);
 
   gtk_container_add (GTK_CONTAINER (app), canvas);
 
