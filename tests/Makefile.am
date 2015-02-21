@@ -63,7 +63,7 @@ perl_env_sh_get_tests_environment =\
   $(NULL)
 
 if OS_WIN32
-WINROOT = C:/MinGW/msys/1.0
+WINROOT = $(MINGW_ROOT)/msys/1.0
 perl_env_sh_expand_variables =\
   s/^\s*//g; s/\\//g;\
   s,\$$\(SOEXT\),$(SOEXT),g;\

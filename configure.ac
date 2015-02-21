@@ -99,6 +99,7 @@ AM_PROG_CC_C_O
 AC_C_CONST
 AC_PROG_INSTALL
 
+AC_PROG_SED
 AC_CHECK_PROGS([M4], [m4 gm4])
 AM_CONDITIONAL([HAVE_M4], [test -n "$M4"])
 
@@ -121,6 +122,12 @@ AS_CASE(["$host"], [*-*-mingw*],
  [nclua_os_win32=no])
 AC_MSG_RESULT([$nclua_os_win32])
 AM_CONDITIONAL([OS_WIN32], [test "$nclua_os_win32" = yes])
+
+AS_IF([test "$nclua_os_win32" = yes && test -z "$MINGW_ROOT"],
+[MINGW_ROOT=`$SED -n 's,^\(.*\)[ 	][ 	]*/mingw$,\1,p' /etc/fstab`;
+ AS_IF([test -z "$MINGW_ROOT"],
+ [MINGW_ROOT='C:/MinGW'])])
+AC_SUBST([MINGW_ROOT])
 
 AS_IF([test "$nclua_os_win32" = yes],
  [AS_CASE(["$host"], [x86_64-*-*],
