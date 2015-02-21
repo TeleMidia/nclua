@@ -19,7 +19,7 @@
 include $(top_srcdir)/build-aux/Makefile.am.common
 
 EXTRA_DIST = nclua.pc.in nclua.rc.in ncluaconf.h.in
-DISTCLEANFILES = nclua.pc nclua.rc ncluaconf.h
+DISTCLEANFILES+= nclua.pc nclua.rc ncluaconf.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = nclua.pc

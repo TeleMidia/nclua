@@ -81,7 +81,7 @@ perl_strip_md =\
 README: README.md
 	$(AM_V_GEN)$(PERL) -wnle '$(perl_strip_md)' README.md > $@
 
-DISTCLEANFILES =\
+DISTCLEANFILES +=\
   config.cache\
   $(NULL)
 
