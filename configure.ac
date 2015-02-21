@@ -247,6 +247,7 @@ AS_IF([test "$enable_gcc_warnings" = yes],
   nw=
   nw="$nw -Wsystem-headers"         # Suppress system headers warnings
   nw="$nw -Wpadded"                 # Our structs are not packed
+  nw="$nw -Woverlength-strings"     # Some tests use big literals.
 
   gl_MANYWARN_ALL_GCC([ws])
   gl_MANYWARN_COMPLEMENT([ws], [$ws], [$nw])
