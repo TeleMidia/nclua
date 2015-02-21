@@ -1,8 +1,54 @@
 NCLua NEWS -- History of user-visible changes.                 -*-outline-*-
 
+* Version 1.3, February 21, 2015, Guilherme F. Lima
+
+  - Add the HTTP event class.
+
+    New event class for HTTP/HTTPS requests (cf. nclua/event/http.lua);
+    depends on Libsoup-2.4.
+
+    We've also added two examples of networking and two auxiliary libraries
+    under examples/www.  The first example, examples/www/tcp-example.lua,
+    makes a simple HTTP request and prints the response body on screen.
+    This example uses a blocking TCP library, examples/www/tcp.lua, which is
+    implemented on top of the TCP event class.
+
+    The second example, example/www/http-example.lua, makes some HTTP and
+    HTTPS requests and prints the corresponding response headers and bodies
+    on screen.  Similarly, this example uses a blocking HTTP library,
+    examples/www/http.lua, which is implemented on top of the HTTP event
+    class.
+
+  - Add support to pointer event class to the nclua binary.
+
+    The nclua binary now generates pointer events, cf. examples/follow.lua.
+
+  - Make GTK+3.0, GIO-2.0, and Libsoup-2.4 optional.
+
+    GTK+3.0 is required by the NCLua binary, GIO-2.0 is required by the TCP
+    event class, and Libsoup-2.4 is required by the HTTP event class.  If
+    these libraries are not found the corresponding modules are not built.
+
+  - Fix bug in nclua/canvas.c: l_canvas_clear().
+
+    We were using canvas->width instead of canvas->height to initialize
+    height when it was not explicit given.
+
+  - Fix bug in nclua/event/tcp.lua: receive_finished().
+
+    We were disconnecting the socket when the received data was empty, i.e.,
+    zero bytes.  This is wrong; the client is responsible for identifying an
+    EOF condition, which may vary from protocol to protocol, and issuing a
+    disconnect event.
+
+  - Fix bug in lib/ncluaw.c: ncluaw_panic_wrapper().
+
+    We now make sure that the error message is on top of stack before
+    calling the panic function.
+
 * Version 1.2, August 20, 2014, Guilherme F. Lima
 
-  - Fix the order of parameters for NCL class filters in event.register.
+  - Fix the order of parameters for NCL class filters in event.register().
 
     The ITU-T H761 standard enforces the following possible orders for NCL
     filter parameters in event.register calls:
@@ -11,13 +57,13 @@ NCLua NEWS -- History of user-visible changes.                 -*-outline-*-
     (2) event.register (f, 'ncl', 'selection',    LABEL, ACTION);
     (3) event.register (f, 'ncl', 'attribution',  NAME, VALUE).
 
-    In previous versions of NCLua, however, event.register expected ACTION
-    to come before LABEL.  This has been fixed.  Now event.register expects
-    LABEL followed by ACTION, as shown in cases (1) and (2) above.
+    In previous versions of NCLua, however, event.register() expected ACTION
+    to come before LABEL.  This has been fixed.  Now event.register()
+    expects LABEL followed by ACTION, as shown in cases (1) and (2) above.
 
 * Version 1.1, July 11, 2014, Guilherme F. Lima
 
-  - Call g_type_init in systems where it must be explicitly called.
+  - Call g_type_init() in systems where it must be explicitly called.
 
   - Make build system compatible with MinGW.
 
