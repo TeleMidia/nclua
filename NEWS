@@ -4,10 +4,10 @@ NCLua NEWS -- History of user-visible changes.                 -*-outline-*-
 
   - Add the HTTP event class and networking examples.
 
-    We've added a new event class, called http, for HTTP/HTTPS requests
-    (cf. nclua/event/http.lua); the http class depends on Libsoup-2.4.
+    We added a new event class, called http, for HTTP/HTTPS requests
+    (cf. nclua/event/http.lua); this new class depends on Libsoup-2.4.
 
-    We've also added two examples of networking and two auxiliary libraries
+    We also added two examples of networking and two auxiliary libraries
     under examples/www.  The first example, examples/www/tcp-example.lua,
     makes a simple HTTP request and prints the response body on screen.
     This example uses a blocking TCP library, examples/www/tcp.lua, which is
@@ -30,8 +30,8 @@ NCLua NEWS -- History of user-visible changes.                 -*-outline-*-
 
   - Fix bug in nclua/canvas.c: l_canvas_clear().
 
-    We were using canvas->width instead of canvas->height to initialize
-    height when it was not explicit given.
+    We were wrongly using canvas->width instead of canvas->height to
+    initialize height when it was not explicit given.
 
   - Fix bug in nclua/event/tcp.lua: receive_finished().
 

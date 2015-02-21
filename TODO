@@ -48,8 +48,8 @@ NCLua TODO -- Tasks that need implementing.                    -*-outline-*-
 
   + tests/server.pl: Add HTTP support.
 
-    Currently, the server understands no application protocol.  If we basic
-    HTTP support to it, e.g., via a --http flag, we could remove the
+    Currently, the server understands no application protocol.  If we add
+    basic HTTP support to it, e.g., via an --http flag, we could remove the
     requirement of an Internet connection from the HTTP tests, viz., http
     event class and http_sock stuff.
 
