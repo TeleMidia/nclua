@@ -2,20 +2,19 @@ NCLua NEWS -- History of user-visible changes.                 -*-outline-*-
 
 * Version 1.3, February 21, 2015, Guilherme F. Lima
 
-  - Add the HTTP event class.
+  - Add the HTTP event class and networking examples.
 
-    New event class for HTTP/HTTPS requests (cf. nclua/event/http.lua);
-    depends on Libsoup-2.4.
+    We've added a new event class, called http, for HTTP/HTTPS requests
+    (cf. nclua/event/http.lua); the http class depends on Libsoup-2.4.
 
     We've also added two examples of networking and two auxiliary libraries
     under examples/www.  The first example, examples/www/tcp-example.lua,
     makes a simple HTTP request and prints the response body on screen.
     This example uses a blocking TCP library, examples/www/tcp.lua, which is
-    implemented on top of the TCP event class.
-
-    The second example, example/www/http-example.lua, makes some HTTP and
-    HTTPS requests and prints the corresponding response headers and bodies
-    on screen.  Similarly, this example uses a blocking HTTP library,
+    implemented on top of the TCP event class.  The second example,
+    example/www/http-example.lua, makes some HTTP and HTTPS requests and
+    prints the corresponding response headers and bodies on screen.
+    Similarly, this example uses a blocking HTTP library,
     examples/www/http.lua, which is implemented on top of the HTTP event
     class.
 
