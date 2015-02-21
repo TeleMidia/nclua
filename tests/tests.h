@@ -109,7 +109,7 @@ ATTR_PRINTF_FORMAT (1, 2)
 /*-
  * Outputs a numbered entry separator.
  */
-static ATTR_UNUSED inline void
+static ATTR_UNUSED void
 TRACE_SEP (void)
 {
   static int n = 1;
