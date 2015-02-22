@@ -290,11 +290,24 @@ XFAIL_TESTS =\
 EXTRA_DIST =\
   $(check_SCRIPTS)\
   libnclua-echo.lua\
-  sample/apple-red.png\
-  sample/gnu-keys.png\
-  server.pl\
-  server.sh\
-  suppfile.m4\
+  ref-cairo-1-14/test-canvas-drawEllipse-2-ref.png\
+  ref-cairo-1-14/test-canvas-drawEllipse-3-ref.png\
+  ref-cairo-1-14/test-canvas-drawEllipse-4-ref.png\
+  ref-cairo-1-14/test-canvas-drawLine-2-ref.png\
+  ref-cairo-1-14/test-canvas-drawLine-3-ref.png\
+  ref-cairo-1-14/test-canvas-drawLine-4-ref.png\
+  ref-cairo-1-14/test-canvas-drawPolygon-2-ref.png\
+  ref-cairo-1-14/test-canvas-drawPolygon-3-ref.png\
+  ref-cairo-1-14/test-canvas-drawPolygon-4-ref.png\
+  ref-cairo-1-14/test-canvas-drawRoundRect-2-ref.png\
+  ref-cairo-1-14/test-canvas-drawRoundRect-3-ref.png\
+  ref-cairo-1-14/test-canvas-drawRoundRect-4-ref.png\
+  ref-cairo-1-14/test-canvas-drawRoundRect-6-ref.png\
+  ref-cairo-1-14/test-canvas-drawText-2-ref.png\
+  ref-cairo-1-14/test-canvas-drawText-3-ref.png\
+  ref-cairo-1-14/test-canvas-drawText-4-ref.png\
+  ref-cairo-1-14/test-canvas-drawText-5-ref.png\
+  ref-cairo-1-14/test-canvas-drawText-7-ref.png\
   ref-cairo-any/test-canvas-clear-1-ref.png\
   ref-cairo-any/test-canvas-clear-2-ref.png\
   ref-cairo-any/test-canvas-clear-3-ref.png\
@@ -310,29 +323,20 @@ EXTRA_DIST =\
   ref-cairo-any/test-canvas-compose-7-ref.png\
   ref-cairo-any/test-canvas-drawEllipse-1-ref.png\
   ref-cairo-any/test-canvas-drawEllipse-2-ref.png\
-  ref-cairo-any/test-canvas-drawEllipse-2-ref.png\
   ref-cairo-any/test-canvas-drawEllipse-3-ref.png\
-  ref-cairo-any/test-canvas-drawEllipse-3-ref.png\
-  ref-cairo-any/test-canvas-drawEllipse-4-ref.png\
   ref-cairo-any/test-canvas-drawEllipse-4-ref.png\
   ref-cairo-any/test-canvas-drawEllipse-5-ref.png\
   ref-cairo-any/test-canvas-drawEllipse-6-ref.png\
   ref-cairo-any/test-canvas-drawEllipse-7-ref.png\
   ref-cairo-any/test-canvas-drawLine-1-ref.png\
   ref-cairo-any/test-canvas-drawLine-2-ref.png\
-  ref-cairo-any/test-canvas-drawLine-2-ref.png\
   ref-cairo-any/test-canvas-drawLine-3-ref.png\
-  ref-cairo-any/test-canvas-drawLine-3-ref.png\
-  ref-cairo-any/test-canvas-drawLine-4-ref.png\
   ref-cairo-any/test-canvas-drawLine-4-ref.png\
   ref-cairo-any/test-canvas-drawLine-5-ref.png\
   ref-cairo-any/test-canvas-drawLine-6-ref.png\
   ref-cairo-any/test-canvas-drawPolygon-1-ref.png\
   ref-cairo-any/test-canvas-drawPolygon-2-ref.png\
-  ref-cairo-any/test-canvas-drawPolygon-2-ref.png\
   ref-cairo-any/test-canvas-drawPolygon-3-ref.png\
-  ref-cairo-any/test-canvas-drawPolygon-3-ref.png\
-  ref-cairo-any/test-canvas-drawPolygon-4-ref.png\
   ref-cairo-any/test-canvas-drawPolygon-4-ref.png\
   ref-cairo-any/test-canvas-drawPolygon-5-ref.png\
   ref-cairo-any/test-canvas-drawPolygon-6-ref.png\
@@ -344,25 +348,16 @@ EXTRA_DIST =\
   ref-cairo-any/test-canvas-drawRect-6-ref.png\
   ref-cairo-any/test-canvas-drawRoundRect-1-ref.png\
   ref-cairo-any/test-canvas-drawRoundRect-2-ref.png\
-  ref-cairo-any/test-canvas-drawRoundRect-2-ref.png\
   ref-cairo-any/test-canvas-drawRoundRect-3-ref.png\
-  ref-cairo-any/test-canvas-drawRoundRect-3-ref.png\
-  ref-cairo-any/test-canvas-drawRoundRect-4-ref.png\
   ref-cairo-any/test-canvas-drawRoundRect-4-ref.png\
   ref-cairo-any/test-canvas-drawRoundRect-5-ref.png\
   ref-cairo-any/test-canvas-drawRoundRect-6-ref.png\
-  ref-cairo-any/test-canvas-drawRoundRect-6-ref.png\
   ref-cairo-any/test-canvas-drawText-1-ref.png\
   ref-cairo-any/test-canvas-drawText-2-ref.png\
-  ref-cairo-any/test-canvas-drawText-2-ref.png\
-  ref-cairo-any/test-canvas-drawText-3-ref.png\
   ref-cairo-any/test-canvas-drawText-3-ref.png\
   ref-cairo-any/test-canvas-drawText-4-ref.png\
-  ref-cairo-any/test-canvas-drawText-4-ref.png\
-  ref-cairo-any/test-canvas-drawText-5-ref.png\
   ref-cairo-any/test-canvas-drawText-5-ref.png\
   ref-cairo-any/test-canvas-drawText-6-ref.png\
-  ref-cairo-any/test-canvas-drawText-7-ref.png\
   ref-cairo-any/test-canvas-drawText-7-ref.png\
   ref-cairo-any/test-canvas-flush-1-ref.png\
   ref-cairo-any/test-canvas-flush-2-ref.png\
@@ -370,6 +365,11 @@ EXTRA_DIST =\
   ref-cairo-any/test-canvas-flush-4-ref.png\
   ref-cairo-any/test-canvas-new-1-ref.png\
   ref-cairo-any/test-canvas-pixel-1-ref.png\
+  sample/apple-red.png\
+  sample/gnu-keys.png\
+  server.pl\
+  server.sh\
+  suppfile.m4\
   test-libncluaw-cycle.lua\
   tests.h\
   tests.lua\
