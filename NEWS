@@ -31,7 +31,7 @@ NCLua NEWS -- History of user-visible changes.                 -*-outline-*-
   - Fix bug in nclua/canvas.c: l_canvas_clear().
 
     We were wrongly using canvas->width instead of canvas->height to
-    initialize height when it was not explicit given.
+    initialize height when it was not explicitly given.
 
   - Fix bug in nclua/event/tcp.lua: receive_finished().
 
