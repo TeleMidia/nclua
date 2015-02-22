@@ -167,7 +167,7 @@ luax_getfield (lua_State *L, int i, const char *k)
   }                                             \
   STMT_END
 
-#ifdef DEBUG
+#if defined DEBUG && DEBUG
 # include <stdio.h>
 
 # define luax_dump_value(L, i)\
