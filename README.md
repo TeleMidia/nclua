@@ -4,7 +4,7 @@ The NCLua library adds event handling and 2D graphics to Lua scripts.
 Programs written in C can use libnclua to run embedded NCLua scripts, i.e.,
 Lua scripts that use the APIs exported by libnclua; Lua scripts can also use
 libnclua, either through the C API or by requiring the appropriated modules
--- e.g., `canvas` for 2D graphics, event for general event handling,
+-- e.g., `canvas` for 2D graphics, `event` for general event handling,
 `event.stopwatch` for stopwatch timers, `event.tcp_socket` for asynchronous
 TCP sockets, `event.http_soup` for asynchronous HTTP requests, etc.  The
 NCLua library comes with a standalone interpreter, called `nclua`
