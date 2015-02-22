@@ -275,14 +275,14 @@ ncluaw_event_equals (const ncluaw_event_t *e1, const ncluaw_event_t *e2)
 /******************************** Wrappers ********************************/
 
 /*-
- * Creates new NCLua state from the NCLua script at path PATH.
+ * Creates a new NCLua state from the NCLua script at path PATH.
  *
  * The WIDTH and HEIGHT parameters define the dimensions (in pixels) of the
  * global canvas.
  *
  * Returns a new NCLua state if successful, otherwise returns NULL and, if
- * ERRMSG is non-NULL, stores a copy of the error message into *ERRMSG --
- * the caller owns this copy and should call free() when done with it.
+ * ERRMSG is non-NULL, stores a copy of the error message into *ERRMSG; the
+ * caller owns this copy and should call free() when done with it.
  */
 ncluaw_t *
 ncluaw_open (const char *path, int width, int height, char **errmsg)
