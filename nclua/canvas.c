@@ -28,7 +28,7 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <glib-object.h>
 #include <pango/pangocairo.h>
 
-#if HAVE_GTK
+#if defined HAVE_GTK && HAVE_GTK
 # include <gtk/gtk.h>
 #endif
 
@@ -148,7 +148,7 @@ cairox_surface_create_from_file (const char *path, cairo_surface_t **dup)
 {
   cairo_surface_t *sfc;
 
-#ifdef HAVE_GTK
+#if defined HAVE_GTK && HAVE_GTK
 
   GdkPixbuf *pixbuf;
   GError *error = NULL;
