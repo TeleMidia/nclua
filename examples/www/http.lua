@@ -79,7 +79,7 @@ local function request_finished (e)
    if e.error == nil then
       resume (co, true, e.code, e.headers, e.body)
    else
-      resuem (co, false, e.error)
+      resume (co, false, e.error)
    end
    return true                  -- consume event
 end
