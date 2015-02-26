@@ -47,8 +47,12 @@ local function resume (co, ...)
    assert (coroutine.resume (co, ...))
    if coroutine.status (co) == 'dead' then
       local conn = ESTABLISHED[co]
-      ESTABLISHED[co] = nil
-      ESTABLISHED_REV[conn] = nil
+      if ESTABLISHED[co] then
+         ESTABLISHED[co] = nil
+      end
+      if ESTABLISHED_REV[conn] then
+         ESTABLISHED_REV[conn] = nil
+      end
    end
 end
 
@@ -87,7 +91,7 @@ local function connect_finished (e)
 end
 event.register (connect_finished, {class='tcp', type='connect'})
 
-function tcp.connect (host, port)
+function tcp.connect (host, port, timeout)
    local co = assert (coroutine.running ())
    PENDING[co] = {
       host = host,
@@ -98,6 +102,7 @@ function tcp.connect (host, port)
       type = 'connect',
       host = host,
       port = port,
+      timeout = timeout,
    }
    if status == false then
       return false, errmsg
