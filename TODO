@@ -24,11 +24,9 @@ NCLua TODO -- Tasks that need implementing.                    -*-outline-*-
     original one scaled onto the new canvas, but this is not a true resize
     operation.
 
-  + src/nclua.c: Add options to the nclua standalone player.
+  + src/nclua.c: Add extra options to the nclua standalone interpreter.
 
     Some useful options:
-      --version     print version information
-      --help        print help information
       --debug       print debugging information
       --load=FILE   load FILE before running the given script
       --plugin=FILE load and registers FILE as a new event plugin
