@@ -23,8 +23,6 @@ local http = {}
 
 local assert = assert
 local pairs = pairs
-local print = print
-local table = table
 local tonumber = tonumber
 
 local tcp = require ('tcp')
