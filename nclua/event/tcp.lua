@@ -100,15 +100,18 @@ local function dispatch (evt)
 end
 
 local function receive_finished (status, sock, data)
+
+   -- FIXME: Avoid throwing a 'Socket closed' error (cf. TODO).
+   if not sock:is_connected () then
+      return
+   end
+
    if status then
       if #data > 0 then
          dispatch {type='data', connection=sock, value=data}
          sock:receive (RECEIVE_BUFSIZE, receive_finished)
       end
-   elseif sock:is_connected () then
-      --
-      -- FIXME: Fix the 'Socket closed' error (cf. Known Bugs in TODO).
-      --
+   else
       dispatch {type='data', error=data}
    end
 end
