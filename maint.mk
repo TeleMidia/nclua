@@ -140,6 +140,7 @@ VC_LIST_SH:= $(shell git ls-files '*.sh')
 
 perl_after_indent_type_list:=\
   GAsyncResult\
+  GError\
   GObject\
   GdkEventButton\
   GdkEventKey\
@@ -152,6 +153,7 @@ perl_after_indent_type_list:=\
   cairo_surface_t\
   cairo_t\
   canvas_t\
+  gchar\
   lua_State\
   luax_callback_data_t\
   ncluaw_event_t\
