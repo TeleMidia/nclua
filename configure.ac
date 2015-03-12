@@ -38,7 +38,7 @@ m4_define([nclua_version_micro],
 AC_INIT([NCLua],
         nclua_version_string,
         [gflima@telemidia.puc-rio.br],
-        [nclua], [http://www.telemidia.puc-rio.br/~gflima])
+        [nclua], [http://github.com/gflima/nclua])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux])
