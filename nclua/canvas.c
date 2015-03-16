@@ -48,6 +48,7 @@ typedef struct _canvas_t
   int width;                    /* canvas width (in pixels) */
   int height;                   /* canvas height (in pixels) */
   cairo_rectangle_int_t crop;   /* crop attribute */
+  cairo_filter_t filter;        /* filter attribute */
   struct
   {                             /* flip attribute */
     cairo_bool_t x;             /* true if horizontal flip is on */
@@ -220,7 +221,7 @@ cairox_surface_get_rotation_bounding_box (cairo_surface_t *src,
 
    Finally, stores the resulting surface into *DUP and returns
    CAIRO_STATUS_SUCCESS if successful, or an error status otherwise.  */
-
+#if 0
 static cairo_status_t
 cairox_surface_rotate_and_flip (cairo_surface_t *src,
                                 cairo_surface_t **dup,
@@ -260,6 +261,7 @@ cairox_surface_rotate_and_flip (cairo_surface_t *src,
 
   return CAIRO_STATUS_SUCCESS;
 }
+#endif
 
 /* Copy surface SRC and stores the copy into *DUP.
    If CROP is non-NULL, copies only the area determined by rectangle CROP.
@@ -416,6 +418,7 @@ l_canvas_new (lua_State *L)
   canvas->crop.y = 0;
   canvas->crop.width = canvas->width;
   canvas->crop.height = canvas->height;
+  canvas->filter = CAIRO_FILTER_GOOD;
   canvas->flip.x = FALSE;
   canvas->flip.y = FALSE;
   canvas->font = NULL;
@@ -556,7 +559,7 @@ _l_canvas_surface (lua_State *L)
  *
  * Gets or sets the anti-alias attribute of the given canvas.  The
  * anti-alias attribute defines the anti-alias mode used in drawing
- * operations.
+ * operations over the given canvas.
  *
  * The following MODE strings are supported:
  *   default  - use the default mode;
@@ -774,6 +777,55 @@ l_canvas_attrCrop (lua_State *L)
       canvas->crop.y = crop.y;
       canvas->crop.width = crop.width;
       canvas->crop.height = crop.height;
+      return 0;
+    }
+}
+
+/*-
+ * canvas:attrFilter () -> filter:string
+ * canvas:attrFilter (filter:string)
+ *
+ * Gets or sets the filter attribute of the given canvas.  The filter
+ * attribute defines what filtering should used when reading the pixels of
+ * the given canvas in composition operations, i.e., when the given canvas
+ * is composed over some other canvas.
+ *
+ * The following MODE strings are supported:
+ *   fast     - high performance, poor quality;
+ *   good     - reasonable performance and quality;
+ *   best     - poor performance, high quality;
+ *   nearest  - nearest neighbor filter;
+ *   bilinear - linear interpolation in two dimensions.
+ *
+ * The default filter mode is 'good'.
+ */
+static int
+l_canvas_attrFilter (arg_unused (lua_State *L))
+{
+  static const char *mode_list[] = {
+    "fast",
+    "good",
+    "best",
+    "nearest",
+    "bilinear",
+    NULL
+  };
+  canvas_t *canvas;
+
+  canvas = canvas_check (L, 1, NULL);
+  if (lua_gettop (L) == 1)
+    {
+      cairo_filter_t mode;
+      mode = canvas->filter;
+      assert (mode < nelementsof (mode_list) - 1);
+      lua_pushstring (L, mode_list[mode]);
+      return 1;
+    }
+  else
+    {
+      int mode;
+      mode = luaL_checkoption (L, 2, NULL, mode_list);
+      canvas->filter = (cairo_filter_t) mode;
       return 0;
     }
 }
@@ -1137,8 +1189,6 @@ l_canvas_clear (lua_State *L)
  *
  * If SRC_X, SRC_Y, SRC_W, and SRC_H are given, then ignores the crop region
  * of SRC and composes only the area delimited by the this rectangle.
- *
- * WARNING: A canvas cannot be composed onto itself.
  */
 static int
 l_canvas_compose (lua_State *L)
@@ -1146,71 +1196,97 @@ l_canvas_compose (lua_State *L)
   canvas_t *src;
   cairo_t *cr;
   double x, y;
-  int src_x, src_y, src_w, src_h;
-  cairo_surface_t *in, *out;
+  cairo_rectangle_int_t crop;
+
+  cairo_rectangle_int_t full;
+  cairo_region_t *region;
+  cairo_region_overlap_t overlap;
+
   cairo_pattern_t *pattern;
   cairo_matrix_t matrix;
   cairo_status_t err;
+  int w, h;
+  int rw, rh;
+  int fx, fy;
+  double sx, sy;
 
   canvas_check (L, 1, &cr);
   x = luaL_optnumber (L, 2, 0);
   y = luaL_optnumber (L, 3, 0);
 
   src = canvas_check (L, 4, NULL);
-  src_x = clamp (luaL_optint (L, 5, src->crop.x), 0, src->width);
-  src_y = clamp (luaL_optint (L, 6, src->crop.y), 0, src->height);
-  src_w = clamp (luaL_optint (L, 7, src->crop.width), 0, src->width);
-  src_h = clamp (luaL_optint (L, 8, src->crop.height), 0, src->height);
+  crop.x = clamp (luaL_optint (L, 5, src->crop.x), 0, src->width);
+  crop.y = clamp (luaL_optint (L, 6, src->crop.y), 0, src->height);
+  crop.width = clamp (luaL_optint (L, 7, src->crop.width), 0, src->width);
+  crop.height = clamp (luaL_optint (L, 8, src->crop.height), 0,
+                       src->height);
 
-  if (unlikely (src_w == 0 || src_h == 0))
-    return 0;                   /* nothing to do */
+  full.x = 0;
+  full.y = 0;
+  full.width = src->width;
+  full.height = src->height;
+  region = cairo_region_create_rectangle (&full);
+  overlap = cairo_region_contains_rectangle (region, &crop);
+  cairo_region_destroy (region);
+  if (unlikely (overlap == CAIRO_REGION_OVERLAP_OUT))
+      return 0;                 /* nothing to do */
 
   if (unlikely (src->scale.x <= 0.0 || src->scale.y <= 0.0))
     return 0;                   /* nothing to do */
 
-  if (src_x > 0 || src_y > 0 || src_w < src->width || src_h < src->height)
-    {
-      cairo_rectangle_int_t crop;
-      crop.x = src_x;
-      crop.y = src_y;
-      crop.width = src_w;
-      crop.height = src_h;
-      err = cairox_surface_duplicate (src->sfc, &in, &crop);
-      if (unlikely (err != CAIRO_STATUS_SUCCESS))
-        return error_throw (L, cairo_status_to_string (err));
-    }
-  else
-    {
-      in = src->sfc;
-    }
-
-  out = NULL;
-  err = cairox_surface_rotate_and_flip (in, &out, src->rotation,
-                                        src->flip.x, src->flip.y);
-  if (unlikely (err != CAIRO_STATUS_SUCCESS))
-    goto tail;
-
-  cairo_save (cr);
-  pattern = cairo_pattern_create_for_surface (out);
+  pattern = cairo_pattern_create_for_surface (src->sfc);
   err = cairo_pattern_status (pattern);
   if (unlikely (err != CAIRO_STATUS_SUCCESS))
-    goto tail;
+    return error_throw (L, cairo_status_to_string (err));
 
-  cairo_matrix_init_scale (&matrix, 1 / src->scale.x, 1 / src->scale.y);
+  cairo_save (cr);
+  cairox_surface_get_dimensions (src->sfc, &w, &h);
+  cairox_surface_get_rotation_bounding_box (src->sfc, &rw, &rh,
+                                            src->rotation);
+  fx = src->flip.x;
+  fy = src->flip.y;
+  sx = src->scale.x;
+  sy = src->scale.y;
+
+  /* Crop source, if necessary.  */
+  if (crop.x > 0
+      || crop.y > 0
+      || crop.width < src->width
+      || crop.height < src->height)
+    {
+      cairo_push_group (cr);
+      cairo_set_source (cr, pattern);
+      cairo_rectangle (cr, crop.x, crop.y, crop.width, crop.height);
+      cairo_fill (cr);
+      cairo_pop_group_to_source (cr);
+      pattern = cairo_get_source (cr);
+      cairo_pattern_reference (pattern);
+    }
+
+  cairo_matrix_init (&matrix, 1, 0, 0, 1, 0, 0);
+
+  /* Rotate.  */
+  cairo_matrix_translate (&matrix, w/2, h/2);
+  cairo_matrix_rotate (&matrix, 2 * M_PI - src->rotation);
+  cairo_matrix_translate (&matrix, -rw/2, -rh/2);
+
+  /* Flip.  */
+  cairo_matrix_translate (&matrix, (fx) ? rw : 0, (fy) ? rh : 0);
+  cairo_matrix_scale (&matrix, (fx) ? -1 : 1, (fy) ? -1 : 1);
+
+  /* Scale.  */
+  cairo_matrix_scale (&matrix, 1 / sx, 1 / sy);
+
+  /* Move to (x,y).  */
   cairo_matrix_translate (&matrix, -x, -y);
+
+  /* Paint onto destination with the source filter and alpha.  */
   cairo_pattern_set_matrix (pattern, &matrix);
+  cairo_pattern_set_filter (pattern, src->filter);
   cairo_set_source (cr, pattern);
   cairo_paint_with_alpha (cr, ((double) src->opacity) / 255);
   cairo_restore (cr);
   cairo_pattern_destroy (pattern);
-
- tail:
-  if (in != src->sfc)
-    cairo_surface_destroy (in);
-  cairo_surface_destroy (out);
-
-  if (unlikely (err != CAIRO_STATUS_SUCCESS))
-    return error_throw (L, cairo_status_to_string (err));
 
   return 0;
 }
@@ -1666,6 +1742,7 @@ static const struct luaL_Reg funcs[] = {
   {"attrClip", l_canvas_attrClip},
   {"attrColor", l_canvas_attrColor},
   {"attrCrop", l_canvas_attrCrop},
+  {"attrFilter", l_canvas_attrFilter},
   {"attrFlip", l_canvas_attrFlip},
   {"attrFont", l_canvas_attrFont},
   {"attrLineWidth", l_canvas_attrLineWidth},
