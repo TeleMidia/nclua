@@ -1143,28 +1143,34 @@ l_canvas_clear (lua_State *L)
 static int
 l_canvas_compose (lua_State *L)
 {
-  canvas_t *dest, *src;
+  canvas_t *src;
   cairo_t *cr;
   double x, y;
   int src_x, src_y, src_w, src_h;
   cairo_surface_t *in, *out;
+  cairo_pattern_t *pattern;
+  cairo_matrix_t matrix;
   cairo_status_t err;
 
-  dest = canvas_check (L, 1, &cr);
+  canvas_check (L, 1, &cr);
   x = luaL_optnumber (L, 2, 0);
   y = luaL_optnumber (L, 3, 0);
 
   src = canvas_check (L, 4, NULL);
-  luaL_argcheck (L, dest != src, 4, "cannot compose onto itself");
   src_x = clamp (luaL_optint (L, 5, src->crop.x), 0, src->width);
   src_y = clamp (luaL_optint (L, 6, src->crop.y), 0, src->height);
   src_w = clamp (luaL_optint (L, 7, src->crop.width), 0, src->width);
   src_h = clamp (luaL_optint (L, 8, src->crop.height), 0, src->height);
 
+  if (unlikely (src_w == 0 || src_h == 0))
+    return 0;                   /* nothing to do */
+
+  if (unlikely (src->scale.x <= 0.0 || src->scale.y <= 0.0))
+    return 0;                   /* nothing to do */
+
   if (src_x > 0 || src_y > 0 || src_w < src->width || src_h < src->height)
     {
       cairo_rectangle_int_t crop;
-
       crop.x = src_x;
       crop.y = src_y;
       crop.width = src_w;
@@ -1182,17 +1188,31 @@ l_canvas_compose (lua_State *L)
   err = cairox_surface_rotate_and_flip (in, &out, src->rotation,
                                         src->flip.x, src->flip.y);
   if (unlikely (err != CAIRO_STATUS_SUCCESS))
-    return error_throw (L, cairo_status_to_string (err));
+    goto tail;
 
   cairo_save (cr);
-  cairo_scale (cr, src->scale.x, src->scale.y);
-  cairo_set_source_surface (cr, out, x, y);
+  pattern = cairo_pattern_create_for_surface (out);
+  err = cairo_pattern_status (pattern);
+  if (unlikely (err != CAIRO_STATUS_SUCCESS))
+    goto tail;
+
+  cairo_matrix_init_scale (&matrix, 1 / src->scale.x, 1 / src->scale.y);
+  cairo_matrix_translate (&matrix, -x, -y);
+  cairo_pattern_set_matrix (pattern, &matrix);
+  cairo_set_source (cr, pattern);
   cairo_paint_with_alpha (cr, ((double) src->opacity) / 255);
   cairo_restore (cr);
+  cairo_pattern_destroy (pattern);
 
+tail:
   if (in != src->sfc)
     cairo_surface_destroy (in);
-  cairo_surface_destroy (out);
+
+  if (out != NULL)
+    cairo_surface_destroy (out);
+
+  if (unlikely (err != CAIRO_STATUS_SUCCESS))
+    return error_throw (L, cairo_status_to_string (err));
 
   return 0;
 }
