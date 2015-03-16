@@ -1204,12 +1204,10 @@ l_canvas_compose (lua_State *L)
   cairo_restore (cr);
   cairo_pattern_destroy (pattern);
 
-tail:
+ tail:
   if (in != src->sfc)
     cairo_surface_destroy (in);
-
-  if (out != NULL)
-    cairo_surface_destroy (out);
+  cairo_surface_destroy (out);
 
   if (unlikely (err != CAIRO_STATUS_SUCCESS))
     return error_throw (L, cairo_status_to_string (err));
