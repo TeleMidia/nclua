@@ -41,7 +41,7 @@ static gint WIDTH = 800;
 static gint HEIGHT = 600;
 
 /* Options: */
-#define OPTION_LINE "FILE..."
+#define OPTION_LINE "FILE"
 #define OPTION_DESC                             \
   "Report bugs to: " PACKAGE_BUGREPORT "\n"     \
   "NCLua home page: " PACKAGE_URL
