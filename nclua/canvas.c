@@ -82,7 +82,10 @@ canvas_check (lua_State *L, int index, cairo_t **cr)
 
 /* Computes the bounding rectangle of canvas CANVAS and stores its
    dimensions into *W and *H.  If CROP is non-null, use CROP instead of
-   CANVAS crop region.  */
+   CANVAS crop region.
+
+   WARNING: This function assumes that CROP is a sub-rectangle of the
+   canvas's surface.  */
 
 static void
 canvas_get_extends (canvas_t *canvas, int *w, int *h,
