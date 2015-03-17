@@ -111,13 +111,15 @@ if not tests.is_windows () then
    ASSERT (tests.canvas.check_ref (c, 5, epsilon))
 end
 
--- Check if compose() honors scale.
+-- Check if compose() honors scale and filter.
 local a, aw, ah = apple ()
 local c, cw, ch = background ()
 a:attrScale (2, 1)
 c:compose (0, 0, a)
+a:attrFilter ('fast')
 a:attrScale (1, 2)
 c:compose (0, 0, a)
+a:attrFilter ('good')
 a:attrScale (.5, .5)
 a:attrRotation (25)
 local _, _, aw, ah = a:attrSize ()
