@@ -137,6 +137,14 @@ static const char *const fill_or_frame_mode_list[] = {
 #define cairox_status_desc(cr)\
   cairo_status_to_string (cairo_status (cr))
 
+/* Returns true if pattern PATTERN is valid.  */
+#define cairox_pattern_is_valid(pattern)\
+  (cairo_pattern_status (pattern) == CAIRO_STATUS_SUCCESS)
+
+/* Returns a description of the current status of pattern PATTERN.  */
+#define cairox_pattern_status_desc(pattern)\
+  cairo_status_to_string (cairo_pattern_status (pattern))
+
 /* Returns true if region REGION is valid.  */
 #define cairox_region_is_valid(region)\
   (cairo_region_status (region) == CAIRO_STATUS_SUCCESS)
@@ -277,6 +285,14 @@ cairox_surface_duplicate (cairo_surface_t *src, cairo_surface_t **dup,
 #define error_throw_invalid_cr(L, cr)\
   error_throw (L, cairox_status_desc (cr))
 
+/* Throws an "invalid pattern" error.  */
+#define error_throw_invalid_pattern(L, pattern)\
+  error_throw (L, cairox_pattern_status_desc (pattern))
+
+/* Throws an "invalid region" error.  */
+#define error_throw_invalid_region(L, region)\
+  error_throw (L, cairox_region_status_desc (region))
+
 /* Throws an "invalid surface" error.  */
 #define error_throw_invalid_surface(L, sfc)\
   error_throw (L, cairox_surface_status_desc (sfc))
@@ -325,6 +341,7 @@ l_canvas_new (lua_State *L)
           lua_pushstring (L, cairo_status_to_string (status));
           return 2;
         }
+      assert (sfc != NULL);
     }
   else
     {
@@ -347,7 +364,7 @@ l_canvas_new (lua_State *L)
 
   if (lua_toboolean (L, 4))     /* double-buffering */
     {
-      cairo_surface_t *dup;
+      cairo_surface_t *dup = NULL;
       cairo_status_t err;
 
       err = cairox_surface_duplicate (sfc, &dup, NULL);
@@ -357,6 +374,7 @@ l_canvas_new (lua_State *L)
           cairo_destroy (cr);
           return error_throw (L, cairo_status_to_string (err));
         }
+      assert (dup != NULL);
       back_sfc = sfc;
       sfc = dup;
     }
@@ -718,7 +736,7 @@ l_canvas_attrCrop (lua_State *L)
       region = cairo_region_create_rectangle (&rect);
       assert (region != NULL);  /* cannot fail */
       if (unlikely (!cairox_region_is_valid (region)))
-        return error_throw (L, cairox_region_status_desc (region));
+        return error_throw_invalid_region (L, region);
 
       /* Computes the intersection of the given region and canvas.  */
       err = cairo_region_intersect_rectangle (region, &crop);
@@ -1162,7 +1180,6 @@ l_canvas_compose (lua_State *L)
   cairo_surface_t *sfc;
   cairo_pattern_t *pattern;
   cairo_matrix_t matrix;
-  cairo_status_t err;
   int w, h;
   int bw, bh;
   int fx, fy;
@@ -1179,18 +1196,20 @@ l_canvas_compose (lua_State *L)
   crop.height = clamp (luaL_optint (L, 8, src->crop.height), 0,
                        src->height);
 
-  /* Check if crop region is valid.  */
   rect.x = 0;
   rect.y = 0;
   rect.width = src->width;
   rect.height = src->height;
   region = cairo_region_create_rectangle (&rect);
+  assert (region != NULL);      /* cannot fail */
+  if (unlikely (!cairox_region_is_valid (region)))
+    return error_throw_invalid_region (L, region);
+
   overlap = cairo_region_contains_rectangle (region, &crop);
   cairo_region_destroy (region);
   if (unlikely (overlap == CAIRO_REGION_OVERLAP_OUT))
     return 0;                   /* nothing to do */
 
-  /* Check if scale is greater than zero.  */
   if (unlikely (src->scale.x <= 0.0 || src->scale.y <= 0.0))
     return 0;                   /* nothing to do */
 
@@ -1213,9 +1232,13 @@ l_canvas_compose (lua_State *L)
          But the performance was terrible, specially in examples/luarocks.
          So I'm sticking to the current code.  */
 
+      cairo_status_t err;
+
+      sfc = NULL;
       err = cairox_surface_duplicate (src->sfc, &sfc, &crop);
       if (unlikely (err != CAIRO_STATUS_SUCCESS))
         return error_throw (L, cairo_status_to_string (err));
+      assert (sfc != NULL);
     }
   else
     {
@@ -1224,14 +1247,13 @@ l_canvas_compose (lua_State *L)
 
   /* Create source pattern.  */
   pattern = cairo_pattern_create_for_surface (sfc);
-  err = cairo_pattern_status (pattern);
-  if (unlikely (err != CAIRO_STATUS_SUCCESS))
-    return error_throw (L, cairo_status_to_string (err));
+  assert (pattern != NULL);
+  if (unlikely (!cairox_pattern_is_valid (pattern)))
+    return error_throw_invalid_pattern (L, pattern);
 
   if (sfc != src->sfc)
     cairo_surface_destroy (sfc);
 
-  /* Setup aliases:  */
   w = crop.width;
   h = crop.height;
   canvas_get_extends (src, &bw, &bh, &crop);
@@ -1240,7 +1262,6 @@ l_canvas_compose (lua_State *L)
   sx = src->scale.x;
   sy = src->scale.y;
 
-  /* Initialize source matrix with identity.  */
   cairo_matrix_init (&matrix, 1, 0, 0, 1, 0, 0);
 
   /* Rotate.  */
