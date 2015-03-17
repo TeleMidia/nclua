@@ -25,12 +25,10 @@ m4_define([nclua_version_re],
  [^\([[0-9]]+\)\.\([[0-9]]+\)\.?\([[0-9]]+\)?])
 
 m4_define([nclua_version_major],
-  m4_default(m4_bregexp(nclua_version_string, nclua_version_re, [\1]),
-   [m4_fatal([bad major version number])]))
+  m4_default(m4_bregexp(nclua_version_string, nclua_version_re, [\1]), [0]))
 
 m4_define([nclua_version_minor],
-  m4_default(m4_bregexp(nclua_version_string, nclua_version_re, [\2]),
-   [m4_fatal([bad minor version number])]))
+  m4_default(m4_bregexp(nclua_version_string, nclua_version_re, [\2]), [0]))
 
 m4_define([nclua_version_micro],
   m4_default(m4_bregexp(nclua_version_string, nclua_version_re, [\3]), [0]))
