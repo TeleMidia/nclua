@@ -34,7 +34,7 @@ end
 -- List of supported methods.
 local method_list = {'get', 'post'}
 
--- Checks if SESSION is is a soup object.
+-- Checks if SESSION is a soup object.
 -- Returns SESSION if successful, otherwise throws an error.
 local function check_soup (prefix, name, session)
    if not soup:is_soup (session) then
