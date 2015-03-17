@@ -261,6 +261,7 @@ main (int argc, char **argv)
 
   /* Parse command-line options and arguments.  */
   ctx = g_option_context_new (OPTION_LINE);
+  g_assert (ctx != NULL);       /* cannot fail */
   g_option_context_set_description (ctx, OPTION_DESC);
   g_option_context_add_main_entries (ctx, options, NULL);
   g_option_context_add_group (ctx, gtk_get_option_group (TRUE));
@@ -281,6 +282,8 @@ main (int argc, char **argv)
   /* Setup process working directory. */
   dirname = g_path_get_dirname (argv[1]);
   basename = g_path_get_basename (argv[1]);
+  g_assert (dirname != NULL);
+  g_assert (basename != NULL);
   g_assert (g_chdir (dirname) == 0);
 
   /* Open the NCLua state.  */
