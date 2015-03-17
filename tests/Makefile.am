@@ -157,6 +157,7 @@ scripts += test-canvas-attrAntiAlias.lua
 scripts += test-canvas-attrClip.lua
 scripts += test-canvas-attrColor.lua
 scripts += test-canvas-attrCrop.lua
+scripts += test-canvas-attrFilter.lua
 scripts += test-canvas-attrFlip.lua
 scripts += test-canvas-attrFont.lua
 scripts += test-canvas-attrLineWidth.lua

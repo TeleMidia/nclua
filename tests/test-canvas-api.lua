@@ -33,6 +33,7 @@ ASSERT_CHECK_API {
    attrClip = 'function',
    attrColor = 'function',
    attrCrop = 'function',
+   attrFilter = 'function',
    attrFlip = 'function',
    attrFont = 'function',
    attrLineWidth = 'function',
