@@ -1188,29 +1188,27 @@ l_canvas_compose (lua_State *L)
   overlap = cairo_region_contains_rectangle (region, &crop);
   cairo_region_destroy (region);
   if (unlikely (overlap == CAIRO_REGION_OVERLAP_OUT))
-      return 0;                 /* nothing to do */
+    return 0;                   /* nothing to do */
 
   /* Check if scale is greater than zero.  */
   if (unlikely (src->scale.x <= 0.0 || src->scale.y <= 0.0))
     return 0;                   /* nothing to do */
 
   /* Crop source, if necessary.  */
-  if (crop.x > 0
-      || crop.y > 0
-      || crop.width < src->width
-      || crop.height < src->height)
+  if (crop.x > 0 || crop.y > 0
+      || crop.width < src->width || crop.height < src->height)
     {
       /* FIXME: I've tried the following to avoid allocating a new surface
          explicitly:
 
-           cairo_push_group (cr);
-           cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
-           cairo_set_source_surface (cr, src->sfc, 0, 0);
-           cairo_rectangle (cr, crop.x, crop.y, crop.width, crop.height);
-           cairo_fill (cr);
-           cairo_pop_group_to_source (cr);
-           pattern = cairo_get_source (cr);
-           cairo_pattern_reference (pattern);
+         cairo_push_group (cr);
+         cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+         cairo_set_source_surface (cr, src->sfc, 0, 0);
+         cairo_rectangle (cr, crop.x, crop.y, crop.width, crop.height);
+         cairo_fill (cr);
+         cairo_pop_group_to_source (cr);
+         pattern = cairo_get_source (cr);
+         cairo_pattern_reference (pattern);
 
          But the performance was terrible, specially in examples/luarocks.
          So I'm sticking to the current code.  */
@@ -1248,9 +1246,9 @@ l_canvas_compose (lua_State *L)
   /* Rotate.  */
   if (src->rotation < 0 || src->rotation > 0)
     {
-      cairo_matrix_translate (&matrix, w/2, h/2);
+      cairo_matrix_translate (&matrix, w / 2, h / 2);
       cairo_matrix_rotate (&matrix, 2 * M_PI - src->rotation);
-      cairo_matrix_translate (&matrix, -bw/2, -bh/2);
+      cairo_matrix_translate (&matrix, -bw / 2, -bh / 2);
     }
 
   /* Flip.  */
