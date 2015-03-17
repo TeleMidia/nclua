@@ -2,15 +2,20 @@ NCLua NEWS -- History of user-visible changes.                 -*-outline-*-
 
 * Version 1.4, ???
 
-  - Fix bug in canvas.compose when custom crop parameters are given.
+  - Add the canvas.attrFilter function.
+
+    We added a new function, canvas.attrFilter, which selects the algorithm
+    used when reading pixels from a source surface.
+
+  - Fix bug in canvas.compose when custom crop parameters were given.
 
     Scale the source pattern and not the destination cairo context.
 
   - Make canvas.compose support the composition of a canvas onto itself.
 
-    Now a canvas can compose onto itself.
+    Now a canvas can be composed onto itself.
 
-  - Add support to command-line options to NCLua interpreter.
+  - Add command-line options to NCLua interpreter.
 
     The interpreter now supports --help, --version, and --size options.
 
