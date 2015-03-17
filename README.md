@@ -46,11 +46,12 @@ For a complete reference, cf. [nclua/canvas.c](nclua/canvas.c).
 
 Functions:
 * `canvas.new`            creates a new canvas
-* `canvas:attrAntiAlias`  gets or sets the anti-alias mode
+* `canvas:attrAntiAlias`  gets or sets the anti-alias attribute
 * `canvas:attrClip`       gets or sets the clip region
 * `canvas:attrColor`      gets or sets the color attribute
 * `canvas:attrCrop`       gets or sets the crop region
-* `canvas:attrFlip`       gets or sets the flip mode
+* `canvas:attrFilter`     gets or sets the filter attribute
+* `canvas:attrFlip`       gets or sets the flip attribute
 * `canvas:attrFont`       gets or sets the font attribute
 * `canvas:attrLineWidth`  gets or sets the line width attribute
 * `canvas:attrOpacity`    gets or sets the opacity attribute
