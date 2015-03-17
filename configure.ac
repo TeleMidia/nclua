@@ -318,7 +318,6 @@ AC_CHECK_FUNCS([lround round])
 LIBS=$saved_LIBS
 
 # Check for Lua.
-AC_MSG_CHECKING([for LUA])
 AC_ARG_WITH([lua_pc],
  [AS_HELP_STRING([--with-lua-pc=NAME],
                  [use NAME as the pkg-config module name for Lua])])
@@ -333,6 +332,9 @@ AS_IF(
    [PKG_CHECK_MODULES([LUA], [$lua_pkg_module >= lua_required_version])],
  [test -z "$LUA_LIBS"],
    [LUA_LIBS="-llua $LIBM"])
+
+AS_IF([test -z "$lua_pkg_module"],
+ [AC_MSG_CHECKING([for LUA])])
 
 saved_CFLAGS=$CFLAGS
 saved_LIBS=$LIBS
@@ -363,7 +365,9 @@ AC_ARG_WITH([luadatadir],
 
 AC_SUBST([lualibdir], [$with_lualibdir])
 AC_SUBST([luadatadir], [$with_luadatadir])
-AC_MSG_RESULT([yes])
+
+AS_IF([test -z "$lua_pkg_module"],
+ [AC_MSG_RESULT([yes])])
 
 # Check for Cairo.
 PKG_CHECK_MODULES([CAIRO],
