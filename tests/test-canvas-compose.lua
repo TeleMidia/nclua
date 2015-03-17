@@ -103,6 +103,11 @@ if not tests.is_windows () then
    a:attrRotation (45)
    local _, _, aw, ah = a:attrSize ()
    c:compose (cw - aw, ch - ah, a)
+   for i=1,360/10 do
+      a:attrRotation (i*10)
+      local _, _, aw, ah = a:attrSize ()
+      c:compose ((cw - aw)/2, (ch - ah)/2, a)
+   end
    ASSERT (tests.canvas.check_ref (c, 5, epsilon))
 end
 

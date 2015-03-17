@@ -80,6 +80,28 @@ canvas_check (lua_State *L, int index, cairo_t **cr)
 #define canvas_is_double_buffered(canvas)\
   ((canvas)->back_sfc != NULL)
 
+/* Computes the bounding rectangle of canvas CANVAS and stores its
+   dimensions into *W and *H.  If CROP is non-null, use CROP instead of
+   CANVAS crop region.  */
+
+static void
+canvas_get_extends (canvas_t *canvas, int *w, int *h,
+                    cairo_rectangle_int_t *crop)
+{
+  int src_w, src_h;
+  double r;
+
+  if (crop == NULL)
+    crop = &canvas->crop;
+
+  src_w = crop->width;
+  src_h = crop->height;
+  r = canvas->rotation;
+
+  *w = (int) lround (src_w * fabs (cos (r)) + src_h * fabs (sin (r)));
+  *h = (int) lround (src_w * fabs (sin (r)) + src_h * fabs (cos (r)));
+}
+
 /* List of modes supported by most drawing functions.  */
 static const char *const fill_or_frame_mode_list[] = {
   "fill", "frame", NULL
@@ -197,71 +219,6 @@ cairox_surface_create_from_file (const char *path, cairo_surface_t **dup)
   *dup = sfc;
   return CAIRO_STATUS_SUCCESS;
 }
-
-/* Computes the bounding-box of surface SRC when it is rotated by R radians.
-   Stores the dimensions of the bounding-box into *W and *H.  */
-
-static void
-cairox_surface_get_rotation_bounding_box (cairo_surface_t *src,
-                                          int *w, int *h, double r)
-{
-  int src_w, src_h;
-  cairox_surface_get_dimensions (src, &src_w, &src_h);
-  *w = (int) lround (src_w * fabs (cos (r)) + src_h * fabs (sin (r)));
-  *h = (int) lround (src_w * fabs (sin (r)) + src_h * fabs (cos (r)));
-  return;
-}
-
-/* Makes a copy of surface SRC and applies the following series of
-   transformations to the copy:
-
-   1. rotates it by R radians;
-   2. if FX is true, flips it horizontally;
-   3. if FY is true, flips it vertically.
-
-   Finally, stores the resulting surface into *DUP and returns
-   CAIRO_STATUS_SUCCESS if successful, or an error status otherwise.  */
-#if 0
-static cairo_status_t
-cairox_surface_rotate_and_flip (cairo_surface_t *src,
-                                cairo_surface_t **dup,
-                                double r, int fx, int fy)
-{
-  cairo_surface_t *sfc;
-  cairo_t *cr;
-  int src_w, src_h, w, h;
-
-  cairox_surface_get_dimensions (src, &src_w, &src_h);
-  cairox_surface_get_rotation_bounding_box (src, &w, &h, r);
-
-  sfc = cairo_surface_create_similar (src, CAIRO_CONTENT_COLOR_ALPHA, w, h);
-  assert (sfc != NULL);         /* cannot fail */
-  if (unlikely (!cairox_surface_is_valid (sfc)))
-    return cairo_surface_status (sfc);
-
-  cr = cairo_create (sfc);
-  assert (cr != NULL);          /* cannot fail */
-  if (unlikely (!cairox_is_valid (cr)))
-    {
-      cairo_surface_destroy (sfc);
-      return cairo_status (cr);
-    }
-
-  cairo_translate (cr, w / 2, h / 2);
-  cairo_rotate (cr, r);
-  cairo_translate (cr, ((double) src_w) / -2, ((double) src_h) / -2);
-
-  cairo_translate (cr, (fx) ? src_w : 0, (fy) ? src_h : 0);
-  cairo_scale (cr, (fx) ? -1 : 1, (fy) ? -1 : 1);
-
-  cairo_set_source_surface (cr, src, 0, 0);
-  cairo_paint (cr);
-  cairo_destroy (cr);
-  *dup = sfc;
-
-  return CAIRO_STATUS_SUCCESS;
-}
-#endif
 
 /* Copy surface SRC and stores the copy into *DUP.
    If CROP is non-NULL, copies only the area determined by rectangle CROP.
@@ -1130,7 +1087,8 @@ l_canvas_attrScale (lua_State *L)
  * Gets the dimensions of the given canvas (in pixels).
  *
  * Returns the original dimensions of canvas (W and H) and its dimensions
- * when we take into account its scale and rotation attributes (SW and SH).
+ * when we take into account its crop, scale, and rotation attributes (SW
+ * and SH).
  */
 static int
 l_canvas_attrSize (lua_State *L)
@@ -1139,8 +1097,7 @@ l_canvas_attrSize (lua_State *L)
   int w, h;
 
   canvas = canvas_check (L, 1, NULL);
-  cairox_surface_get_rotation_bounding_box (canvas->sfc, &w, &h,
-                                            canvas->rotation);
+  canvas_get_extends (canvas, &w, &h, NULL);
   lua_pushinteger (L, canvas->width);
   lua_pushinteger (L, canvas->height);
   lua_pushinteger (L, lround (w * canvas->scale.x));
@@ -1198,15 +1155,16 @@ l_canvas_compose (lua_State *L)
   double x, y;
   cairo_rectangle_int_t crop;
 
-  cairo_rectangle_int_t full;
   cairo_region_t *region;
+  cairo_rectangle_int_t rect;
   cairo_region_overlap_t overlap;
 
+  cairo_surface_t *sfc;
   cairo_pattern_t *pattern;
   cairo_matrix_t matrix;
   cairo_status_t err;
   int w, h;
-  int rw, rh;
+  int bw, bh;
   int fx, fy;
   double sx, sy;
 
@@ -1221,32 +1179,20 @@ l_canvas_compose (lua_State *L)
   crop.height = clamp (luaL_optint (L, 8, src->crop.height), 0,
                        src->height);
 
-  full.x = 0;
-  full.y = 0;
-  full.width = src->width;
-  full.height = src->height;
-  region = cairo_region_create_rectangle (&full);
+  /* Check if crop region is valid.  */
+  rect.x = 0;
+  rect.y = 0;
+  rect.width = src->width;
+  rect.height = src->height;
+  region = cairo_region_create_rectangle (&rect);
   overlap = cairo_region_contains_rectangle (region, &crop);
   cairo_region_destroy (region);
   if (unlikely (overlap == CAIRO_REGION_OVERLAP_OUT))
       return 0;                 /* nothing to do */
 
+  /* Check if scale is greater than zero.  */
   if (unlikely (src->scale.x <= 0.0 || src->scale.y <= 0.0))
     return 0;                   /* nothing to do */
-
-  pattern = cairo_pattern_create_for_surface (src->sfc);
-  err = cairo_pattern_status (pattern);
-  if (unlikely (err != CAIRO_STATUS_SUCCESS))
-    return error_throw (L, cairo_status_to_string (err));
-
-  cairo_save (cr);
-  cairox_surface_get_dimensions (src->sfc, &w, &h);
-  cairox_surface_get_rotation_bounding_box (src->sfc, &rw, &rh,
-                                            src->rotation);
-  fx = src->flip.x;
-  fy = src->flip.y;
-  sx = src->scale.x;
-  sy = src->scale.y;
 
   /* Crop source, if necessary.  */
   if (crop.x > 0
@@ -1254,35 +1200,82 @@ l_canvas_compose (lua_State *L)
       || crop.width < src->width
       || crop.height < src->height)
     {
-      cairo_push_group (cr);
-      cairo_set_source (cr, pattern);
-      cairo_rectangle (cr, crop.x, crop.y, crop.width, crop.height);
-      cairo_fill (cr);
-      cairo_pop_group_to_source (cr);
-      pattern = cairo_get_source (cr);
-      cairo_pattern_reference (pattern);
+      /* FIXME: I've tried the following to avoid allocating a new surface
+         explicitly:
+
+           cairo_push_group (cr);
+           cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+           cairo_set_source_surface (cr, src->sfc, 0, 0);
+           cairo_rectangle (cr, crop.x, crop.y, crop.width, crop.height);
+           cairo_fill (cr);
+           cairo_pop_group_to_source (cr);
+           pattern = cairo_get_source (cr);
+           cairo_pattern_reference (pattern);
+
+         But the performance was terrible, specially in examples/luarocks.
+         So I'm sticking to the current code.  */
+
+      err = cairox_surface_duplicate (src->sfc, &sfc, &crop);
+      if (unlikely (err != CAIRO_STATUS_SUCCESS))
+        return error_throw (L, cairo_status_to_string (err));
+    }
+  else
+    {
+      sfc = src->sfc;
     }
 
+  /* Create source pattern.  */
+  pattern = cairo_pattern_create_for_surface (sfc);
+  err = cairo_pattern_status (pattern);
+  if (unlikely (err != CAIRO_STATUS_SUCCESS))
+    return error_throw (L, cairo_status_to_string (err));
+
+  if (sfc != src->sfc)
+    cairo_surface_destroy (sfc);
+
+  /* Setup aliases:  */
+  w = crop.width;
+  h = crop.height;
+  canvas_get_extends (src, &bw, &bh, &crop);
+  fx = src->flip.x;
+  fy = src->flip.y;
+  sx = src->scale.x;
+  sy = src->scale.y;
+
+  /* Initialize source matrix with identity.  */
   cairo_matrix_init (&matrix, 1, 0, 0, 1, 0, 0);
 
   /* Rotate.  */
-  cairo_matrix_translate (&matrix, w/2, h/2);
-  cairo_matrix_rotate (&matrix, 2 * M_PI - src->rotation);
-  cairo_matrix_translate (&matrix, -rw/2, -rh/2);
+  if (src->rotation < 0 || src->rotation > 0)
+    {
+      cairo_matrix_translate (&matrix, w/2, h/2);
+      cairo_matrix_rotate (&matrix, 2 * M_PI - src->rotation);
+      cairo_matrix_translate (&matrix, -bw/2, -bh/2);
+    }
 
   /* Flip.  */
-  cairo_matrix_translate (&matrix, (fx) ? rw : 0, (fy) ? rh : 0);
-  cairo_matrix_scale (&matrix, (fx) ? -1 : 1, (fy) ? -1 : 1);
+  if (fx || fy)
+    {
+      cairo_matrix_translate (&matrix, (fx) ? bw : 0, (fy) ? bh : 0);
+      cairo_matrix_scale (&matrix, (fx) ? -1 : 1, (fy) ? -1 : 1);
+    }
 
   /* Scale.  */
-  cairo_matrix_scale (&matrix, 1 / sx, 1 / sy);
+  if (sx < 1 || sx > 1 || sy < 1 || sy > 1)
+    {
+      cairo_matrix_scale (&matrix, 1 / sx, 1 / sy);
+    }
 
   /* Move to (x,y).  */
-  cairo_matrix_translate (&matrix, -x, -y);
+  if (x < 0 || x > 0 || y < 0 || y > 0)
+    {
+      cairo_matrix_translate (&matrix, -x, -y);
+    }
 
-  /* Paint onto destination with the source filter and alpha.  */
+  /* Paint pattern onto destination with the source filter and alpha.  */
   cairo_pattern_set_matrix (pattern, &matrix);
   cairo_pattern_set_filter (pattern, src->filter);
+  cairo_save (cr);
   cairo_set_source (cr, pattern);
   cairo_paint_with_alpha (cr, ((double) src->opacity) / 255);
   cairo_restore (cr);
