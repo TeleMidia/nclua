@@ -778,7 +778,7 @@ l_canvas_attrCrop (lua_State *L)
  * The default filter mode is 'good'.
  */
 static int
-l_canvas_attrFilter (arg_unused (lua_State *L))
+l_canvas_attrFilter (lua_State *L)
 {
   static const char *mode_list[] = {
     "fast",
