@@ -765,17 +765,16 @@ l_canvas_attrCrop (lua_State *L)
  *
  * Gets or sets the filter attribute of the given canvas.  The filter
  * attribute defines what filtering should used when reading the pixels of
- * the given canvas in composition operations, i.e., when the given canvas
- * is composed over some other canvas.
+ * the given canvas in composition operations.
  *
- * The following MODE strings are supported:
+ * The following FILTER strings are supported:
  *   fast     - high performance, poor quality;
  *   good     - reasonable performance and quality;
  *   best     - poor performance, high quality;
  *   nearest  - nearest neighbor filter;
  *   bilinear - linear interpolation in two dimensions.
  *
- * The default filter mode is 'good'.
+ * The default filter is 'good'.
  */
 static int
 l_canvas_attrFilter (lua_State *L)
@@ -814,7 +813,7 @@ l_canvas_attrFilter (lua_State *L)
  *
  * Gets or sets the flip attributes of the given canvas.  The flip
  * attributes FX and FY define if the canvas should be flipped horizontally
- * (FX=true) or vertically (FY=true) before composition operations.
+ * (FX=true) or vertically (FY=true) in composition operations.
  *
  * The default flip is FX=false and FY=false.
  */
