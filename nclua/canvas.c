@@ -110,7 +110,7 @@ static const char *const fill_or_frame_mode_list[] = {
   "fill", "frame", NULL
 };
 
-/* Uses MODE to call the appropriate function cairo context CR.  */
+/* Uses MODE to call the appropriate function over cairo context CR.  */
 #define cairox_do_fill_or_frame(cr, mode)       \
   STMT_BEGIN                                    \
   {                                             \
