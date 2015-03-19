@@ -82,11 +82,12 @@ opt_version (void)
   exit (EXIT_SUCCESS);
 }
 
+#define gpointerof(p) ((gpointer)((ptrdiff_t)(p)))
 static GOptionEntry options[] = {
   {"size", 's', 0, G_OPTION_ARG_CALLBACK,
-   pointerof (opt_size), "Set window size", "WIDTHxHEIGHT"},
+   gpointerof (opt_size), "Set window size", "WIDTHxHEIGHT"},
   {"version", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK,
-   pointerof (opt_version), "Print version information and exit", NULL},
+   gpointerof (opt_version), "Print version information and exit", NULL},
   {NULL}
 };
 
@@ -98,9 +99,9 @@ static void
 _error (gboolean try_help, const gchar *message)
 {
   const gchar *me = g_get_application_name ();
-  fprintf (stderr, "%s: %s\n", me, message);
+  g_fprintf (stderr, "%s: %s\n", me, message);
   if (try_help)
-    fprintf (stderr, "Try '%s --help' for more information.\n", me);
+    g_fprintf (stderr, "Try '%s --help' for more information.\n", me);
 }
 
 static void
@@ -290,7 +291,7 @@ main (int argc, char **argv)
   ncluaw_state = ncluaw_open (basename, WIDTH, HEIGHT, &errmsg);
   if (unlikely (ncluaw_state == NULL))
     {
-      fprintf (stderr, "error: %s\n", errmsg);
+      print_error (errmsg);
       free (errmsg);
       exit (EXIT_FAILURE);
     }
