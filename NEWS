@@ -2,6 +2,12 @@ NCLua NEWS -- History of user-visible changes.                 -*-outline-*-
 
 * Version 1.4, ???
 
+  - Add nclua_resize and ncluaw_resize to libnclua
+
+    We added two functions to resize the surface of the main canvas to
+    libnclua.  The first, nclua_resize, is exposed by nclua.h; the second,
+    ncluaw_resize, is exposed by ncluaw.h, the Lua-free interface.
+
   - Add the canvas._resize function.
 
     We added a new internal function, canvas._resize, which resizes the

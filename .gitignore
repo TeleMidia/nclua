@@ -79,6 +79,7 @@
 /tests/test-libnclua-open
 /tests/test-libnclua-open-x
 /tests/test-libnclua-paint
+/tests/test-libnclua-resize
 /tests/test-libncluaw-at-panic
 /tests/test-libncluaw-at-panic-x
 /tests/test-libncluaw-cycle

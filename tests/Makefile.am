@@ -264,6 +264,7 @@ programs+= test-libnclua-close
 programs+= test-libnclua-debug-get-surface
 programs+= test-libnclua-debug-dump-surface
 programs+= test-libnclua-paint
+programs+= test-libnclua-resize
 programs+= test-libnclua-cycle
 programs+= test-libncluaw-open
 programs+= test-libncluaw-at-panic

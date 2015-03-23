@@ -124,6 +124,7 @@ NCLUA_API void ncluaw_send (ncluaw_t *, const ncluaw_event_t *);
 
 NCLUA_API void ncluaw_paint (ncluaw_t *, unsigned char *, const char *,
                              int, int, int);
+NCLUA_API void ncluaw_resize (ncluaw_t *, int, int);
 
 NCLUA_API int ncluaw_debug_dump_surface (ncluaw_t *, const char *, char **);
 NCLUA_API void *ncluaw_debug_get_lua_state (ncluaw_t *);

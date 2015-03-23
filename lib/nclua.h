@@ -32,6 +32,7 @@ NCLUA_API void nclua_send (lua_State *);
 
 NCLUA_API void nclua_paint (lua_State *, unsigned char *, const char *,
                             int, int, int);
+NCLUA_API void nclua_resize (lua_State *, int, int);
 
 NCLUA_API int nclua_debug_dump_surface (lua_State *, const char *);
 NCLUA_API void *nclua_debug_get_registry_index (void);

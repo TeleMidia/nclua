@@ -224,6 +224,19 @@ nclua_paint (lua_State *L, unsigned char *buffer, const char *format,
   lua_call (L, 6, 0);
 }
 
+/*-
+ * Resizes the surface of the global canvas to WIDTH and HEIGHT pixels.
+ */
+void
+nclua_resize (lua_State *L, int width, int height)
+{
+  nclua_registry_get_field (L, "canvas._resize");
+  nclua_registry_get_field (L, "canvas");
+  lua_pushinteger (L, width);
+  lua_pushinteger (L, height);
+  lua_call (L, 3, 0);
+}
+
 /********************************* Debug **********************************/
 
 /*-

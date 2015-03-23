@@ -510,6 +510,15 @@ ncluaw_paint (ncluaw_t *nw, unsigned char *buffer, const char *format,
                width, height, stride);
 }
 
+/*-
+ * Resizes the surface of NW's global canvas to the given dimensions.
+ */
+void
+ncluaw_resize (ncluaw_t *nw, int width, int height)
+{
+  nclua_resize (ncluaw_get_lua_state (nw), width, height);
+}
+
 /********************************* Debug **********************************/
 
 /*-
