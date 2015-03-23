@@ -73,6 +73,7 @@ Functions:
 Internal functions (for debugging):
 * `canvas:_dump_to_file`    dumps canvas content to PNG file
 * `canvas:_dump_to_memory`  dumps canvas content to memory address
+* `canvas:_resize`          resize canvas content
 * `canvas:_surface`         returns a pointer to canvas content
 
 Event API
@@ -108,6 +109,7 @@ Core functions (cf. [lib/nclua.c](lib/nclua.c)):
 * `nclua_receive`         receives an event
 * `nclua_send`            sends an event
 * `nclua_paint`           paints top-level canvas onto memory
+* `nclua_resize`          resizes top-level canvas
 
 Wrapper functions (cf. [lib/ncluaw.c](lib/ncluaw.c), Lua-free interface):
 * `ncluaw_event_key_init` initializes key event
@@ -126,6 +128,7 @@ Wrapper functions (cf. [lib/ncluaw.c](lib/ncluaw.c), Lua-free interface):
 * `ncluaw_send_ncl_event` sends NCL event
 * `ncluaw_send_pointer_event` sends pointer event
 * `ncluaw_paint`          paints top-level canvas onto memory
+* `ncluaw_resize`         resizes top-level canvas
 
 ---
 Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
