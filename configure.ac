@@ -62,9 +62,9 @@ AC_SUBST([NCLUA_VERSION_STRING], nclua_version_string)
 # - interfaces changed/added/removed: REVISION=0, CURRENT++
 # - interfaces added:                 AGE++
 # - interfaces removed:               AGE=0
-m4_define([nclua_libtool_current],  [0])
+m4_define([nclua_libtool_current],  [1])
 m4_define([nclua_libtool_revision], [0])
-m4_define([nclua_libtool_age],      [0])
+m4_define([nclua_libtool_age],      [1])
 m4_define([nclua_libtool_current_minus_age],
  [m4_eval(nclua_libtool_current - nclua_libtool_age)])
 m4_define([nclua_libtool_string],
