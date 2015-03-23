@@ -73,7 +73,7 @@ Functions:
 Internal functions (for debugging):
 * `canvas:_dump_to_file`    dumps canvas content to PNG file
 * `canvas:_dump_to_memory`  dumps canvas content to memory address
-* `canvas:_resize`          resize canvas content
+* `canvas:_resize`          resizes canvas content
 * `canvas:_surface`         returns a pointer to canvas content
 
 Event API
