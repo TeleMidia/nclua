@@ -2,6 +2,11 @@ NCLua NEWS -- History of user-visible changes.                 -*-outline-*-
 
 * Version 1.4, ???
 
+  - Add the canvas._resize function.
+
+    We added a new internal function, canvas._resize, which resizes the
+    surface of a given canvas.
+
   - Add the canvas.attrFilter function.
 
     We added a new function, canvas.attrFilter, which selects the algorithm

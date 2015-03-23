@@ -88,7 +88,7 @@ canvas_check (lua_State *L, int index, cairo_t **cr)
    canvas's surface.  */
 
 static void
-canvas_get_extends (canvas_t *canvas, int *w, int *h,
+canvas_get_extents (canvas_t *canvas, int *w, int *h,
                     cairo_rectangle_int_t *crop)
 {
   int src_w, src_h;
@@ -128,9 +128,44 @@ static const char *const fill_or_frame_mode_list[] = {
   }                                             \
   STMT_END
 
-/* Stores the source color of context CR into *R, *G, *B, and *A.  */
+/* Stores the clip region of context CR into *X, *Y, *W, *H.  */
+#define cairox_get_clip(cr, x, y, w, h)\
+  cairo_clip_extents ((cr), (x), (y), (w), (h))
+
+/* Sets the clip region of context CR to X, Y, W, H.  */
+#define cairox_set_clip(cr, x, y, w, h)         \
+  STMT_BEGIN                                    \
+  {                                             \
+    cairo_reset_clip ((cr));                    \
+    cairo_rectangle ((cr), (x), (y), (w), (h)); \
+    cairo_clip ((cr));                          \
+  }                                             \
+  STMT_END
+
+/* Stores the source color of context CR into *R, *G, *B, *A.
+   The macro assumes that R, G, B, and A are double-precision numbers.  */
 #define cairox_get_source_rgba(cr, r, g, b, a)\
   cairo_pattern_get_rgba (cairo_get_source (cr), (r), (g), (b), (a))
+
+/* Sets the source color of context CR to R, G, B, A.
+   The macro assumes that R, G, B, and A are double-precision numbers.
+
+   NOTE: I don't know why, but the call to cairo_set_source_rgb() is
+   necessary.  If we remove it, we get strange errors, such as the
+   following.
+
+   canvas:attrColor (255, 0, 0, 0)
+   canvas:attrColor () -> 255, 0, 0, 0
+   canvas:attrColor (0, 0, 0, 0)
+   canvas:attrColor () -> 255, 0, 0, 0    *** wrong ***
+*/
+#define cairox_set_source_rgba(cr, r, g, b, a)          \
+  STMT_BEGIN                                            \
+  {                                                     \
+    cairo_set_source_rgb ((cr), 0, 0, 0);               \
+    cairo_set_source_rgba ((cr), (r), (g), (b), (a));   \
+  }                                                     \
+  STMT_END
 
 /* Returns true if context CR is valid.  */
 #define cairox_is_valid(cr)\
@@ -155,6 +190,11 @@ static const char *const fill_or_frame_mode_list[] = {
 /* Returns a description of the current status of region REGION.  */
 #define cairox_region_status_desc(region)\
   cairo_status_to_string (cairo_region_status (region))
+
+/* Returns a new surface compatible with SFC; W is the width of the new
+   surface in pixels and H is its height in pixels.  */
+#define cairox_surface_create_similar(sfc, w, h)\
+  cairo_surface_create_similar ((sfc), CAIRO_CONTENT_COLOR_ALPHA, (w), (h))
 
 /* Returns true if surface SFC is valid.  */
 #define cairox_surface_is_valid(sfc)\
@@ -256,8 +296,7 @@ cairox_surface_duplicate (cairo_surface_t *src, cairo_surface_t **dup,
       crop = &rect;
     }
 
-  sfc = cairo_surface_create_similar (src, CAIRO_CONTENT_COLOR_ALPHA,
-                                      crop->width, crop->height);
+  sfc = cairox_surface_create_similar (src, crop->width, crop->height);
   assert (sfc != NULL);         /* cannot fail */
   if (unlikely (!cairox_surface_is_valid (sfc)))
     return cairo_surface_status (sfc);
@@ -520,6 +559,129 @@ _l_canvas_dump_to_memory (lua_State *L)
 }
 
 /*-
+ * canvas:_resize (w, h:number) -> w, h:number
+ *
+ * Resizes the surface of the given canvas to W width and H height pixels.
+ * Returns the new width and height.
+ */
+static int
+_l_canvas_resize (lua_State *L)
+{
+  canvas_t *canvas;
+  cairo_t *cr;
+  cairo_surface_t *sfc;
+  cairo_surface_t *back_sfc;
+  int w, h;
+
+  cairo_pattern_t *pattern;
+  cairo_matrix_t matrix;
+  double sx, sy;
+
+  double clip_x, clip_y, clip_w, clip_h;
+  double r, g, b, a;
+
+  canvas = canvas_check (L, 1, &cr);
+  w = luaL_checkint (L, 2);
+  h = luaL_checkint (L, 3);
+
+  if (unlikely (w == canvas->width && h == canvas->height))
+    {
+      lua_pushvalue (L, 2);     /* nothing to do */
+      lua_pushvalue (L, 3);
+      return 2;
+    }
+
+  sfc = cairox_surface_create_similar (canvas->sfc, w, h);
+  assert (sfc != NULL);         /* cannot fail */
+  if (unlikely (!cairox_surface_is_valid (sfc)))
+    return error_throw_invalid_surface (L, sfc);
+
+  cr = cairo_create (sfc);
+  assert (cr != NULL);          /* cannot fail */
+  if (unlikely (!cairox_is_valid (cr)))
+    return error_throw_invalid_cr (L, cr);
+
+  if (canvas_is_double_buffered (canvas))
+    {
+      cairo_surface_t *dup = NULL;
+      cairo_status_t err;
+
+      err = cairox_surface_duplicate (sfc, &dup, NULL);
+      if (unlikely (err != CAIRO_STATUS_SUCCESS))
+        {
+          cairo_surface_destroy (sfc);
+          cairo_destroy (cr);
+          return error_throw (L, cairo_status_to_string (err));
+        }
+      assert (dup != NULL);
+      back_sfc = sfc;
+      sfc = dup;
+    }
+  else
+    {
+      back_sfc = NULL;
+    }
+
+  /* Copy canvas contents.  */
+  pattern = cairo_pattern_create_for_surface (canvas->sfc);
+  assert (pattern != NULL);
+  if (unlikely (!cairox_pattern_is_valid (pattern)))
+    {
+      cairo_surface_destroy (sfc);
+      cairo_surface_destroy (back_sfc);
+      cairo_destroy (cr);
+      return error_throw_invalid_pattern (L, pattern);
+    }
+
+  cairo_matrix_init (&matrix, 1, 0, 0, 1, 0, 0);
+  sx = ((double) w) / ((double) canvas->width);
+  sy = ((double) h) / ((double) canvas->height);
+  cairo_matrix_scale (&matrix, 1 / sx, 1 / sy);
+
+  cairo_pattern_set_matrix (pattern, &matrix);
+  cairo_pattern_set_filter (pattern, canvas->filter);
+  cairo_save (cr);
+  cairo_set_source (cr, pattern);
+  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+  cairo_paint (cr);
+  cairo_restore (cr);
+  cairo_pattern_destroy (pattern);
+
+  /* Copy attributes that are stored directly in cairo context.  */
+  cairox_get_clip (canvas->cr, &clip_x, &clip_y, &clip_w, &clip_h);
+  cairox_set_clip (cr, clip_x, clip_y, clip_w, clip_h);
+  cairox_get_source_rgba (canvas->cr, &r, &g, &b, &a);
+  cairox_set_source_rgba (cr, r, g, b, a);
+  cairo_set_line_width (cr, cairo_get_line_width (canvas->cr));
+
+  /* Update crop region if it is set to the whole canvas.  */
+  cairox_surface_get_dimensions (sfc, &w, &h);
+  if (canvas->crop.x == 0
+      && canvas->crop.y == 0
+      && canvas->crop.width == canvas->width
+      && canvas->crop.height == canvas->height)
+    {
+      canvas->crop.width = w;
+      canvas->crop.height = h;
+    }
+
+  /* Update the remaining stuff.  */
+  cairo_surface_destroy (canvas->sfc);
+  cairo_surface_destroy (canvas->back_sfc);
+  cairo_destroy (canvas->cr);
+
+  canvas->sfc = sfc;
+  canvas->back_sfc = back_sfc;
+  canvas->cr = cr;
+  canvas->width = w;
+  canvas->height = h;
+
+  lua_pushinteger (L, w);
+  lua_pushinteger (L, h);
+  return 2;
+}
+
+/*-
  * canvas:_surface () -> surface:lightuserdata
  *
  * Returns the canvas surface.
@@ -604,7 +766,7 @@ l_canvas_attrClip (lua_State *L)
   canvas_check (L, 1, &cr);
   if (lua_gettop (L) == 1)
     {
-      cairo_clip_extents (cr, &x, &y, &w, &h);
+      cairox_get_clip (cr, &x, &y, &w, &h);
       lua_pushnumber (L, x);
       lua_pushnumber (L, y);
       lua_pushnumber (L, w - x);
@@ -617,9 +779,7 @@ l_canvas_attrClip (lua_State *L)
       y = luaL_checknumber (L, 3);
       w = luaL_checknumber (L, 4);
       h = luaL_checknumber (L, 5);
-      cairo_reset_clip (cr);
-      cairo_rectangle (cr, x, y, w, h);
-      cairo_clip (cr);
+      cairox_set_clip (cr, x, y, w, h);
       return 0;
     }
 }
@@ -680,19 +840,9 @@ l_canvas_attrColor (lua_State *L)
       a = luaL_optnumber (L, 5, 255);
     }
 
-  /* I don't know why, but the following call to cairo_set_source_rgb() is
-     necessary.  If we remove it, we get strange errors, such as the
-     following:
-
-     canvas:attrColor (255, 0, 0, 0)
-     canvas:attrColor () -> 255, 0, 0, 0
-     canvas:attrColor (0, 0, 0, 0)
-     canvas:attrColor () -> 255, 0, 0, 0    *** wrong ***  */
-
-  cairo_set_source_rgb (cr, 0, 0, 0);
-  cairo_set_source_rgba (cr, r / 255, g / 255, b / 255, a / 255);
-
+  cairox_set_source_rgba (cr, r / 255, g / 255, b / 255, a / 255);
   lua_pushboolean (L, TRUE);
+
   return 1;
 }
 
@@ -1117,7 +1267,7 @@ l_canvas_attrSize (lua_State *L)
   int w, h;
 
   canvas = canvas_check (L, 1, NULL);
-  canvas_get_extends (canvas, &w, &h, NULL);
+  canvas_get_extents (canvas, &w, &h, NULL);
   lua_pushinteger (L, canvas->width);
   lua_pushinteger (L, canvas->height);
   lua_pushinteger (L, lround (w * canvas->scale.x));
@@ -1220,7 +1370,9 @@ l_canvas_compose (lua_State *L)
       || crop.width < src->width || crop.height < src->height)
     {
       /* FIXME: I've tried the following to avoid allocating a new surface
-         explicitly:
+         explicitly, but the performance was terrible, specially when
+         running examples/luarocks.lua.  So I'm sticking to the current
+         code.
 
          cairo_push_group (cr);
          cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
@@ -1230,10 +1382,7 @@ l_canvas_compose (lua_State *L)
          cairo_pop_group_to_source (cr);
          pattern = cairo_get_source (cr);
          cairo_pattern_reference (pattern);
-
-         But the performance was terrible, specially in examples/luarocks.
-         So I'm sticking to the current code.  */
-
+      */
       cairo_status_t err;
 
       sfc = NULL;
@@ -1249,7 +1398,7 @@ l_canvas_compose (lua_State *L)
 
   /* Create source pattern.  */
   pattern = cairo_pattern_create_for_surface (sfc);
-  assert (pattern != NULL);
+  assert (pattern != NULL);     /* cannot fail */
   if (unlikely (!cairox_pattern_is_valid (pattern)))
     return error_throw_invalid_pattern (L, pattern);
 
@@ -1258,7 +1407,7 @@ l_canvas_compose (lua_State *L)
 
   w = crop.width;
   h = crop.height;
-  canvas_get_extends (src, &bw, &bh, &crop);
+  canvas_get_extents (src, &bw, &bh, &crop);
   fx = src->flip.x;
   fy = src->flip.y;
   sx = src->scale.x;
@@ -1751,6 +1900,7 @@ static const struct luaL_Reg funcs[] = {
   {"__gc", __l_canvas_gc},
   {"_dump_to_file", _l_canvas_dump_to_file},
   {"_dump_to_memory", _l_canvas_dump_to_memory},
+  {"_resize", _l_canvas_resize},
   {"_surface", _l_canvas_surface},
   {"attrAntiAlias", l_canvas_attrAntiAlias},
   {"attrClip", l_canvas_attrClip},

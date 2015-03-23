@@ -28,6 +28,7 @@ ASSERT_CHECK_API {
    __metatable = 'string',
    _dump_to_file = 'function',
    _dump_to_memory = 'function',
+   _resize = 'function',
    _surface = 'function',
    attrAntiAlias = 'function',
    attrClip = 'function',

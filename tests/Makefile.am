@@ -176,6 +176,7 @@ scripts += test-canvas-drawText.lua
 scripts += test-canvas-flush.lua
 scripts += test-canvas-measureText.lua
 scripts += test-canvas-pixel.lua
+scripts += test-canvas-_resize.lua
 # event.queue
 scripts += test-event-queue-api.lua
 scripts += test-event-queue-new.lua
