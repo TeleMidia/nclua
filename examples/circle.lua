@@ -26,6 +26,8 @@ _ENV = nil
 
 math.randomseed (os.time ())
 local WIDTH, HEIGHT = canvas:attrSize ()
+assert (WIDTH > 1, 'WIDTH <= 1')
+assert (HEIGHT > 1, 'HEIGHT <= 1')
 
 local function rand_color ()
    local t = {}
