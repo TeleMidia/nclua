@@ -1381,8 +1381,8 @@ l_canvas_compose (lua_State *L)
          cairo_fill (cr);
          cairo_pop_group_to_source (cr);
          pattern = cairo_get_source (cr);
-         cairo_pattern_reference (pattern);
-      */
+         cairo_pattern_reference (pattern);  */
+
       cairo_status_t err;
 
       sfc = NULL;
