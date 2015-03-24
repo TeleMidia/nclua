@@ -22,12 +22,24 @@ local ipairs = ipairs
 local math = math
 local os = os
 local table = table
+local tonumber = tonumber
 _ENV = nil
 
 math.randomseed (os.time ())
+
 local WIDTH, HEIGHT = canvas:attrSize ()
-assert (WIDTH > 1, 'WIDTH <= 1')
-assert (HEIGHT > 1, 'HEIGHT <= 1')
+assert (
+   event.register (
+      function (e)
+         if e.name == 'width' then
+            WIDTH = tonumber (e.value)
+         elseif e.name == 'height' then
+            HEIGHT = tonumber (e.value)
+         end
+      end,
+      {class='ncl', type='attribution', action='start'}
+   )
+)
 
 local function rand_color ()
    local t = {}
@@ -101,7 +113,6 @@ local function update ()
    canvas:drawText ('fill', (1 + WIDTH - w)/2, (1 + HEIGHT - h)/2, text)
    canvas:attrColor ('purple')
    canvas:drawText ('fill', (WIDTH - w)/2, (HEIGHT - h)/2, text)
-
    canvas:flush ()
    assert (event.post ('in', {class='user'}))
 end

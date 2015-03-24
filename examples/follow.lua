@@ -21,9 +21,11 @@ local event = event
 local math = math
 local os = os
 local table = table
+local tonumber = tonumber
 _ENV = nil
 
 math.randomseed (os.time ())
+
 local WIDTH, HEIGHT = canvas:attrSize ()
 
 local function rand_color_comp ()
@@ -89,3 +91,31 @@ local function press (evt)
    TARGET = get_polygon ()
 end
 assert (event.register (press, {class='pointer', type='press'}))
+
+local function resize ()
+   local w, h = BACK:attrSize ()
+   if w < WIDTH then w = WIDTH end
+   if h < HEIGHT then h = HEIGHT end
+   local new_BACK = canvas:new (w, h)
+   new_BACK:attrColor ('black')
+   new_BACK:clear ()
+   new_BACK:compose (0, 0, BACK)
+   new_BACK:flush ()
+   BACK = new_BACK
+   canvas:compose (0, 0, BACK)
+   canvas:flush ()
+end
+assert (
+   event.register (
+      function (e)
+         if e.name == 'width' then
+            WIDTH = tonumber (e.value)
+            resize ()
+         elseif e.name == 'height' then
+            HEIGHT = tonumber (e.value)
+            resize ()
+         end
+      end,
+      {class='ncl', type='attribution', action='start'}
+   )
+)

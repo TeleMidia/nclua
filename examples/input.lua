@@ -19,9 +19,22 @@ local canvas = canvas
 local event = event
 local pairs = pairs
 local print = print
+local tonumber = tonumber
+
 _ENV = nil
 
 local WIDTH, HEIGHT = canvas:attrSize ()
+event.register (
+   function (e)
+      if e.name == 'width' then
+         WIDTH = tonumber (e.value)
+      elseif e.name == 'height' then
+         HEIGHT = tonumber (e.value)
+      end
+   end,
+   {class='ncl', type='attribution', action='start'}
+)
+
 local n = 1
 canvas:attrFont ('comic sans', 16)
 event.register (

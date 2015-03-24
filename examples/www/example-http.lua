@@ -23,6 +23,7 @@ local ipairs = ipairs
 local os = os
 local pairs = pairs
 local print = print
+local tonumber = tonumber
 
 local canvas = canvas
 local event = event
@@ -39,6 +40,18 @@ local URIs = {
 
 -- Screen size.
 local WIDTH, HEIGHT = canvas:attrSize ()
+assert (
+   event.register (
+      function (e)
+         if e.name == 'width' then
+            WIDTH = tonumber (e.value)
+         elseif e.name == 'height' then
+            HEIGHT = tonumber (e.value)
+         end
+      end,
+      {class='ncl', type='attribution', action='start'}
+   )
+)
 
 -- Colors.
 local BG_COLOR = 'black'        -- background

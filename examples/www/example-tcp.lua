@@ -31,6 +31,18 @@ _ENV = nil
 
 -- Screen size.
 local WIDTH, HEIGHT = canvas:attrSize ()
+assert (
+   event.register (
+      function (e)
+         if e.name == 'width' then
+            WIDTH = tonumber (e.value)
+         elseif e.name == 'height' then
+            HEIGHT = tonumber (e.value)
+         end
+      end,
+      {class='ncl', type='attribution', action='start'}
+   )
+)
 
 -- Colors (background, foreground, and footer).
 local BG_COLOR, FG_COLOR, FT_COLOR = 'black', 'lime', 'blue'
