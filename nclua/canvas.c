@@ -564,6 +564,7 @@ _l_canvas_dump_to_memory (lua_State *L)
  * Resizes the surface of the given canvas to W width and H height pixels.
  * Returns the new width and height.
  */
+static int l_canvas_flush (lua_State *);        /* forward declaration */
 static int
 _l_canvas_resize (lua_State *L)
 {
@@ -572,10 +573,6 @@ _l_canvas_resize (lua_State *L)
   cairo_surface_t *sfc;
   cairo_surface_t *back_sfc;
   int w, h;
-
-  cairo_pattern_t *pattern;
-  cairo_matrix_t matrix;
-  double sx, sy;
 
   double clip_x, clip_y, clip_w, clip_h;
   double r, g, b, a;
@@ -606,6 +603,11 @@ _l_canvas_resize (lua_State *L)
       cairo_surface_t *dup = NULL;
       cairo_status_t err;
 
+      /* Flush canvas.  */
+      lua_pushcfunction (L, l_canvas_flush);
+      lua_pushvalue (L, 1);
+      lua_call (L, 1, 0);
+
       err = cairox_surface_duplicate (sfc, &dup, NULL);
       if (unlikely (err != CAIRO_STATUS_SUCCESS))
         {
@@ -623,29 +625,11 @@ _l_canvas_resize (lua_State *L)
     }
 
   /* Copy canvas contents.  */
-  pattern = cairo_pattern_create_for_surface (canvas->sfc);
-  assert (pattern != NULL);
-  if (unlikely (!cairox_pattern_is_valid (pattern)))
-    {
-      cairo_surface_destroy (sfc);
-      cairo_surface_destroy (back_sfc);
-      cairo_destroy (cr);
-      return error_throw_invalid_pattern (L, pattern);
-    }
-
-  cairo_matrix_init (&matrix, 1, 0, 0, 1, 0, 0);
-  sx = ((double) w) / ((double) canvas->width);
-  sy = ((double) h) / ((double) canvas->height);
-  cairo_matrix_scale (&matrix, 1 / sx, 1 / sy);
-
-  cairo_pattern_set_matrix (pattern, &matrix);
-  cairo_pattern_set_filter (pattern, canvas->filter);
   cairo_save (cr);
-  cairo_set_source (cr, pattern);
+  cairo_set_source_surface (cr, canvas->sfc, 0, 0);
   cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
   cairo_paint (cr);
   cairo_restore (cr);
-  cairo_pattern_destroy (pattern);
 
   /* Copy attributes that are stored directly in cairo context.  */
   cairox_get_source_rgba (canvas->cr, &r, &g, &b, &a);
@@ -688,8 +672,17 @@ _l_canvas_resize (lua_State *L)
   canvas->width = w;
   canvas->height = h;
 
+  /* Flush canvas.  */
+  if (canvas_is_double_buffered (canvas))
+    {
+      lua_pushcfunction (L, l_canvas_flush);
+      lua_pushvalue (L, 1);
+      lua_call (L, 1, 0);
+    }
+
   lua_pushinteger (L, w);
   lua_pushinteger (L, h);
+
   return 2;
 }
 
