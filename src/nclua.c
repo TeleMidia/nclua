@@ -35,16 +35,17 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Globals: */
 static ncluaw_t *ncluaw_state;
 static jmp_buf panic_jmp;
-
 static GtkWidget *app;
-static gint WIDTH = 800;
-static gint HEIGHT = 600;
 
 /* Options: */
 #define OPTION_LINE "FILE"
 #define OPTION_DESC                             \
   "Report bugs to: " PACKAGE_BUGREPORT "\n"     \
   "NCLua home page: " PACKAGE_URL
+
+static gboolean opt_scale = FALSE;
+static gint opt_width = 800;
+static gint opt_height = 600;
 
 static gboolean
 opt_size (arg_unused (const gchar *opt), const gchar *arg,
@@ -57,7 +58,7 @@ opt_size (arg_unused (const gchar *opt), const gchar *arg,
   width = g_ascii_strtoull (arg, &end, 10);
   if (width == 0)
     goto syntax_error;
-  WIDTH = (gint) (clamp (width, 0, G_MAXINT));
+  opt_width = (gint) (clamp (width, 0, G_MAXINT));
 
   if (*end != 'x')
     goto syntax_error;
@@ -65,7 +66,7 @@ opt_size (arg_unused (const gchar *opt), const gchar *arg,
   height = g_ascii_strtoull (++end, NULL, 10);
   if (height == 0)
     goto syntax_error;
-  HEIGHT = (gint) (clamp (height, 0, G_MAXINT));
+  opt_height = (gint) (clamp (height, 0, G_MAXINT));
 
   return TRUE;
 
@@ -85,7 +86,9 @@ opt_version (void)
 #define gpointerof(p) ((gpointer)((ptrdiff_t)(p)))
 static GOptionEntry options[] = {
   {"size", 's', 0, G_OPTION_ARG_CALLBACK,
-   gpointerof (opt_size), "Set window size", "WIDTHxHEIGHT"},
+   gpointerof (opt_size), "Set window initial size", "WIDTHxHEIGHT"},
+  {"scale", 'x', 0, G_OPTION_ARG_NONE,
+   &opt_scale, "Scale canvas to fit window", NULL},
   {"version", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK,
    gpointerof (opt_version), "Print version information and exit", NULL},
   {NULL}
@@ -143,13 +146,42 @@ cycle_callback (GtkWidget *canvas)
 }
 
 static gboolean
-draw_callback (arg_unused (GtkWidget *canvas), cairo_t *cr,
-               arg_unused (gpointer data))
+draw_callback (GtkWidget *widget, cairo_t *cr, arg_unused (gpointer data))
 {
   cairo_surface_t *sfc;
+
   sfc = (cairo_surface_t *) ncluaw_debug_get_surface (ncluaw_state);
-  cairo_set_source_surface (cr, sfc, 0, 0);
-  cairo_paint (cr);
+  if (!opt_scale)
+    {
+      cairo_set_source_surface (cr, sfc, 0, 0);
+      cairo_paint (cr);
+    }
+  else
+    {
+      cairo_pattern_t *pattern;
+      cairo_matrix_t matrix;
+      int widget_w, widget_h, sfc_w, sfc_h;
+      double sx, sy;
+
+      pattern = cairo_pattern_create_for_surface (sfc);
+      g_assert (pattern != NULL);
+
+      widget_w = gtk_widget_get_allocated_width (widget);
+      widget_h = gtk_widget_get_allocated_height (widget);
+      sfc_w = cairo_image_surface_get_width (sfc);
+      sfc_h = cairo_image_surface_get_height (sfc);
+
+      cairo_matrix_init (&matrix, 1, 0, 0, 1, 0, 0);
+      sx = ((double) widget_w) / ((double) sfc_w);
+      sy = ((double) widget_h) / ((double) sfc_h);
+      cairo_matrix_scale (&matrix, 1 / sx, 1 / sy);
+
+      cairo_pattern_set_matrix (pattern, &matrix);
+      cairo_set_source (cr, pattern);
+      cairo_paint (cr);
+      cairo_pattern_destroy (pattern);
+    }
+
   return TRUE;
 }
 
@@ -215,11 +247,40 @@ keyboard_callback (arg_unused (GtkWidget *widget), GdkEventKey *e,
   return TRUE;
 }
 
-static gboolean
-pointer_motion_callback (arg_unused (GtkWidget *widget),
-                         GdkEventMotion *e, arg_unused (const char *type))
+static void
+pointer_get_position (GtkWidget *widget, int x, int y, int *rx, int *ry)
 {
-  ncluaw_send_pointer_event (ncluaw_state, "move", (int) e->x, (int) e->y);
+  if (!opt_scale)
+    {
+      *rx = x;
+      *ry = y;
+    }
+  else
+    {
+      int widget_w, widget_h, sfc_w, sfc_h;
+      cairo_surface_t *sfc;
+
+      widget_w = gtk_widget_get_allocated_width (widget);
+      widget_h = gtk_widget_get_allocated_height (widget);
+
+      sfc = (cairo_surface_t *) ncluaw_debug_get_surface (ncluaw_state);
+      sfc_w = cairo_image_surface_get_width (sfc);
+      sfc_h = cairo_image_surface_get_height (sfc);
+
+      *rx = (int) clamp (lround ((x) * sfc_w / widget_w), 0, sfc_w);
+      *ry = (int) clamp (lround ((y) * sfc_h / widget_h), 0, sfc_h);
+    }
+}
+
+static gboolean
+pointer_motion_callback (GtkWidget *widget, GdkEventMotion *e,
+                         arg_unused (const char *type))
+{
+  int x, y;
+
+  pointer_get_position (widget, (int) e->x, (int) e->y, &x, &y);
+  ncluaw_send_pointer_event (ncluaw_state, "move", x, y);
+
   return TRUE;
 }
 
@@ -228,6 +289,7 @@ pointer_click_callback (arg_unused (GtkWidget *widget), GdkEventButton *e,
                         arg_unused (gpointer data))
 {
   const char *type;
+  int x, y;
 
   switch (e->type)
     {
@@ -241,7 +303,33 @@ pointer_click_callback (arg_unused (GtkWidget *widget), GdkEventButton *e,
       return TRUE;              /* nothing to do */
     }
 
-  ncluaw_send_pointer_event (ncluaw_state, type, (int) e->x, (int) e->y);
+  pointer_get_position (widget, (int) e->x, (int) e->y, &x, &y);
+  ncluaw_send_pointer_event (ncluaw_state, type, x, y);
+
+  return TRUE;
+}
+
+static gboolean
+resize_callback (arg_unused (GtkWidget *widget), GdkEventConfigure * e,
+                 arg_unused (gpointer data))
+{
+  gchar *width;
+  gchar *height;
+
+  ncluaw_resize (ncluaw_state, e->width, e->height);
+  width = g_strdup_printf ("%d", e->width);
+  height = g_strdup_printf ("%d", e->height);
+  ncluaw_send_ncl_event (ncluaw_state, "attribution", "start",
+                         "width", width);
+  ncluaw_send_ncl_event (ncluaw_state, "attribution", "stop",
+                         "width", width);
+  ncluaw_send_ncl_event (ncluaw_state, "attribution", "start",
+                         "height", height);
+  ncluaw_send_ncl_event (ncluaw_state, "attribution", "stop",
+                         "height", height);
+  g_free (width);
+  g_free (height);
+
   return TRUE;
 }
 
@@ -288,7 +376,7 @@ main (int argc, char **argv)
   g_assert (g_chdir (dirname) == 0);
 
   /* Open the NCLua state.  */
-  ncluaw_state = ncluaw_open (basename, WIDTH, HEIGHT, &errmsg);
+  ncluaw_state = ncluaw_open (basename, opt_width, opt_height, &errmsg);
   if (unlikely (ncluaw_state == NULL))
     {
       print_error (errmsg);
@@ -305,10 +393,16 @@ main (int argc, char **argv)
   app = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   g_assert (app != NULL);       /* cannot fail */
   gtk_window_set_title (GTK_WINDOW (app), "NCLua");
-  gtk_widget_set_size_request (app, WIDTH, HEIGHT);
-  gtk_window_set_resizable (GTK_WINDOW (app), FALSE);
+  gtk_widget_set_size_request (app, opt_width, opt_height);
+  gtk_window_set_resizable (GTK_WINDOW (app), TRUE);
 
   g_signal_connect (app, "destroy", G_CALLBACK (gtk_main_quit), NULL);
+
+  if (!opt_scale)
+    {
+      g_signal_connect (app, "configure-event",
+                        G_CALLBACK (resize_callback), NULL);
+    }
 
   g_signal_connect (app, "key-press-event",
                     G_CALLBACK (keyboard_callback),
