@@ -648,14 +648,26 @@ _l_canvas_resize (lua_State *L)
   cairo_pattern_destroy (pattern);
 
   /* Copy attributes that are stored directly in cairo context.  */
-  cairox_get_clip (canvas->cr, &clip_x, &clip_y, &clip_w, &clip_h);
-  cairox_set_clip (cr, clip_x, clip_y, clip_w, clip_h);
   cairox_get_source_rgba (canvas->cr, &r, &g, &b, &a);
   cairox_set_source_rgba (cr, r, g, b, a);
   cairo_set_line_width (cr, cairo_get_line_width (canvas->cr));
 
-  /* Update crop region if it is set to the whole canvas.  */
+  /* Update clip region if it is set to the whole canvas.  */
   cairox_surface_get_dimensions (sfc, &w, &h);
+  cairox_get_clip (canvas->cr, &clip_x, &clip_y, &clip_w, &clip_h);
+  if (lround (clip_x) == 0
+      && lround (clip_y) == 0
+      && lround (clip_w) == canvas->width
+      && lround (clip_h) == canvas->height)
+    {
+      cairox_set_clip (cr, 0, 0, w, h);
+    }
+  else
+    {
+      cairox_set_clip (cr, clip_x, clip_y, clip_w, clip_h);
+    }
+
+  /* Update crop region if it is set to the whole canvas.  */
   if (canvas->crop.x == 0
       && canvas->crop.y == 0
       && canvas->crop.width == canvas->width

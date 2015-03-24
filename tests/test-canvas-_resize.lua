@@ -87,8 +87,8 @@ ASSERT (new_antialias == antialias)
 local new_clip_x, new_clip_y, new_clip_h, new_clip_w = c:attrClip ()
 ASSERT (new_clip_x == clip_x,
         new_clip_y == clip_y,
-        new_clip_w == clip_w,
-        new_clip_h == clip_h)
+        new_clip_w == new_w,    -- clip should be updated to whole canvas
+        new_clip_h == new_h)
 
 local new_r, new_g, new_b, new_a = c:attrColor ()
 ASSERT (new_r == r, new_g == g, new_b == b, new_a == a)
@@ -122,6 +122,18 @@ ASSERT (new_rotation == rotation)
 local new_scale_x, new_scale_y = c:attrScale ()
 ASSERT (new_scale_x == new_scale_x,
         new_scale_y == new_scale_y)
+
+-- Check if canvas._resize() honors clip attribute if it is set.
+local c, w, h = canvas.new (GET_SAMPLE ('apple-red'))
+c:attrClip (0, 0, w/2, h/2)
+local clip_x, clip_y, clip_w, clip_h = c:attrClip ()
+local new_w, new_h = c:_resize (w/2, h/2)
+ASSERT (new_w == w/2, new_h ==h/2)
+local new_clip_x, new_clip_y, new_clip_w, new_clip_h = c:attrClip ()
+ASSERT (new_clip_x == clip_x,
+        new_clip_y == clip_y,
+        new_clip_w == clip_w,
+        new_clip_h == clip_h)
 
 -- Check if canvas._resize() honors crop attribute if it is set.
 local c, w, h = canvas.new (GET_SAMPLE ('apple-red'))
