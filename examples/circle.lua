@@ -27,19 +27,21 @@ _ENV = nil
 
 math.randomseed (os.time ())
 
-local WIDTH, HEIGHT = canvas:attrSize ()
-assert (
-   event.register (
-      function (e)
-         if e.name == 'width' then
-            WIDTH = tonumber (e.value)
-         elseif e.name == 'height' then
-            HEIGHT = tonumber (e.value)
-         end
-      end,
-      {class='ncl', type='attribution', action='start'}
-   )
-)
+local WIDTH, HEIGHT
+do
+   WIDTH, HEIGHT = canvas:attrSize ()
+   local resize = function (w,h)
+      WIDTH = w or WIDTH
+      HEIGHT = h or HEIGHT
+   end
+   local resize_w = function (e) resize (tonumber (e.value)) end
+   local resize_h = function (e) resize (nil, tonumber (e.value)) end
+   local t = {class='ncl', type='attribution', action='start'}
+   t.name = 'width'
+   assert (event.register (resize_w, t))
+   t.name = 'height'
+   assert (event.register (resize_h, t))
+end
 
 local function rand_color ()
    local t = {}
