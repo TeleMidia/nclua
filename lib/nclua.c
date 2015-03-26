@@ -145,7 +145,7 @@ void
 nclua_close (lua_State *L)
 {
   if (unlikely (L == NULL))
-    return L;                   /* nothing to do */
+    return;                     /* nothing to do */
 
   nclua_registry_destroy (L);
 }
