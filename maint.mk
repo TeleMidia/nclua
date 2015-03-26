@@ -143,6 +143,7 @@ perl_after_indent_type_list:=\
   GError\
   GObject\
   GdkEventButton\
+  GdkEventConfigure\
   GdkEventKey\
   GdkEventMotion\
   GdkFrameClock\
