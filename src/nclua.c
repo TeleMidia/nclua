@@ -45,8 +45,8 @@ static jmp_buf panic_jmp;
 
 static gboolean opt_fullscreen = FALSE; /* true if --fullscreen was given */
 static gboolean opt_scale = FALSE;      /* true if --scale was given */
-static gint opt_width = 800;            /* initial window width */
-static gint opt_height = 600;           /* initial window height */
+static gint opt_width = 800;    /* initial window width */
+static gint opt_height = 600;   /* initial window height */
 
 static gboolean
 opt_size (arg_unused (const gchar *opt), const gchar *arg,
@@ -202,10 +202,10 @@ keyboard_callback (arg_unused (GtkWidget *widget), GdkEventKey *e,
 
   switch (e->keyval)
     {
-    case GDK_KEY_Escape:        /* quit */
+    case GDK_KEY_Escape:       /* quit */
       gtk_widget_destroy (app);
       return TRUE;
-    case GDK_KEY_F11:           /* toggle full-screen */
+    case GDK_KEY_F11:          /* toggle full-screen */
       if (streq ((const char *) type, "release"))
         return TRUE;
       opt_fullscreen = !opt_fullscreen;
@@ -290,8 +290,8 @@ pointer_get_position (int x, int y, int *rx, int *ry)
 }
 
 static gboolean
-pointer_motion_callback (arg_unused (GtkWidget *widget), GdkEventMotion *e,
-                         arg_unused (const char *type))
+pointer_motion_callback (arg_unused (GtkWidget *widget),
+                         GdkEventMotion *e, arg_unused (const char *type))
 {
   int x, y;
 
