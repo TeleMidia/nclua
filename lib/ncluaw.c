@@ -326,6 +326,9 @@ ncluaw_close (ncluaw_t *nw)
 {
   lua_State *L;
 
+  if (unlikely (nw == NULL))
+    return;                     /* nothing to do */
+
   L = ncluaw_get_lua_state (nw);
   ncluaw_registry_destroy (L);
   nclua_close (L);

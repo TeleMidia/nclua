@@ -144,6 +144,9 @@ nclua_open (lua_State *L, int width, int height,
 void
 nclua_close (lua_State *L)
 {
+  if (unlikely (L == NULL))
+    return L;                   /* nothing to do */
+
   nclua_registry_destroy (L);
 }
 
