@@ -21,7 +21,7 @@ include $(top_srcdir)/build-aux/Makefile.am.common
 AM_CPPFLAGS = -I$(top_srcdir)/lib -I$(top_builddir)/lib
 AM_CFLAGS = $(WERROR_CFLAGS) $(WARN_CFLAGS)\
   $(LUA_CFLAGS) $(CAIRO_CFLAGS) $(GLIB_CFLAGS) $(GTK_CFLAGS)
-AM_LDFLAGS = $(LUA_LIBS) $(CAIRO_LIBS) $(GLIB_LIBS) $(GTK_LIBS)
+AM_LDFLAGS = $(LIBM) $(LUA_LIBS) $(CAIRO_LIBS) $(GLIB_LIBS) $(GTK_LIBS)
 LDADD = $(top_builddir)/lib/libnclua.la
 
 if HAVE_GTK
