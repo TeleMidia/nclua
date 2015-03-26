@@ -235,8 +235,10 @@ function event.register (...)
    local pos = check_arg ('number', 'pos', args[1], #list + 1)
    local func = check_arg ('func', 'func', args[2])
    local filter = nil
-   if args[3] == nil or type (args[3]) == 'table' then
-      filter = args[3]
+   if args[3] == nil then
+      filter = nil
+   elseif type (args[3]) == 'table' then
+      filter = clone (args[3])
    else
       local class = check_arg ('string', 'class', args[3])
       local plugin = engine.plugin_table[class]
