@@ -33,9 +33,9 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "luax-macros.h"
 
 /* Globals: */
+static GtkWidget *app;
 static ncluaw_t *ncluaw_state;
 static jmp_buf panic_jmp;
-static GtkWidget *app;
 
 /* Options: */
 #define OPTION_LINE "FILE"
@@ -43,9 +43,10 @@ static GtkWidget *app;
   "Report bugs to: " PACKAGE_BUGREPORT "\n"     \
   "NCLua home page: " PACKAGE_URL
 
-static gboolean opt_scale = FALSE;
-static gint opt_width = 800;
-static gint opt_height = 600;
+static gboolean opt_fullscreen = FALSE; /* true if --fullscreen was given */
+static gboolean opt_scale = FALSE;      /* true if --scale was given */
+static gint opt_width = 800;            /* initial window width */
+static gint opt_height = 600;           /* initial window height */
 
 static gboolean
 opt_size (arg_unused (const gchar *opt), const gchar *arg,
@@ -86,7 +87,9 @@ opt_version (void)
 #define gpointerof(p) ((gpointer)((ptrdiff_t)(p)))
 static GOptionEntry options[] = {
   {"size", 's', 0, G_OPTION_ARG_CALLBACK,
-   gpointerof (opt_size), "Set window initial size", "WIDTHxHEIGHT"},
+   gpointerof (opt_size), "Set initial window size", "WIDTHxHEIGHT"},
+  {"fullscreen", 'S', 0, G_OPTION_ARG_NONE,
+   &opt_fullscreen, "Enable full-screen mode", NULL},
   {"scale", 'x', 0, G_OPTION_ARG_NONE,
    &opt_scale, "Scale canvas to fit window", NULL},
   {"version", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK,
@@ -118,11 +121,12 @@ panic (arg_unused (ncluaw_t *nw), const char *message)
 /* Callbacks: */
 #if GTK_CHECK_VERSION(3,8,0)
 static gboolean
-cycle_callback (GtkWidget *canvas, arg_unused (gpointer frame_clock),
+cycle_callback (arg_unused (GtkWidget *widget),
+                arg_unused (gpointer frame_clock),
                 arg_unused (gpointer data))
 #else
 static gboolean
-cycle_callback (GtkWidget *canvas)
+cycle_callback (arg_unused (GtkWidget *widget))
 #endif
 {
   ncluaw_event_t *evt;
@@ -141,16 +145,20 @@ cycle_callback (GtkWidget *canvas)
       return G_SOURCE_REMOVE;
     }
 
-  gtk_widget_queue_draw (canvas);
+  gtk_widget_queue_draw (app);
+
   return G_SOURCE_CONTINUE;
 }
 
 static gboolean
-draw_callback (GtkWidget *widget, cairo_t *cr, arg_unused (gpointer data))
+draw_callback (arg_unused (GtkWidget *widget), cairo_t *cr,
+               arg_unused (gpointer data))
 {
   cairo_surface_t *sfc;
 
   sfc = (cairo_surface_t *) ncluaw_debug_get_surface (ncluaw_state);
+  g_assert (sfc != NULL);
+
   if (!opt_scale)
     {
       cairo_set_source_surface (cr, sfc, 0, 0);
@@ -160,20 +168,20 @@ draw_callback (GtkWidget *widget, cairo_t *cr, arg_unused (gpointer data))
     {
       cairo_pattern_t *pattern;
       cairo_matrix_t matrix;
-      int widget_w, widget_h, sfc_w, sfc_h;
+      int app_w, app_h, sfc_w, sfc_h;
       double sx, sy;
 
       pattern = cairo_pattern_create_for_surface (sfc);
       g_assert (pattern != NULL);
 
-      widget_w = gtk_widget_get_allocated_width (widget);
-      widget_h = gtk_widget_get_allocated_height (widget);
+      app_w = gtk_widget_get_allocated_width (app);
+      app_h = gtk_widget_get_allocated_height (app);
       sfc_w = cairo_image_surface_get_width (sfc);
       sfc_h = cairo_image_surface_get_height (sfc);
 
       cairo_matrix_init (&matrix, 1, 0, 0, 1, 0, 0);
-      sx = ((double) widget_w) / ((double) sfc_w);
-      sy = ((double) widget_h) / ((double) sfc_h);
+      sx = ((double) app_w) / ((double) sfc_w);
+      sy = ((double) app_h) / ((double) sfc_h);
       cairo_matrix_scale (&matrix, 1 / sx, 1 / sy);
 
       cairo_pattern_set_matrix (pattern, &matrix);
@@ -194,8 +202,17 @@ keyboard_callback (arg_unused (GtkWidget *widget), GdkEventKey *e,
 
   switch (e->keyval)
     {
-    case GDK_KEY_Escape:
+    case GDK_KEY_Escape:        /* quit */
       gtk_widget_destroy (app);
+      return TRUE;
+    case GDK_KEY_F11:           /* toggle full-screen */
+      if (streq ((const char *) type, "release"))
+        return TRUE;
+      opt_fullscreen = !opt_fullscreen;
+      if (opt_fullscreen)
+        gtk_window_fullscreen (GTK_WINDOW (app));
+      else
+        gtk_window_unfullscreen (GTK_WINDOW (app));
       return TRUE;
     case GDK_KEY_asterisk:
       key = "*";
@@ -248,7 +265,7 @@ keyboard_callback (arg_unused (GtkWidget *widget), GdkEventKey *e,
 }
 
 static void
-pointer_get_position (GtkWidget *widget, int x, int y, int *rx, int *ry)
+pointer_get_position (int x, int y, int *rx, int *ry)
 {
   if (!opt_scale)
     {
@@ -257,28 +274,28 @@ pointer_get_position (GtkWidget *widget, int x, int y, int *rx, int *ry)
     }
   else
     {
-      int widget_w, widget_h, sfc_w, sfc_h;
       cairo_surface_t *sfc;
+      int app_w, app_h, sfc_w, sfc_h;
 
-      widget_w = gtk_widget_get_allocated_width (widget);
-      widget_h = gtk_widget_get_allocated_height (widget);
+      app_w = gtk_widget_get_allocated_width (app);
+      app_h = gtk_widget_get_allocated_height (app);
 
       sfc = (cairo_surface_t *) ncluaw_debug_get_surface (ncluaw_state);
       sfc_w = cairo_image_surface_get_width (sfc);
       sfc_h = cairo_image_surface_get_height (sfc);
 
-      *rx = (int) clamp (lround ((x) * sfc_w / widget_w), 0, sfc_w);
-      *ry = (int) clamp (lround ((y) * sfc_h / widget_h), 0, sfc_h);
+      *rx = (int) clamp (lround ((x) * sfc_w / app_w), 0, sfc_w);
+      *ry = (int) clamp (lround ((y) * sfc_h / app_h), 0, sfc_h);
     }
 }
 
 static gboolean
-pointer_motion_callback (GtkWidget *widget, GdkEventMotion *e,
+pointer_motion_callback (arg_unused (GtkWidget *widget), GdkEventMotion *e,
                          arg_unused (const char *type))
 {
   int x, y;
 
-  pointer_get_position (widget, (int) e->x, (int) e->y, &x, &y);
+  pointer_get_position ((int) e->x, (int) e->y, &x, &y);
   ncluaw_send_pointer_event (ncluaw_state, "move", x, y);
 
   return TRUE;
@@ -303,14 +320,14 @@ pointer_click_callback (arg_unused (GtkWidget *widget), GdkEventButton *e,
       return TRUE;              /* nothing to do */
     }
 
-  pointer_get_position (widget, (int) e->x, (int) e->y, &x, &y);
+  pointer_get_position ((int) e->x, (int) e->y, &x, &y);
   ncluaw_send_pointer_event (ncluaw_state, type, x, y);
 
   return TRUE;
 }
 
 static gboolean
-resize_callback (arg_unused (GtkWidget *widget), GdkEventConfigure * e,
+resize_callback (arg_unused (GtkWidget *widget), GdkEventConfigure *e,
                  arg_unused (gpointer data))
 {
   gchar *width;
@@ -330,7 +347,9 @@ resize_callback (arg_unused (GtkWidget *widget), GdkEventConfigure * e,
   g_free (width);
   g_free (height);
 
-  return TRUE;
+  /* We must return FALSE here, otherwise the new window size doesn't
+     propagate to draw_callback().  */
+  return FALSE;
 }
 
 int
@@ -338,11 +357,8 @@ main (int argc, char **argv)
 {
   GOptionContext *ctx;
   GError *error = NULL;
-
   gchar *dirname;
   gchar *basename;
-
-  GtkWidget *canvas;
   char *errmsg = NULL;
   volatile int status = EXIT_SUCCESS;
 
@@ -368,6 +384,15 @@ main (int argc, char **argv)
       exit (EXIT_FAILURE);
     }
 
+  /* Create application window.  */
+  app = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  g_assert (app != NULL);       /* cannot fail */
+  gtk_window_set_title (GTK_WINDOW (app), "NCLua");
+  gtk_window_set_default_size (GTK_WINDOW (app), opt_width, opt_height);
+  gtk_widget_set_app_paintable (app, TRUE);
+  if (opt_fullscreen)
+    gtk_window_fullscreen (GTK_WINDOW (app));
+
   /* Setup process working directory. */
   dirname = g_path_get_dirname (argv[1]);
   basename = g_path_get_basename (argv[1]);
@@ -381,21 +406,12 @@ main (int argc, char **argv)
     {
       print_error (errmsg);
       free (errmsg);
-      exit (EXIT_FAILURE);
+      goto done;
     }
 
   ncluaw_at_panic (ncluaw_state, panic);
 
-  g_free (dirname);
-  g_free (basename);
-
-  /* Setup GTK+ stuff.  */
-  app = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  g_assert (app != NULL);       /* cannot fail */
-  gtk_window_set_title (GTK_WINDOW (app), "NCLua");
-  gtk_widget_set_size_request (app, opt_width, opt_height);
-  gtk_window_set_resizable (GTK_WINDOW (app), TRUE);
-
+  /* Setup GTK+ callbacks.  */
   g_signal_connect (app, "destroy", G_CALLBACK (gtk_main_quit), NULL);
 
   if (!opt_scale)
@@ -412,30 +428,26 @@ main (int argc, char **argv)
                     G_CALLBACK (keyboard_callback),
                     deconst (void *, "release"));
 
-  canvas = gtk_drawing_area_new ();
-  g_assert (canvas != NULL);    /* cannot fail */
-  gtk_widget_add_events (canvas, GDK_BUTTON_PRESS_MASK
+  gtk_widget_add_events (app, GDK_BUTTON_PRESS_MASK
                          | GDK_BUTTON_RELEASE_MASK
                          | GDK_POINTER_MOTION_MASK);
 
-  g_signal_connect (canvas, "button-press-event",
+  g_signal_connect (app, "button-press-event",
                     G_CALLBACK (pointer_click_callback), NULL);
 
-  g_signal_connect (canvas, "button-release-event",
+  g_signal_connect (app, "button-release-event",
                     G_CALLBACK (pointer_click_callback), NULL);
 
-  g_signal_connect (canvas, "motion-notify-event",
+  g_signal_connect (app, "motion-notify-event",
                     G_CALLBACK (pointer_motion_callback), NULL);
 
-  g_signal_connect (canvas, "draw", G_CALLBACK (draw_callback), NULL);
-
-  gtk_container_add (GTK_CONTAINER (app), canvas);
+  g_signal_connect (app, "draw", G_CALLBACK (draw_callback), NULL);
 
 #if GTK_CHECK_VERSION(3,8,0)
-  gtk_widget_add_tick_callback (canvas, (GtkTickCallback) cycle_callback,
+  gtk_widget_add_tick_callback (app, (GtkTickCallback) cycle_callback,
                                 NULL, NULL);
 #else
-  g_timeout_add (1000 / 60, (GSourceFunc) cycle_callback, canvas);
+  g_timeout_add (1000 / 60, (GSourceFunc) cycle_callback, app);
 #endif
 
   /* Send NCL start event.  */
@@ -448,13 +460,15 @@ main (int argc, char **argv)
   if (setjmp (panic_jmp))
     {
       status = EXIT_FAILURE;
-      goto panic;
+      goto done;
     }
 
   /* Event loop.  */
   gtk_main ();
 
- panic:
+ done:
+  g_free (dirname);
+  g_free (basename);
   ncluaw_close (ncluaw_state);
   exit (status);
 }
