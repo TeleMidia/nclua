@@ -30,8 +30,16 @@ NCLua NEWS -- History of user-visible changes.                 -*-outline-*-
 
   - Add command-line options to NCLua interpreter.
 
-    The interpreter now supports --help, --version, --scale, and --size
-    options.
+    The interpreter now supports the following options:
+
+       --fullscreen    enable full-screen mode,
+       --help          print usage message,
+       --scale         scale main canvas
+       --size          set the initial window size,
+       --version       print version string.
+
+    You can also press F11 to toggle full-screen mode while the script is
+    running.
 
 * Version 1.3, February 22, 2015, Guilherme F. Lima
 
