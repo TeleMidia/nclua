@@ -347,8 +347,8 @@ resize_callback (arg_unused (GtkWidget *widget), GdkEventConfigure *e,
   g_free (width);
   g_free (height);
 
-  /* We must return FALSE here, otherwise the new window size doesn't
-     propagate to draw_callback().  */
+  /* We must return FALSE here, otherwise the new geometry is not propagated
+     to draw_callback().  */
   return FALSE;
 }
 
