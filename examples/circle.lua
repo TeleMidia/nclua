@@ -119,14 +119,24 @@ local function update ()
    assert (event.post ('in', {class='user'}))
 end
 
+local key_increase = {
+   ['LESS'] = true,
+   ['PERIOD'] = true,
+}
+
+local key_decrease = {
+   ['GREATER'] = true,
+   ['COMMA'] = true,
+}
+
 local function key (evt)
    if evt.type ~= 'press' then
       return
    end
-   if evt.key == 'LESS' and #CIRCLE_LIST > 0 then
+   if key_decrease [evt.key] and #CIRCLE_LIST > 0 then
       table.remove (CIRCLE_LIST)
 
-   elseif evt.key == 'GREATER' then
+   elseif key_increase[evt.key] then
       table.insert (CIRCLE_LIST, get_circle ())
 
    elseif evt.key == 'q' then
