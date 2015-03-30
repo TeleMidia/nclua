@@ -51,61 +51,64 @@ luax_getfield (lua_State *L, int i, const char *k)
   lua_settop (L, top + 1);
 }
 
-#define luax_newmetatable(L, tname)             \
-  STMT_BEGIN                                    \
-  {                                             \
-    assert (luaL_newmetatable (L, tname) != 0); \
-    lua_pushvalue (L, -1);                      \
-    lua_setfield (L, -2, "__index");            \
-    lua_pushliteral (L, "not your business");   \
-    lua_setfield (L, -2, "__metatable");        \
-  }                                             \
+#define luax_newmetatable(L, tname)                     \
+  STMT_BEGIN                                            \
+  {                                                     \
+    assert (luaL_newmetatable ((L), (tname)) != 0);     \
+    lua_pushvalue ((L), -1);                            \
+    lua_setfield ((L), -2, "__index");                  \
+    lua_pushliteral ((L), "not your business");         \
+    lua_setfield ((L), -2, "__metatable");              \
+  }                                                     \
   STMT_END
 
-#define luax_optudata(L, i, tname)              \
-  STMT_BEGIN                                    \
-  {                                             \
-    switch (lua_type (L, i))                    \
-      {                                         \
-      case LUA_TUSERDATA:                       \
-        if (!luaL_testudata (L, i, tname))      \
-          {                                     \
-            luaL_getmetatable (L, tname);       \
-            lua_insert (L, i);                  \
-          }                                     \
-        break;                                  \
-      case LUA_TTABLE:                          \
-        luaL_getmetatable (L, tname);           \
-        if (!lua_rawequal (L, i, -1))           \
-          {                                     \
-            lua_insert (L, i);                  \
-            break;                              \
-          }                                     \
-        lua_pop (L, 1);                         \
-        break;                                  \
-      default:                                  \
-        luaL_getmetatable (L, tname);           \
-        lua_insert (L, i);                      \
-      }                                         \
-  }                                             \
+#define luax_optudata(L, i, tname)                      \
+  STMT_BEGIN                                            \
+  {                                                     \
+    switch (lua_type ((L), (i)))                        \
+      {                                                 \
+      case LUA_TUSERDATA:                               \
+        if (!luaL_testudata ((L), (i), (tname)))        \
+          {                                             \
+            luaL_getmetatable ((L), (tname));           \
+            lua_insert ((L), (i));                      \
+          }                                             \
+        break;                                          \
+      case LUA_TTABLE:                                  \
+        luaL_getmetatable ((L), (tname));               \
+        if (!lua_rawequal ((L), (i), -1))               \
+          {                                             \
+            lua_insert ((L), (i));                      \
+            break;                                      \
+          }                                             \
+        lua_pop ((L), 1);                               \
+        break;                                          \
+      default:                                          \
+        luaL_getmetatable ((L), (tname));               \
+        lua_insert ((L), (i));                          \
+      }                                                 \
+  }                                                     \
   STMT_END
 
 #define luax_pushupvalue(L, i)\
-  lua_pushvalue (L, lua_upvalueindex (i))
+  lua_pushvalue ((L), lua_upvalueindex (i))
 
 #define luax_setintegerfield(L, i, name, value)\
-  _luax_setxfield (lua_pushinteger, L, i, name, value)
+  _luax_setxfield (lua_pushinteger, (L), (i), (name), (value))
+
+#define luax_setnumberfield(L, i, name, value)\
+  _luax_setxfield (lua_pushnumber, (L), (i), (name), (value))
 
 #define luax_setstringfield(L, i, name, value)\
-  _luax_setxfield (lua_pushstring, L, i, name, value)
+  _luax_setxfield (lua_pushstring, (L), (i), (name), (value))
 
 #define _luax_setxfield(func, L, i, name, value)        \
   STMT_BEGIN                                            \
   {                                                     \
-    lua_pushvalue (L, i);                               \
-    func (L, value);                                    \
-    lua_setfield (L, -2, name);                         \
-    lua_pop (L, 1);                                     \
+    lua_pushvalue ((L), (i));                           \
+    func ((L), (value));                                \
+    lua_setfield ((L), -2, (name));                     \
+    lua_pop ((L), 1);                                   \
   }                                                     \
   STMT_END
 
@@ -115,11 +118,11 @@ luax_getfield (lua_State *L, int i, const char *k)
 #define luax_mregistry_create(L, m)             \
   STMT_BEGIN                                    \
   {                                             \
-    assert (lua_type (L, -1) == LUA_TTABLE);    \
-    lua_pushvalue (L, LUA_REGISTRYINDEX);       \
-    lua_insert (L, -2);                         \
-    lua_rawsetp (L, -2, m);                     \
-    lua_pop (L, 1);                             \
+    assert (lua_type ((L), -1) == LUA_TTABLE);  \
+    lua_pushvalue ((L), LUA_REGISTRYINDEX);     \
+    lua_insert ((L), -2);                       \
+    lua_rawsetp ((L), -2, (m));                 \
+    lua_pop ((L), 1);                           \
   }                                             \
   STMT_END
 
@@ -128,10 +131,10 @@ luax_getfield (lua_State *L, int i, const char *k)
 #define luax_mregistry_destroy(L, m)            \
   STMT_BEGIN                                    \
   {                                             \
-    lua_pushvalue (L, LUA_REGISTRYINDEX);       \
-    lua_pushnil (L);                            \
-    lua_rawsetp (L, -2, m);                     \
-    lua_pop (L, 1);                             \
+    lua_pushvalue ((L), LUA_REGISTRYINDEX);     \
+    lua_pushnil ((L));                          \
+    lua_rawsetp ((L), -2, (m));                 \
+    lua_pop ((L), 1);                           \
   }                                             \
   STMT_END
 
@@ -139,9 +142,9 @@ luax_getfield (lua_State *L, int i, const char *k)
 #define luax_mregistry_get(L, m)                \
   STMT_BEGIN                                    \
   {                                             \
-    lua_pushvalue (L, LUA_REGISTRYINDEX);       \
-    lua_rawgetp (L, -1, m);                     \
-    lua_remove (L, -2);                         \
+    lua_pushvalue ((L), LUA_REGISTRYINDEX);     \
+    lua_rawgetp ((L), -1, (m));                 \
+    lua_remove ((L), -2);                       \
   }                                             \
   STMT_END
 
@@ -149,9 +152,9 @@ luax_getfield (lua_State *L, int i, const char *k)
 #define luax_mregistry_getfield(L, m, field)    \
   STMT_BEGIN                                    \
   {                                             \
-    luax_mregistry_get (L, m);                  \
-    luax_getfield (L, -1, field);               \
-    lua_remove (L, -2);                         \
+    luax_mregistry_get ((L), (m));              \
+    luax_getfield ((L), -1, (field));           \
+    lua_remove ((L), -2);                       \
   }                                             \
   STMT_END
 
@@ -160,10 +163,10 @@ luax_getfield (lua_State *L, int i, const char *k)
 #define luax_mregistry_setfield(L, m, field)    \
   STMT_BEGIN                                    \
   {                                             \
-    luax_mregistry_get (L, m);                  \
-    lua_insert (L, -2);                         \
-    lua_setfield (L, -2, field);                \
-    lua_pop (L, 1);                             \
+    luax_mregistry_get ((L), (m));              \
+    lua_insert ((L), -2);                       \
+    lua_setfield ((L), -2, (field));            \
+    lua_pop ((L), 1);                           \
   }                                             \
   STMT_END
 
@@ -171,13 +174,13 @@ luax_getfield (lua_State *L, int i, const char *k)
 # include <stdio.h>
 
 # define luax_dump_value(L, i)\
-  (_luax_dump_value (L, i), putc ('\n', stderr))
+  (_luax_dump_value ((L), (i)), putc ('\n', stderr))
 
 # define luax_dump_table(L, i)\
-  (_luax_dump_table (L, i, 1), putc ('\n', stderr))
+  (_luax_dump_table ((L), (i), 1), putc ('\n', stderr))
 
 # define luax_dump_stack(L)\
-  _luax_dump_stack (L, 1)
+  _luax_dump_stack ((L), 1)
 
 static void ATTR_UNUSED
 _luax_dump_value (lua_State *L, int index)
