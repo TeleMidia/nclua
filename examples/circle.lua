@@ -120,12 +120,12 @@ local function update ()
 end
 
 local key_increase = {
-   ['LESS'] = true,
+   ['GREATER'] = true,
    ['PERIOD'] = true,
 }
 
 local key_decrease = {
-   ['GREATER'] = true,
+   ['LESS'] = true,
    ['COMMA'] = true,
 }
 
