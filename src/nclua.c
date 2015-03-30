@@ -28,6 +28,7 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <glib/gstdio.h>
 #include <gtk/gtk.h>
 
+#include "nclua.h"
 #include "ncluaw.h"
 #include "macros.h"
 #include "luax-macros.h"
@@ -122,18 +123,46 @@ panic (arg_unused (ncluaw_t *nw), const char *message)
 #if GTK_CHECK_VERSION(3,8,0)
 static gboolean
 cycle_callback (arg_unused (GtkWidget *widget),
-                arg_unused (gpointer frame_clock),
-                arg_unused (gpointer data))
+                GdkFrameClock *frame_clock, arg_unused (gpointer data))
 #else
 static gboolean
 cycle_callback (arg_unused (GtkWidget *widget))
 #endif
 {
   ncluaw_event_t *evt;
+  lua_State *L;
+  gint64 time;
+  static gint64 frame = -1;
+  static gint64 last;
+  static gint64 first;
+
+  L = ncluaw_debug_get_lua_state (ncluaw_state);
+
+#if GTK_CHECK_VERSION(3,8,0)
+  time = gdk_frame_clock_get_frame_time (frame_clock);
+  frame = gdk_frame_clock_get_frame_counter (frame_clock);
+#else
+  time = g_get_monotonic_time ();
+  frame++;
+#endif
+
+  if (frame == 0)
+    {
+      first = time;
+      last = time;
+    }
+
+  lua_newtable (L);
+  luax_setstringfield (L, -1, "class", "tick");
+  luax_setnumberfield (L, -1, "frame", (lua_Number) (frame));
+  luax_setnumberfield (L, -1, "absolute", (lua_Number) (time));
+  luax_setnumberfield (L, -1, "relative", (lua_Number) (time - first));
+  luax_setnumberfield (L, -1, "diff", (lua_Number) (time - last));
+  last = time;
+  nclua_send (L);
 
   ncluaw_cycle (ncluaw_state);
 
-  /* NCL */
   evt = ncluaw_receive (ncluaw_state);
   if (evt != NULL
       && evt->cls == NCLUAW_EVENT_NCL

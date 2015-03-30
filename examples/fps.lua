@@ -33,16 +33,12 @@ local function redraw (e)
    for i=0,h/n do
       canvas:drawLine (0, i * n, w, i * n)
    end
-   local now = event.uptime ()
-   local text = ('%.3g fps'):format (1000/(now - e.last))
+   local text = ('%.3g fps'):format (1000000/e.dt)
    local tw, th = canvas:measureText (text)
    canvas:attrColor ('yellow')
    canvas:drawText ((w-tw)/2, (h-th)/2, text)
    canvas:attrColor ('navy')
    canvas:drawText ((w-tw)/2 - 1, (h-th)/2 - 1, text)
    canvas:flush ()
-   e.last = now
-   event.post ('in', e)
 end
-event.register (redraw, {class='user'})
-event.post ('in', {class='user', last=event.uptime ()})
+event.register (redraw, {class='tick'})

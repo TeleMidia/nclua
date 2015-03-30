@@ -20,13 +20,11 @@ local canvas = canvas
 local event = event
 local ipairs = ipairs
 local math = math
-local os = os
 local table = table
 local tonumber = tonumber
 _ENV = nil
 
-math.randomseed (os.time ())
-
+-- Dimensions of the top-level canvas.
 local WIDTH, HEIGHT
 do
    WIDTH, HEIGHT = canvas:attrSize ()
@@ -43,81 +41,109 @@ do
    assert (event.register (resize_h, t))
 end
 
-local function rand_color ()
+local function new_circle ()
+   local max = 1 + WIDTH / 10
    local t = {}
-   for i=1,4 do
-      t[i] = math.random (0, 255)
-   end
+   t.r = math.random (1, max)   -- radius in pixels
+   t.w = t.r * 2                -- width in pixels
+   t.h = t.w                    -- height in pixels
+   t.xv = math.random (1, max)  -- x speed in pixels/sec
+   t.yv = math.random (1, max)  -- y speed in pixels/sec
+   t.x = math.random (0, math.max (WIDTH - 2 * t.r, 0))  -- x position
+   t.y = math.random (0, math.max (HEIGHT - 2 * t.r, 0)) -- y position
+   t.color = {                                           -- circle color
+      math.random (0, 255),
+      math.random (0, 255),
+      math.random (0, 255),
+      math.random (0, 255),
+   }
+   t.cvs = canvas.new (t.w, t.h) -- image canvas
+   t.cvs:attrColor (table.unpack (t.color))
+   t.cvs:drawEllipse ('fill', t.r, t.r, t.w, t.h)
+   t.cvs:flush ()
    return t
 end
 
-local function comp_color (r, g, b)
-   return (r + 127) % 255, (g + 127) % 255, (b + 127) % 255
+local function move_circle (t, dt)
+   t.x = t.x + t.xv * dt
+   t.y = t.y + t.yv * dt
+   if t.x < 0 then
+      t.x = 0
+      t.xv = t.xv * -1
+   elseif t.x + t.w > WIDTH then
+      t.x = WIDTH - t.w
+      t.xv = t.xv * -1
+   end
+   if t.y < 0 then
+      t.y = 0
+      t.yv = t.yv * -1
+   elseif t.y + t.h > HEIGHT then
+      t.y = HEIGHT - t.h
+      t.yv = t.yv * -1
+   end
 end
 
-local function _move (coord, radius, speed, limit, dt)
-   coord = coord + speed * dt
-   if speed > 0 and coord + 2 * radius >= limit then
-      return limit - 2 * radius, speed * -1
-   end
-   if speed < 0 and coord < 0 then
-      return 0, speed * -1
-   end
-   return coord, speed
-end
-
-local function get_circle ()
-   local c = {}
-   c.color = rand_color ()                 -- RGBA
-   c.r = math.random (0, 100)              -- radius in pixels
-   c.xv = math.random (0, 200)             -- x speed in pixels/sec
-   c.yv = math.random (0, 200)             -- y speed in pixels/sec
-   c.x = math.random (0, WIDTH - 2 * c.r)  -- x position
-   c.y = math.random (0, HEIGHT - 2 * c.r) -- y position
-   c.move = function (self, dt)
-      self.x, self.xv = _move (self.x, self.r, self.xv, WIDTH, dt)
-      self.y, self.yv = _move (self.y, self.r, self.yv, HEIGHT, dt)
-   end
-   return c
-end
-
+-- List of circles to be displayed.
 local CIRCLE_LIST = {}
-for i=1,10 do
-   CIRCLE_LIST[i] = get_circle ()
-end
 
-local last = event.uptime ()
-local function update ()
-   local now = event.uptime ()
-   local dt = (now - last) / 1000
-   last = now
-
-   canvas:attrColor (0, 0, 0, 0)
-   canvas:clear ()
-   for _,c in ipairs (CIRCLE_LIST) do
-      c:move (dt)
-      local xc = c.x + c.r
-      local yc = c.y + c.r
-      local len = 2 * c.r
-      canvas:attrColor (table.unpack (c.color))
-      canvas:drawEllipse ('fill', xc, yc, len, len)
-      canvas:attrColor (comp_color (table.unpack (c.color)))
-      canvas:attrFont ('sans', 7)
-      local text = ('(%d,%d)'):format (xc, yc)
-      local w, h = canvas:measureText (text)
-      canvas:drawText (c.x + len/2 - w/2, c.y + len/2 - h/2, text)
-   end
-
+-- Info text.
+local INFO = nil
+do
    canvas:attrFont ('sans', 16)
    local text = 'Press < or > to decrease or increase the number of circles'
-   local w, h = canvas:measureText (text)
-   canvas:attrColor ('gray')
-   canvas:drawText ('fill', (1 + WIDTH - w)/2, (1 + HEIGHT - h)/2, text)
-   canvas:attrColor ('purple')
-   canvas:drawText ('fill', (WIDTH - w)/2, (HEIGHT - h)/2, text)
-   canvas:flush ()
-   assert (event.post ('in', {class='user'}))
+   local text_w, text_h = canvas:measureText (text)
+   INFO = canvas.new (text_w + 1, text_h + 1)
+   INFO:attrFont (canvas:attrFont ())
+   INFO:attrColor ('gray')
+   INFO:drawText ('fill', 1, 1, text)
+   INFO:attrColor ('purple')
+   INFO:drawText ('fill', 0, 0, text)
 end
+
+local function redraw (e)
+   if e.frame == 0 then
+      math.randomseed (e.absolute)
+      for i=1,10 do
+         CIRCLE_LIST[i] = new_circle ()
+      end
+   end
+   canvas:attrColor (0, 0, 0, 0)
+   canvas:clear ()
+   for _,t in ipairs (CIRCLE_LIST) do
+      move_circle (t, e.diff / 1000000)
+      local xc, yc, w, h = t.x + t.r, t.y + t.r, t.w, t.h
+      canvas:compose (t.x, t.y, t.cvs)
+      canvas:attrColor (
+         (t.color[1] + 127) % 255,
+         (t.color[2] + 127) % 255,
+         (t.color[3] + 127) % 255,
+         255)
+      canvas:attrFont ('sans', 7)
+      local text = ('(%d,%d)'):format (xc, yc)
+      local text_w, text_h = canvas:measureText (text)
+      canvas:drawText (t.x + w/2 - text_w/2,
+                       t.y + h/2 - text_h/2, text)
+   end
+   local w, h = INFO:attrSize ()
+   canvas:compose ((WIDTH - w) / 2, (HEIGHT - h) / 2, INFO)
+   canvas:attrFont ('sans', 12)
+   local s = 's'
+   if #CIRCLE_LIST == 1 then s = '' end
+   local text = ('(%ds, %d circle%s, %dx%d, %d fps)')
+      :format (e.relative / 1000000,
+               #CIRCLE_LIST,
+               s,
+               WIDTH,
+               HEIGHT,
+               1000000 / math.max (e.diff, 1))
+   local text_w, text_h = canvas:measureText (text)
+   canvas:attrColor ('gray')
+   canvas:drawText (1 + (WIDTH - text_w) / 2, 1 + (HEIGHT + text_h) / 2, text)
+   canvas:attrColor ('purple')
+   canvas:drawText ((WIDTH - text_w) / 2, (HEIGHT + text_h) / 2, text)
+   canvas:flush ()
+end
+assert (event.register (redraw, {class='tick'}))
 
 local key_increase = {
    ['GREATER'] = true,
@@ -135,15 +161,10 @@ local function key (evt)
    end
    if key_decrease [evt.key] and #CIRCLE_LIST > 0 then
       table.remove (CIRCLE_LIST)
-
    elseif key_increase[evt.key] then
-      table.insert (CIRCLE_LIST, get_circle ())
-
+      table.insert (CIRCLE_LIST, new_circle ())
    elseif evt.key == 'q' then
       event.post {class='ncl', type='presentation', action='stop', label=''}
    end
 end
-
 assert (event.register (key, {class='key'}))
-assert (event.register (update, {class='user'}))
-assert (event.post ('in', {class='user'}))
