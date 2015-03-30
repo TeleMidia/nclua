@@ -142,11 +142,21 @@ perl_after_indent_type_list:=\
   GAsyncResult\
   GError\
   GObject\
+  GParamSpec\
+  GValue\
   GdkEventButton\
   GdkEventConfigure\
   GdkEventKey\
   GdkEventMotion\
   GdkFrameClock\
+  GstBaseSrc\
+  GstBuffer\
+  GstCaps\
+  GstEvent\
+  GstNCLuaClass\
+  GstNCLua\
+  GstPlugin\
+  GstPushSrc\
   GtkWidget\
   SoupMessage\
   SoupSession\

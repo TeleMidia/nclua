@@ -78,12 +78,14 @@ AC_SUBST([NCLUA_LIBTOOL_STRING], nclua_libtool_string)
 # Dependencies version.
 m4_define([cairo_required_version], [1.10.2])
 m4_define([glib_required_version],  [2.32.4])
+m4_define([gstreamer_required_version], [1.4.0])
 m4_define([gtk_required_version],   [3.4.2])
 m4_define([lua_required_version],   [5.2])
 m4_define([pango_required_version], [1.30.0])
 m4_define([soup_required_version],  [2.42])
 AC_SUBST([CAIRO_REQUIRED_VERSION], cairo_required_version)
 AC_SUBST([GLIB_REQUIRED_VERSION], glib_required_version)
+AC_SUBST([GSTREAMER_REQUIRED_VERSION], gstreamer_required_version)
 AC_SUBST([GTK_REQUIRED_VERSION], gtk_required_version)
 AC_SUBST([LUA_REQUIRED_VERSION], lua_required_version)
 AC_SUBST([PANGO_REQUIRED_VERSION], pango_required_version)
@@ -400,7 +402,7 @@ PKG_CHECK_MODULES([PANGO],
   pangocairo >= pango_required_version], [],
  [AC_MSG_ERROR([Pango >= pango_required_version required.])])
 
-# Check for GIO.
+# Check for GIO (optional).
 PKG_CHECK_MODULES([GIO],
  [gio-2.0 >= glib_required_version], [have_gio=yes], [have_gio=no])
 AS_IF([test "$have_gio" = yes],
@@ -410,7 +412,7 @@ AS_IF([test "$have_gio" = yes],
 AM_CONDITIONAL([HAVE_GIO], [test "$have_gio" = yes])
 AM_CONDITIONAL([BUILD_EVENT_TCP], [test "$have_gio" = yes])
 
-# Check for SOUP.
+# Check for SOUP (optional).
 PKG_CHECK_MODULES([SOUP],
  [libsoup-2.4 >= soup_required_version], [have_soup=yes], [have_soup=no])
 AS_IF([test "$have_soup" = yes],
@@ -419,6 +421,25 @@ AS_IF([test "$have_soup" = yes],
     [Define to 1 if http event class is to be built.])])
 AM_CONDITIONAL([HAVE_SOUP], [test "$have_soup" = yes])
 AM_CONDITIONAL([BUILD_EVENT_HTTP], [test "$have_soup" = yes])
+
+# Check for GStreamer (optional).
+PKG_CHECK_MODULES([GSTREAMER],
+ [gstreamer-1.0 >= gstreamer_required_version dnl
+  gstreamer-video-1.0 >= gstreamer_required_version],
+ [have_gstreamer=yes], [have_gstreamer=no])
+AS_IF([test "$have_gstreamer"],
+ [AC_DEFINE([HAVE_GSTREAMER], [1], [Define to 1 if we have Gstreamer-1.0])
+  AC_DEFINE([BUILD_GSTNCLUA], [1],
+   [Define to 1 if nclua GStreamer plugin is to be built.])])
+AM_CONDITIONAL([HAVE_GSTREAMER], [test "$have_gstreamer" = yes])
+AM_CONDITIONAL([BUILD_GSTNCLUA], [test "$have_gstreamer" = yes])
+
+AC_ARG_WITH([gstpluginsdir],
+ [AS_HELP_STRING([--with-gstpluginsdir=DIR],
+                 [install GStreamer plugin into DIR])], [],
+ [with_gstpluginsdir=`$PKG_CONFIG --variable=pluginsdir gstreamer-1.0`])
+
+AC_SUBST([gstpluginsdir], [$with_gstpluginsdir])
 
 # Check for GTK (optional).
 PKG_CHECK_MODULES([GTK],
@@ -448,6 +469,9 @@ AS_IF([test "$have_gio" = no],
 AS_IF([test "$have_soup" = no],
  [have_soup="$have_soup	(requires libsoup-2.4 >= soup_required_version)"])
 
+AS_IF([test "$have_gstreamer" = no],
+ [have_gstreamer="$have_gstreamer	(requires gstreamer-1.0 >= gstreamer_required_version)"])
+
 AS_IF([test "$have_gtk" = no],
  [have_gtk="$have_gtk	(requires gkt+-3.0 >= gtk_required_version)"])
 
@@ -466,5 +490,6 @@ AC_MSG_NOTICE([summary of main build options:
 
   Build tcp:          ${have_gio}
   Build http:         ${have_soup}
+  Build gstnclua:     ${have_gstreamer}
   Build nclua binary: ${have_gtk}
 ])
