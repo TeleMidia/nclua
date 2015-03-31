@@ -138,6 +138,23 @@ VC_LIST_MK:= $(shell git ls-files '*.mk')
 VC_LIST_SH:= $(shell git ls-files '*.sh')
 
 
+perl_list_gcc_extra_warnings:=\
+  /\s\s(\-W[\w-]+)\s/ and print $$1;\
+  $(NULL)
+
+list_gcc_extra_warnings:=\
+  gcc --help=warnings | perl -nle '$(perl_list_gcc_extra_warnings)'\
+  $(NULL)
+
+# Lists extra GCC warnings.
+.PHONY: gcc-extra-warnings
+gcc-extra-warnings:
+	@for w in `$(list_gcc_extra_warnings)`; do\
+	  grep -q -e "$$w" configure.ac build-aux/manywarnings.m4\
+	  || echo "$$w";\
+	done
+
+
 perl_after_indent_type_list:=\
   GAsyncResult\
   GError\
