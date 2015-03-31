@@ -35,7 +35,7 @@ typedef struct _luax_callback_data_t
 } luax_callback_data_t;
 
 /* Registry key for the callback-data table.  */
-static const int _luax_callback_data_magic;
+static const int _luax_callback_data_magic = 0;
 
 /* Expands to the address of the above variable.  */
 #define LUAX_CALLBACK_REGISTRY_INDEX\

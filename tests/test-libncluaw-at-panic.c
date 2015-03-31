@@ -45,7 +45,7 @@ main (void)
     ASSERT (ncluaw_at_panic (nw, NULL) == panic);
     ASSERT (ncluaw_at_panic (nw, panic) == NULL);
 
-    L = ncluaw_debug_get_lua_state (nw);
+    L = (lua_State *) ncluaw_debug_get_lua_state (nw);
     ASSERT (ncluaw_at_panic (nw, panic) == panic);
 
     if (!setjmp (env))

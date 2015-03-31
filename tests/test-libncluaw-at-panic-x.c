@@ -30,7 +30,7 @@ main (void)
     nw = ncluaw_open ("libnclua-echo.lua", 800, 600, NULL);
     ASSERT (nw != NULL);
 
-    L = ncluaw_debug_get_lua_state (nw);
+    L = (lua_State *) ncluaw_debug_get_lua_state (nw);
     luaL_loadstring (L, "error ('catch error')");
     lua_call (L, 0, LUA_MULTRET);
 
