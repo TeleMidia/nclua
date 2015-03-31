@@ -18,32 +18,30 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#pragma GCC diagnostic ignored "-Wbad-function-cast"
-#pragma GCC diagnostic ignored "-Wcast-qual"
-#pragma GCC diagnostic ignored "-Wformat-security"
-#pragma GCC diagnostic ignored "-Wpedantic"
-#pragma GCC diagnostic ignored "-Wunused-macros"
-
 #include <glib.h>
 #include <glib/gstdio.h>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wmissing-prototypes"
-#pragma GCC diagnostic ignored "-Wnested-externs"
-#pragma GCC diagnostic ignored "-Wvariadic-macros"
-#include <gst/gst.h>
-#include <gst/base/gstpushsrc.h>
-#include <gst/video/gstvideometa.h>
-#pragma GCC diagnostic pop
 
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
 
+/* *INDENT-OFF* */
+#include "macros.h"             /* for pragma diagnostic stuff */
+PRAGMA_DIAGNOSTIC_IGNORE (-Wbad-function-cast)
+
+PRAGMA_DIAGNOSTIC_PUSH ()
+PRAGMA_DIAGNOSTIC_IGNORE (-Wcast-qual)
+PRAGMA_DIAGNOSTIC_IGNORE (-Wpedantic)
+PRAGMA_DIAGNOSTIC_IGNORE (-Wvariadic-macros)
+PRAGMA_DIAGNOSTIC_IGNORE (-Wconversion)
+#include <gst/gst.h>
+#include <gst/base/gstpushsrc.h>
+#include <gst/video/gstvideometa.h>
+PRAGMA_DIAGNOSTIC_POP ()
+/* *INDENT-ON* */
+
 #include "nclua.h"
 #include "ncluaw.h"
-#include "macros.h"
 #include "luax-macros.h"
 
 /* GstNCLua class data.  */
@@ -80,7 +78,9 @@ GST_STATIC_PAD_TEMPLATE ("src", GST_PAD_SRC, GST_PAD_ALWAYS,
 /* Defines a GType for GstNCLua elements.  */
 GType gst_nclua_get_type (void);
 #define gst_nclua_parent_class parent_class
-G_DEFINE_TYPE (GstNCLua, gst_nclua, GST_TYPE_PUSH_SRC);
+/* *INDENT-OFF* */
+G_DEFINE_TYPE (GstNCLua, gst_nclua, GST_TYPE_PUSH_SRC)
+/* *INDENT-ON* */
 
 /* Defines a debug category for the NCLua plugin.  */
 GST_DEBUG_CATEGORY_STATIC (nclua_debug);
@@ -90,21 +90,9 @@ GST_DEBUG_CATEGORY_STATIC (nclua_debug);
 #define GST_TYPE_NCLUA\
   (gst_nclua_get_type ())
 
-/* Casts class CLS to GstNCLuaClass.  */
-#define GST_NCLUA_CLASS(cls)\
-  (G_TYPE_CHECK_CLASS_CAST ((cls), GST_TYPE_NCLUA, GstNCLuaClass))
-
-/* Checks if CLS is of type GST_TYPE_NCLUA.  */
-#define GST_IS_NCLUA_CLASS(cls)\
-  (G_TYPE_CHECK_CLASS_TYPE ((cls), GST_TYPE_NCLUA))
-
 /* Casts OBJ to GstNCLua.  */
 #define GST_NCLUA(obj)\
   (G_TYPE_CHECK_INSTANCE_CAST ((obj), GST_TYPE_NCLUA, GstNCLua))
-
-/* Checks if OBJ is of type GST_TYPE_NCLUA.  */
-#define GST_IS_NCLUA(obj)\
-  (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GST_TYPE_NCLUA))
 
 /* Maps GstNavigation key name to its internal NCLua name.  */
 typedef struct _GstNCLuaKeyMap
@@ -184,7 +172,7 @@ gst_nclua_class_init (GstNCLuaClass *cls)
     (gobject_class, PROPERTY_FILE,
      g_param_spec_string
      ("file", "File", "Path to NCLua script", NULL,
-      G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+      (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
   gst_element_class_set_static_metadata
     (gstelement_class,
@@ -348,7 +336,7 @@ gst_nclua_start (GstBaseSrc *basesrc)
   g_free (basename);
   if (unlikely (nw == NULL))
     {
-      GST_ELEMENT_ERROR (nclua, LIBRARY, INIT, (NULL), (errmsg));
+      GST_ELEMENT_ERROR (nclua, LIBRARY, INIT, (NULL), ("%s", errmsg));
       g_free (errmsg);
       return FALSE;
     }
@@ -414,7 +402,7 @@ gst_nclua_fill (GstPushSrc *pushsrc, GstBuffer *buf)
       GstEvent *evt;
       GstNavigationEventType type;
 
-      evt = g_queue_pop_head (nclua->event_queue);
+      evt = (GstEvent *) g_queue_pop_head (nclua->event_queue);
       g_mutex_unlock (&nclua->event_mutex);
 
       type = gst_navigation_event_get_type (evt);
@@ -512,7 +500,8 @@ gst_nclua_fill (GstPushSrc *pushsrc, GstBuffer *buf)
       goto done;
     }
 
-  ncluaw_paint (nw, data, format_str, width, height, stride);
+  ncluaw_paint (nw, (unsigned char *) data, format_str,
+                width, height, stride);
 
  done:
   gst_video_frame_unmap (&frame);
@@ -531,8 +520,13 @@ nclua_init (GstPlugin *nclua)
 
 /* Plugin definition.  */
 /* FIXME: Define PACKAGE_LICENSE via config.h.  */
+/* *INDENT-OFF* */
 #define PACKAGE PACKAGE_NAME
+PRAGMA_DIAGNOSTIC_PUSH ()
+PRAGMA_DIAGNOSTIC_IGNORE (-Wcast-qual)
 GST_PLUGIN_DEFINE (GST_VERSION_MAJOR, GST_VERSION_MINOR, nclua,
                    "Creates a video stream from an NCLua script",
                    nclua_init, PACKAGE_VERSION, "GPL", PACKAGE_NAME,
                    PACKAGE_URL)
+PRAGMA_DIAGNOSTIC_POP ()
+/* *INDENT-ON* */
