@@ -30,10 +30,11 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 PRAGMA_DIAGNOSTIC_IGNORE (-Wbad-function-cast)
 
 PRAGMA_DIAGNOSTIC_PUSH ()
+PRAGMA_DIAGNOSTIC_IGNORE (-Wcast-align)
 PRAGMA_DIAGNOSTIC_IGNORE (-Wcast-qual)
+PRAGMA_DIAGNOSTIC_IGNORE (-Wconversion)
 PRAGMA_DIAGNOSTIC_IGNORE (-Wpedantic)
 PRAGMA_DIAGNOSTIC_IGNORE (-Wvariadic-macros)
-PRAGMA_DIAGNOSTIC_IGNORE (-Wconversion)
 #include <gst/gst.h>
 #include <gst/base/gstpushsrc.h>
 #include <gst/video/gstvideometa.h>
