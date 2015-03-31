@@ -521,7 +521,6 @@ nclua_init (GstPlugin *nclua)
 /* Plugin definition.  */
 /* FIXME: Define PACKAGE_LICENSE via config.h.  */
 /* *INDENT-OFF* */
-#define PACKAGE PACKAGE_NAME
 PRAGMA_DIAGNOSTIC_PUSH ()
 PRAGMA_DIAGNOSTIC_IGNORE (-Wcast-qual)
 GST_PLUGIN_DEFINE (GST_VERSION_MAJOR, GST_VERSION_MINOR, nclua,

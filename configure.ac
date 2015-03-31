@@ -44,7 +44,7 @@ AC_USE_SYSTEM_EXTENSIONS
 AC_CONFIG_SRCDIR([lib/nclua.h])
 AC_CONFIG_HEADERS([lib/config.h])
 
-AM_INIT_AUTOMAKE([1.14 foreign -Wall no-define no-dist-gzip dist-xz])
+AM_INIT_AUTOMAKE([1.14 -Wall -Werror dist-xz gnu no-dist-gzip])
 AM_SILENT_RULES([yes])
 AM_PROG_AR
 
@@ -247,7 +247,6 @@ AS_IF([test "$enable_gcc_warnings" = yes],
   nw=
   nw="$nw -Wsystem-headers"         # Suppress system headers warnings
   nw="$nw -Wpadded"                 # Our structs are not packed
-  nw="$nw -Woverlength-strings"     # Some tests use big literals.
 
   gl_MANYWARN_ALL_GCC([ws])
   gl_MANYWARN_COMPLEMENT([ws], [$ws], [$nw])
