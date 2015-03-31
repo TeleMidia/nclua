@@ -78,6 +78,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define ATTRIBUTE_PURE
 #endif
 
+#undef BUILTIN_EXPECT_LIKELY
+#undef BUILTIN_EXPECT_UNLIKELY
+
+#if GNUC_PREREQ (3,0)
+# define BUILTIN_EXPECT_LIKELY(cond) __builtin_expect((cond), 1)
+# define BUILTIN_EXPECT_UNLIKELY(cond) __builtin_expect((cond), 0)
+#else
+# define BUILTIN_EXPECT_LIKELY(cond)
+# define BUILTIN_EXPECT_UNLIKELY(cond)
+#endif
+
 #undef ATTRIBUTE_NOINLINE
 
 #if GNUC_PREREQ (3,1)
@@ -119,6 +130,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define ATTRIBUTE_WARN_UNUSED_RESULT
 #endif
 
+#undef PRAGMA_DIAGNOSTIC
+
+#if GNUC_PREREQ (4,2)
+# define _GCC_PRAGMA(x) _Pragma (STRINGIFY (x))
+# define PRAGMA_DIAGNOSTIC(x) _GCC_PRAGMA (GCC diagnostic x)
+#elif defined (__clang__)
+# define _CLANG_PRAGMA(x) _Pragma (STRINGIFY (x))
+# define PRAGMA_DIAGNOSTIC(x) _CLANG_PRAGMA (clang diagnostic x)
+#else
+# define PRAGMA_DIAGNOSTIC(x)
+#endif
+
 #undef ATTRIBUTE_ARTIFICIAL
 
 #if GNUC_PREREQ (4,3)
@@ -126,6 +149,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #else
 # define ATTRIBUTE_ARTIFICIAL
 #endif
+
+#undef PRAGMA_DIAGNOSTIC_PUSH
+#undef PRAGMA_DIAGNOSTIC_POP
+
+#if GNUC_PREREQ (4,6) || defined (__clang__)
+# define PRAGMA_DIAGNOSTIC_PUSH() PRAGMA_DIAGNOSTIC (push)
+# define PRAGMA_DIAGNOSTIC_POP() PRAGMA_DIAGNOSTIC (pop)
+#else
+# define PRAGMA_DIAGNOSTIC_PUSH()
+# define PRAGMA_DIAGNOSTIC_POP()
+#endif
+
+#undef PRAGMA_DIAGNOSTIC_IGNORE
+#define PRAGMA_DIAGNOSTIC_IGNORE(x)\
+  PRAGMA_DIAGNOSTIC (ignored STRINGIFY (x))
+
+#undef PRAGMA_DIAGNOSTIC_WARNING
+#define PRAGMA_DIAGNOSTIC_WARNING(x)\
+  PRAGMA_DIAGNOSTIC (warning STRINGIFY (x))
 
 #undef STMT_BEGIN
 #undef STMT_END
@@ -176,13 +218,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef likely
 #undef unlikely
 
-#if GNUC_PREREQ (3,0)
-# define likely(cond) __builtin_expect((cond), 1)
-# define unlikely(cond) __builtin_expect((cond), 0)
-#else
-# define likely(cond)
-# define unlikely(cond)
-#endif
+#define likely(cond) BUILTIN_EXPECT_LIKELY (cond)
+#define unlikely(cond) BUILTIN_EXPECT_UNLIKELY (cond)
 
 #if !defined TRUE
 # define TRUE 1
