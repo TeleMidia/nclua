@@ -136,7 +136,7 @@ cycle_callback (arg_unused (GtkWidget *widget))
   static gint64 last;
   static gint64 first;
 
-  L = ncluaw_debug_get_lua_state (ncluaw_state);
+  L = (lua_State *) ncluaw_debug_get_lua_state (ncluaw_state);
 
 #if GTK_CHECK_VERSION(3,8,0)
   time = gdk_frame_clock_get_frame_time (frame_clock);

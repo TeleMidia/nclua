@@ -256,6 +256,7 @@ AS_IF([test "$enable_gcc_warnings" = yes],
   done
 
   # Some extra warnings.
+  gl_WARN_ADD([-Wc++-compat])
   gl_WARN_ADD([-Wcast-qual])
   gl_WARN_ADD([-Wconversion])
   gl_WARN_ADD([-Wdeclaration-after-statement])
@@ -264,9 +265,6 @@ AS_IF([test "$enable_gcc_warnings" = yes],
   gl_WARN_ADD([-Wsign-compare])
   gl_WARN_ADD([-Wsign-conversion])
   gl_WARN_ADD([-Wundef])
-
-  # FIXME: The following is broken; C++ keyword 'and' appears in GTK header.
-  # gl_WARN_ADD([-Wc++-compat])
 
   # clang is unduly picky about some things.
   AC_CACHE_CHECK([whether the compiler is clang], [nclua_cv_clang],
