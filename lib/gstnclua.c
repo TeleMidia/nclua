@@ -34,6 +34,7 @@ PRAGMA_DIAGNOSTIC_IGNORE (-Wcast-align)
 PRAGMA_DIAGNOSTIC_IGNORE (-Wcast-qual)
 PRAGMA_DIAGNOSTIC_IGNORE (-Wconversion)
 PRAGMA_DIAGNOSTIC_IGNORE (-Wpedantic)
+PRAGMA_DIAGNOSTIC_IGNORE (-Wsign-conversion)
 PRAGMA_DIAGNOSTIC_IGNORE (-Wvariadic-macros)
 #include <gst/gst.h>
 #include <gst/base/gstpushsrc.h>
