@@ -26,84 +26,261 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <lualib.h>
 
 /* *INDENT-OFF* */
-#include "macros.h"             /* for pragma diagnostic stuff */
-PRAGMA_DIAGNOSTIC_IGNORE (-Wbad-function-cast)
+#include "macros.h"             /* for pragma diagnostic macros */
+PRAGMA_DIAG_IGNORE (-Wbad-function-cast)
 
-PRAGMA_DIAGNOSTIC_PUSH ()
-PRAGMA_DIAGNOSTIC_IGNORE (-Wcast-align)
-PRAGMA_DIAGNOSTIC_IGNORE (-Wcast-qual)
-PRAGMA_DIAGNOSTIC_IGNORE (-Wconversion)
-PRAGMA_DIAGNOSTIC_IGNORE (-Wpedantic)
-PRAGMA_DIAGNOSTIC_IGNORE (-Wsign-conversion)
-PRAGMA_DIAGNOSTIC_IGNORE (-Wvariadic-macros)
+PRAGMA_DIAG_PUSH ()
+PRAGMA_DIAG_IGNORE (-Wcast-align)
+PRAGMA_DIAG_IGNORE (-Wcast-qual)
+PRAGMA_DIAG_IGNORE (-Wconversion)
+PRAGMA_DIAG_IGNORE (-Wpedantic)
+PRAGMA_DIAG_IGNORE (-Wsign-conversion)
+PRAGMA_DIAG_IGNORE (-Wvariadic-macros)
+
 #include <gst/gst.h>
 #include <gst/base/gstpushsrc.h>
 #include <gst/video/gstvideometa.h>
-PRAGMA_DIAGNOSTIC_POP ()
+
+PRAGMA_DIAG_POP ()
 /* *INDENT-ON* */
 
 #include "nclua.h"
 #include "ncluaw.h"
 #include "luax-macros.h"
 
-/* GstNCLua class data.  */
+/* Class data.  */
 typedef struct _GstNCLuaClass
 {
   GstPushSrcClass parent_class;
 } GstNCLuaClass;
 
-/* GStNCLua instance data.  */
+/* Instance data.  */
 typedef struct _GstNCLua
 {
-  GstPushSrc element;
-  GstVideoInfo info;            /* current video info */
-  volatile gint G_GNUC_MAY_ALIAS new_info;      /* flags info updates  */
+  GstPushSrc element;           /* parent element */
+
+  /* Properties: */
+  gchar *file;                  /* path to NCLua script */
+  guint width;                  /* main canvas width in pixels */
+  guint height;                 /* main canvas height in pixels */
+  gboolean resize;              /* resize main canvas */
+
+  /* Internal data: */
   ncluaw_t *nw;                 /* NCLua state */
-  gchar *file;                  /* path to script file */
-  GQueue *event_queue;          /* event queue */
-  GMutex event_mutex;           /* syncs access to event queue */
+
+  struct
+  {                             /* counters */
+    GstClockTime time;          /* total running time */
+    guint64 frames;             /* total number of frames */
+  } counters;
+
+  struct
+  {                             /* video format */
+    const gchar *format;        /* pixel format */
+    gint width;                 /* frame width in pixels */
+    gint height;                /* frame height in pixels */
+    gint stride;                /* frame stride */
+    gint fps_n;                 /* fps numerator */
+    gint fps_d;                 /* fps denominator */
+    gboolean updated;           /* flags format updates */
+  } format;
+
+  struct
+  {                             /* event queue */
+    GQueue *q;                  /* queue */
+    GMutex mutex;               /* syncs access to event queue */
+  } queue;
+
 } GstNCLua;
 
-/* GstNCLua element properties.  */
+/* Element properties.  */
 enum
 {
   PROPERTY_0,
-  PROPERTY_FILE
+  PROPERTY_FILE,
+  PROPERTY_WIDTH,
+  PROPERTY_HEIGHT,
+  PROPERTY_RESIZE
 };
 
-/* Template for GstNCLua source pad.  */
-static GstStaticPadTemplate gst_nclua_src_template =
-GST_STATIC_PAD_TEMPLATE ("src", GST_PAD_SRC, GST_PAD_ALWAYS,
-                         GST_STATIC_CAPS (GST_VIDEO_CAPS_MAKE
-                                          ("{BGRA, BGRx}")));
+#define DEFAULT_FILE NULL
+#define DEFAULT_WIDTH 800
+#define DEFAULT_HEIGHT 600
+#define DEFAULT_RESIZE TRUE
 
-/* Defines a GType for GstNCLua elements.  */
+/* Template for source pad.  */
+#define GST_NCLUA_SRC_STATIC_CAPS\
+  GST_STATIC_CAPS (GST_VIDEO_CAPS_MAKE ("{BGRA, BGRx}"))
+#define GST_NCLUA_SRC_TEMPL                             \
+  GST_STATIC_PAD_TEMPLATE ("src",                       \
+                           GST_PAD_SRC,                 \
+                           GST_PAD_ALWAYS,              \
+                           GST_NCLUA_SRC_STATIC_CAPS)
+static GstStaticPadTemplate gst_nclua_src_template = GST_NCLUA_SRC_TEMPL;
+
+/* Element type.  */
 GType gst_nclua_get_type (void);
 #define gst_nclua_parent_class parent_class
 /* *INDENT-OFF* */
 G_DEFINE_TYPE (GstNCLua, gst_nclua, GST_TYPE_PUSH_SRC)
 /* *INDENT-ON* */
 
-/* Defines a debug category for the NCLua plugin.  */
-GST_DEBUG_CATEGORY_STATIC (nclua_debug);
-#define GST_CAT_DEFAULT nclua_debug
-
-/* Gets the GType associated with GstNCLua.  */
+/* Gets the GType of GstNCLua.  */
 #define GST_TYPE_NCLUA\
   (gst_nclua_get_type ())
 
-/* Casts OBJ to GstNCLua.  */
+/* Casts object OBJ into GstNCLua.  */
 #define GST_NCLUA(obj)\
   (G_TYPE_CHECK_INSTANCE_CAST ((obj), GST_TYPE_NCLUA, GstNCLua))
 
-/* Maps GstNavigation key name to its internal NCLua name.  */
+/* Debug category.  */
+GST_DEBUG_CATEGORY_STATIC (nclua_debug);
+#define GST_CAT_DEFAULT nclua_debug
+#define debug GST_DEBUG_OBJECT
+
+
+/********************* GstNCLua: Internal data access *********************/
+
+/* Initializes internal data of element NCLUA.  */
+
+static void
+gst_nclua_internal_init (GstNCLua *nclua)
+{
+  nclua->nw = NULL;
+  nclua->format.format = NULL;
+  nclua->format.width = 0;
+  nclua->format.height = 0;
+  nclua->format.stride = 0;
+  nclua->format.fps_n = 0;
+  nclua->format.fps_d = 0;
+  nclua->format.updated = FALSE;
+  nclua->queue.q = g_queue_new ();
+  g_assert (nclua->queue.q != NULL); /* cannot fail */
+  g_mutex_init (&nclua->queue.mutex);
+}
+
+/* Finalizes internal data of element NCLUA.  */
+
+static void
+gst_nclua_internal_fini (GstNCLua *nclua)
+{
+  ncluaw_close (nclua->nw);
+  g_queue_free_full (nclua->queue.q, (GDestroyNotify) gst_event_unref);
+  g_mutex_clear (&nclua->queue.mutex);
+}
+
+/* Gets the time and frame counters of element NCLUA and stores them into
+   *TIME and *FRAMES, respectively.  */
+
+static void
+gst_nclua_get_counters (GstNCLua *nclua, GstClockTime *time,
+                        guint64 *frames)
+{
+  GST_OBJECT_LOCK (nclua);
+  set_if_nonnull (time, nclua->counters.time);
+  set_if_nonnull (frames, nclua->counters.frames);
+  GST_OBJECT_UNLOCK (nclua);
+}
+
+/* Sets the time and frame counters of element NCLUA to TIME and FRAME,
+   respectively.  */
+
+static void
+gst_nclua_set_counters (GstNCLua *nclua, GstClockTime time, guint64 frames)
+{
+  GST_OBJECT_LOCK (nclua);
+  nclua->counters.time = time;
+  nclua->counters.frames = frames;
+  GST_OBJECT_UNLOCK (nclua);
+}
+
+/* Gets the format parameters of element NCLUA and stores them into *FORMAT,
+   *WIDTH, *HEIGHT, *STRIDE, *FPS_N, and *FPS_D.  Returns true if format was
+   updated since last call, otherwise returns false.  */
+
+static gboolean
+gst_nclua_get_format (GstNCLua *nclua, const gchar **format,
+                      gint *width, gint *height, gint *stride,
+                      gint *fps_n, gint *fps_d)
+{
+  gboolean result;
+
+  GST_OBJECT_LOCK (nclua);
+  set_if_nonnull (format, nclua->format.format);
+  set_if_nonnull (width, nclua->format.width);
+  set_if_nonnull (height, nclua->format.height);
+  set_if_nonnull (stride, nclua->format.stride);
+  set_if_nonnull (fps_n, nclua->format.fps_n);
+  set_if_nonnull (fps_d, nclua->format.fps_d);
+  result = nclua->format.updated;
+  nclua->format.updated = FALSE;
+  GST_OBJECT_UNLOCK (nclua);
+
+  return result;
+}
+
+/* Sets the format parameters of element NCLUA to the given FORMAT, WIDTH,
+   HEIGHT, STRIDE, FPS_N, and FPS_D values; and sets the updated flag to
+   true.  */
+
+static void
+gst_nclua_set_format (GstNCLua *nclua, const gchar *format,
+                      gint width, gint height, gint stride,
+                      gint fps_n, gint fps_d)
+{
+  GST_OBJECT_LOCK (nclua);
+  nclua->format.format = format;
+  nclua->format.width = width;
+  nclua->format.height = height;
+  nclua->format.stride = stride;
+  nclua->format.fps_n = fps_n;
+  nclua->format.fps_d = fps_d;
+  nclua->format.updated = TRUE;
+  GST_OBJECT_UNLOCK (nclua);
+}
+
+/* Pushes event EVT into event queue of element NCLUA.
+   Returns true if successful, otherwise returns false.  */
+
+static void
+gst_nclua_push_event (GstNCLua *nclua, GstEvent *evt)
+{
+  g_mutex_lock (&nclua->queue.mutex);
+  g_queue_push_tail (nclua->queue.q, evt);
+  g_mutex_unlock (&nclua->queue.mutex);
+}
+
+/* Pops an event from element NCLUA's event queue and stores it in *EVT.
+   Returns true if successful; returns false if no element could be
+   popped (queue is empty).  */
+
+static gboolean
+gst_nclua_pop_event (GstNCLua *nclua, GstEvent **evt)
+{
+  GstEvent *tmp;
+
+  g_mutex_lock (&nclua->queue.mutex);
+  tmp = (GstEvent *) g_queue_pop_head (nclua->queue.q);
+  g_mutex_unlock (&nclua->queue.mutex);
+
+  if (tmp == NULL)
+    return FALSE;
+
+  set_if_nonnull (evt, tmp);
+  return TRUE;
+}
+
+
+/************** Conversion of GstNavigation to NCLua events ***************/
+
 typedef struct _GstNCLuaKeyMap
 {
   const gchar *from;
   const gchar *to;
 } GstNCLuaKeyMap;
 
-static const GstNCLuaKeyMap gst_nclua_key_map[] = {
+/* Maps a navigation key name into its internal key name.  */
+static const GstNCLuaKeyMap gst_nclua_keymap[] = {
   /* KEEP THIS SORTED ALPHABETICALLY */
   {"Down", "CURSOR_DOWN"},
   {"Left", "CURSOR_LEFT"},
@@ -113,7 +290,7 @@ static const GstNCLuaKeyMap gst_nclua_key_map[] = {
 };
 
 static ATTR_PURE int
-gst_nclua_key_map_compar (const void *p1, const void *p2)
+gst_nclua_keymap_compar (const void *p1, const void *p2)
 {
   const GstNCLuaKeyMap *k1 = (const GstNCLuaKeyMap *) p1;
   const GstNCLuaKeyMap *k2 = (const GstNCLuaKeyMap *) p2;
@@ -123,15 +300,15 @@ gst_nclua_key_map_compar (const void *p1, const void *p2)
 /* Returns the internal mapping of key FROM. */
 
 static const gchar *
-gst_nclua_key_map_index (const gchar *from)
+gst_nclua_keymap_index (const gchar *from)
 {
   GstNCLuaKeyMap key;
   GstNCLuaKeyMap *match;
 
   key.from = from;
   match = (GstNCLuaKeyMap *)
-    bsearch (&key, gst_nclua_key_map, nelementsof (gst_nclua_key_map),
-             sizeof (*gst_nclua_key_map), gst_nclua_key_map_compar);
+    bsearch (&key, gst_nclua_keymap, nelementsof (gst_nclua_keymap),
+             sizeof (*gst_nclua_keymap), gst_nclua_keymap_compar);
 
   if (match != NULL)
     return match->to;
@@ -140,19 +317,459 @@ gst_nclua_key_map_index (const gchar *from)
     ? g_ascii_strup (from, -1) : from;
 }
 
-/* Forward declarations: */
-static void gst_nclua_get_property (GObject *, guint, GValue *,
-                                    GParamSpec *);
-static void gst_nclua_set_property (GObject *, guint, const GValue *,
-                                    GParamSpec *);
-static GstFlowReturn gst_nclua_fill (GstPushSrc *, GstBuffer *);
-static gboolean gst_nclua_event (GstBaseSrc *, GstEvent *);
-static GstCaps *gst_nclua_fixate (GstBaseSrc *, GstCaps *);
-static gboolean gst_nclua_set_caps (GstBaseSrc *, GstCaps *);
-static gboolean gst_nclua_start (GstBaseSrc *);
-static gboolean gst_nclua_stop (GstBaseSrc *);
+/* Converts navigation event type TYPE to NCLua type.  */
 
-/* Initializes GstNCLua class CLS.  */
+static const gchar *
+gst_nclua_navigation_convert_type (GstNavigationEventType type)
+{
+  switch (type)
+    {
+    case GST_NAVIGATION_EVENT_KEY_PRESS:
+    case GST_NAVIGATION_EVENT_MOUSE_BUTTON_PRESS:
+      return "press";
+    case GST_NAVIGATION_EVENT_KEY_RELEASE:
+    case GST_NAVIGATION_EVENT_MOUSE_BUTTON_RELEASE:
+      return "release";
+    case GST_NAVIGATION_EVENT_MOUSE_MOVE:
+      return "move";
+    default:
+      ASSERT_NOT_REACHED;
+    }
+}
+
+/* Converts navigation event FROM into an equivalent NCLua event.  If
+   successful, allocates and stores the resulting event into *TO and returns
+   true; otherwise returns false.  */
+
+static gboolean
+gst_nclua_navigation_convert (GstEvent *from, ncluaw_event_t **to)
+{
+  GstNavigationEventType type;
+  ncluaw_event_t evt;
+
+  const gchar *key;
+  const gchar *type_str;
+  gdouble x, y;
+
+  type = gst_navigation_event_get_type (from);
+  switch (type)
+    {
+    case GST_NAVIGATION_EVENT_KEY_PRESS:
+    case GST_NAVIGATION_EVENT_KEY_RELEASE:
+      if (unlikely (!gst_navigation_event_parse_key_event (from, &key)))
+        {
+          return FALSE;
+        }
+      key = gst_nclua_keymap_index (key);
+      type_str = gst_nclua_navigation_convert_type (type);
+      ncluaw_event_key_init (&evt, type_str, key);
+      break;
+
+    case GST_NAVIGATION_EVENT_MOUSE_BUTTON_PRESS:
+    case GST_NAVIGATION_EVENT_MOUSE_BUTTON_RELEASE:
+      if (unlikely (!gst_navigation_event_parse_mouse_button_event
+                    (from, NULL, &x, &y)))
+        {
+          return FALSE;
+        }
+      type_str = gst_nclua_navigation_convert_type (type);
+      ncluaw_event_pointer_init (&evt, type_str, (int) x, (int) y);
+      break;
+
+    case GST_NAVIGATION_EVENT_MOUSE_MOVE:
+      if (!unlikely (gst_navigation_event_parse_mouse_move_event
+                     (from, &x, &y)))
+        {
+          return FALSE;
+        }
+      type_str = gst_nclua_navigation_convert_type (type);
+      ncluaw_event_pointer_init (&evt, type_str, (int) x, (int) y);
+      break;
+
+    default:
+      return FALSE;             /* unknown type */
+    }
+
+  set_if_nonnull (to, ncluaw_event_clone (&evt));
+  return TRUE;
+}
+
+
+/************************** Custom NCLua events ***************************/
+
+/* Sends a canvas resize event to state NW with the given dimensions.  */
+
+static void
+gst_nclua_send_resize_event (ncluaw_t *nw, gint width, gint height)
+{
+  gchar *w = g_strdup_printf ("%d", width);
+  gchar *h = g_strdup_printf ("%d", height);
+  ncluaw_resize (nw, width, height);
+  ncluaw_send_ncl_event (nw, "attribution", "start", "width", w);
+  ncluaw_send_ncl_event (nw, "attribution", "stop", "width", w);
+  ncluaw_send_ncl_event (nw, "attribution", "start", "height", h);
+  ncluaw_send_ncl_event (nw, "attribution", "stop", "height", h);
+  g_free (w);
+  g_free (h);
+}
+
+/* Sends a tick event to state NW with the given parameters.  */
+
+static void
+gst_nclua_send_tick_event (ncluaw_t *nw, guint64 frames,
+                           GstClockTime abs, GstClockTime rel,
+                           GstClockTime diff)
+{
+  lua_State *L = (lua_State *) ncluaw_debug_get_lua_state (nw);
+  lua_newtable (L);
+  luax_setstringfield (L, -1, "class", "tick");
+  luax_setnumberfield (L, -1, "frame", (lua_Number) (frames));
+  luax_setnumberfield (L, -1, "absolute", (lua_Number) (abs) / 1000);
+  luax_setnumberfield (L, -1, "relative", (lua_Number) (rel) / 1000);
+  luax_setnumberfield (L, -1, "diff", (lua_Number) (diff) / 1000);
+  nclua_send (L);
+}
+
+
+/******************************* GstPushSrc *******************************/
+
+/* Fills buffer BUF with the current frame.
+   TODO: Document return values.  */
+
+static GstFlowReturn
+gst_nclua_fill (GstPushSrc *pushsrc, GstBuffer *buf)
+{
+  GstNCLua *nclua;
+  ncluaw_t *nw;
+
+  GstEvent *evt;
+  guint limit = 32;             /* max input events per cycle */
+
+  GstMapInfo map;
+  gboolean updated;
+  const gchar *format;
+  gint width, height, stride, fps_n, fps_d;
+
+  GstClockTime time;
+  guint64 frames;
+
+  nclua = GST_NCLUA (pushsrc);
+  nw = nclua->nw;
+
+  /* Process pending events.  */
+  while (gst_nclua_pop_event (nclua, &evt) && limit-- > 0)
+    {
+      ncluaw_event_t *e;
+      switch (GST_EVENT_TYPE (evt))
+        {
+        case GST_EVENT_NAVIGATION: /* send event to nclua  */
+          if (likely (gst_nclua_navigation_convert (evt, &e)))
+            {
+              ncluaw_send (nw, e);
+              ncluaw_event_free (e);
+            }
+        default:
+          break;                /* nothing to do */
+        }
+      gst_event_unref (evt);
+    }
+
+  /* Cycle the NCLua engine once.  */
+  ncluaw_cycle (nw);
+
+  /* Get format.  */
+  updated = gst_nclua_get_format (nclua, &format, &width, &height, &stride,
+                                  &fps_n, &fps_d);
+  if (unlikely (format == NULL))
+    return GST_FLOW_NOT_NEGOTIATED;
+
+  /* Get counters.  */
+  gst_nclua_get_counters (nclua, &time, &frames);
+  if (unlikely (fps_n == 0 && frames == 1))
+    return GST_FLOW_EOS;
+
+  /* Resize canvas, if format was updated.  */
+  if (updated && nclua->resize)
+    gst_nclua_send_resize_event (nw, width, height);
+
+  /* Set buffer timings.  */
+  GST_BUFFER_DTS (buf) = time;
+  GST_BUFFER_PTS (buf) = GST_BUFFER_DTS (buf);
+  gst_object_sync_values (GST_OBJECT (nclua), GST_BUFFER_DTS (buf));
+
+  /* Paint canvas onto buffer.  */
+  if (unlikely (!gst_buffer_map (buf, &map, GST_MAP_WRITE)))
+    {
+      debug (nclua, "invalid buffer");
+      return GST_FLOW_OK;
+    }
+  ncluaw_paint (nw, map.data, format, width, height, stride);
+  gst_buffer_unmap (buf, &map);
+
+  /* Complete timings.  */
+  GST_BUFFER_OFFSET (buf) = frames++;
+  GST_BUFFER_OFFSET_END (buf) = GST_BUFFER_OFFSET (buf) + 1;
+
+  if (fps_n > 0)
+    {
+      GstClockTime next;
+      next = gst_util_uint64_scale_int (frames * GST_SECOND, fps_d, fps_n);
+      GST_BUFFER_DURATION (buf) = next - time;
+      time = next;
+    }
+  else
+    {
+      time = 0;
+      GST_BUFFER_DURATION (buf) = GST_CLOCK_TIME_NONE; /* forever */
+    }
+
+  /* Update counters.  */
+  gst_nclua_set_counters (nclua, time, frames);
+
+  /* Send tick event.  */
+  gst_nclua_send_tick_event (nclua->nw, frames,
+                             time, time, GST_BUFFER_DURATION (buf));
+
+  return GST_FLOW_OK;
+}
+
+
+/******************************* GstBaseSrc *******************************/
+
+/* Handles events on source pad.  */
+
+static gboolean
+gst_nclua_event (GstBaseSrc *basesrc, GstEvent *evt)
+{
+  GstNCLua *nclua = GST_NCLUA (basesrc);
+  switch (GST_EVENT_TYPE (evt))
+    {
+    case GST_EVENT_NAVIGATION:  /* push event into event queue */
+      gst_nclua_push_event (nclua, gst_event_ref (evt));
+      break;
+    default:                    /* nothing to do */
+      break;
+    }
+  return GST_BASE_SRC_CLASS (parent_class)->event (basesrc, evt);
+}
+
+/* Fixates caps CAPS.
+   TODO: Move hard-coded stuff to macros.  */
+
+static GstCaps *
+gst_nclua_fixate (GstBaseSrc *basesrc, GstCaps *caps)
+{
+  GstNCLua *nclua;
+  GstStructure *st;
+  gint width, height;
+
+  nclua = GST_NCLUA (basesrc);
+  caps = gst_caps_make_writable (caps);
+  st = gst_caps_get_structure (caps, 0);
+
+  width = (gint) clamp (nclua->width, 0, G_MAXINT);
+  height = (gint) clamp (nclua->height, 0, G_MAXINT);
+
+  if (nclua->resize)
+    {
+      gst_structure_fixate_field_nearest_int (st, "width", width);
+      gst_structure_fixate_field_nearest_int (st, "height", height);
+    }
+  else
+    {
+      GValue value = G_VALUE_INIT;
+      g_value_init (&value, G_TYPE_INT);
+      g_value_set_int (&value, width);
+      gst_structure_set_value (st, "width", &value);
+      g_value_set_int (&value, height);
+      gst_structure_set_value (st, "height", &value);
+    }
+
+  gst_structure_fixate_field_nearest_fraction (st, "framerate", 30, 1);
+
+  debug (nclua, "fixating caps: %"GST_PTR_FORMAT, (void *) caps);
+
+  return GST_BASE_SRC_CLASS (parent_class)->fixate (basesrc, caps);
+}
+
+/* Sets caps CAPS on source pad.
+   Returns TRUE if successful, otherwise returns false.  */
+
+static gboolean
+gst_nclua_set_caps (GstBaseSrc *basesrc, GstCaps *caps)
+{
+  GstNCLua *nclua;
+  GstVideoInfo info;
+  const gchar *format;
+  gint width, height, stride, fps_n, fps_d;
+
+  nclua = GST_NCLUA (basesrc);
+  if (unlikely (!gst_video_info_from_caps (&info, caps)))
+    goto fail_bad_caps;
+
+  switch (GST_VIDEO_INFO_FORMAT (&info))
+    {
+    case GST_VIDEO_FORMAT_BGRA:
+      format = "ARGB32";
+      break;
+    case GST_VIDEO_FORMAT_BGRx:
+      format = "RGB24";
+      break;
+    default:
+      goto fail_unsupported_caps;
+    }
+  width = GST_VIDEO_INFO_WIDTH (&info);
+  height = GST_VIDEO_INFO_HEIGHT (&info);
+  stride = GST_VIDEO_INFO_PLANE_STRIDE (&info, 0);
+  fps_n = info.fps_n;
+  fps_d = info.fps_d;
+
+  gst_nclua_set_format (nclua, format, width, height, stride, fps_n, fps_d);
+  debug (nclua, "new caps: %"GST_PTR_FORMAT, (void *) caps);
+
+  return TRUE;
+
+ fail_bad_caps:
+  debug (nclua, "cannot parse caps: %"GST_PTR_FORMAT, (void *) caps);
+  return FALSE;
+
+ fail_unsupported_caps:
+  debug (nclua, "unsupported caps: %"GST_PTR_FORMAT, (void *) caps);
+  return FALSE;
+}
+
+/* Starts the given element.
+   Returns true if successful, otherwise returns false.  */
+
+static gboolean
+gst_nclua_start (GstBaseSrc *basesrc)
+{
+  GstNCLua *nclua;
+  ncluaw_t *nw;
+  char *errmsg;
+  gchar *dirname;
+  gchar *basename;
+
+  nclua = GST_NCLUA (basesrc);
+  if (unlikely (nclua->file == NULL))
+    {
+      GST_ELEMENT_ERROR (nclua, RESOURCE, NOT_FOUND, (NULL),
+                         ("File property is not set"));
+      return FALSE;
+    }
+
+  /* Allocates the NCLua state.  */
+  dirname = g_path_get_dirname (nclua->file);
+  basename = g_path_get_basename (nclua->file);
+  g_assert (dirname != NULL);
+  g_assert (basename != NULL);
+
+  if (unlikely (g_chdir (dirname) != 0))
+    {
+      GST_ELEMENT_ERROR (nclua, RESOURCE, NOT_FOUND, (NULL),
+                         ("Cannot cd into %s", dirname));
+      g_free (dirname);
+      g_free (basename);
+      return FALSE;
+    }
+
+  /* TODO: Move hard-coded stuff to macros or properties.  */
+  nw = ncluaw_open (basename,
+                    (gint) clamp (nclua->width, 0, G_MAXINT),
+                    (gint) clamp (nclua->height, 0, G_MAXINT),
+                    &errmsg);
+  g_free (dirname);
+  g_free (basename);
+  if (unlikely (nw == NULL))
+    {
+      GST_ELEMENT_ERROR (nclua, LIBRARY, INIT, (NULL), ("%s", errmsg));
+      g_free (errmsg);
+      return FALSE;
+    }
+  ncluaw_send_ncl_event (nw, "presentation", "start", "", NULL);
+
+  /* Initialize element.  */
+  gst_nclua_internal_init (nclua);
+  nclua->nw = nw;
+
+  debug (nclua, "nclua started");
+
+  return TRUE;
+}
+
+/* Stops the given element.  */
+
+static gboolean
+gst_nclua_stop (GstBaseSrc *basesrc)
+{
+  GstNCLua *nclua = GST_NCLUA (basesrc);
+  gst_nclua_internal_fini (nclua);
+  debug (nclua, "nclua stopped");
+  return TRUE;
+}
+
+
+/******************************** GObject *********************************/
+
+/* Gets property and stores its value into *VALUE.  */
+
+static void
+gst_nclua_get_property (GObject *obj, guint id, GValue *value,
+                        GParamSpec *spec)
+{
+  GstNCLua *nclua = GST_NCLUA (obj);
+  switch (id)
+    {
+    case PROPERTY_FILE:
+      g_value_set_string (value, nclua->file);
+      break;
+    case PROPERTY_WIDTH:
+      g_value_set_uint (value, nclua->width);
+      break;
+    case PROPERTY_HEIGHT:
+      g_value_set_uint (value, nclua->height);
+      break;
+    case PROPERTY_RESIZE:
+      g_value_set_boolean (value, nclua->resize);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, id, spec);
+      break;
+    }
+}
+
+/* Sets property to the given value.  */
+
+static void
+gst_nclua_set_property (GObject *obj, guint id, const GValue *value,
+                        GParamSpec *spec)
+{
+  GstNCLua *nclua = GST_NCLUA (obj);
+  switch (id)
+    {
+    case PROPERTY_FILE:
+      g_free (nclua->file);
+      nclua->file = g_value_dup_string (value);
+      break;
+    case PROPERTY_WIDTH:
+      nclua->width = g_value_get_uint (value);
+      break;
+    case PROPERTY_HEIGHT:
+      nclua->height = g_value_get_uint (value);
+      break;
+    case PROPERTY_RESIZE:
+      nclua->resize = g_value_get_boolean (value);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, id, spec);
+      break;
+    }
+}
+
+
+/***************************** Initialization *****************************/
+
+/* Class initializer.  */
 
 static void
 gst_nclua_class_init (GstNCLuaClass *cls)
@@ -173,7 +790,27 @@ gst_nclua_class_init (GstNCLuaClass *cls)
   g_object_class_install_property
     (gobject_class, PROPERTY_FILE,
      g_param_spec_string
-     ("file", "File", "Path to NCLua script", NULL,
+     ("file", "File", "Path to NCLua script", DEFAULT_FILE,
+      (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+
+  g_object_class_install_property
+    (gobject_class, PROPERTY_WIDTH,
+     g_param_spec_uint
+     ("width", "Width", "Main canvas width in pixels",
+      0, G_MAXUINT, DEFAULT_WIDTH,
+      (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+
+  g_object_class_install_property
+    (gobject_class, PROPERTY_HEIGHT,
+     g_param_spec_uint
+     ("height", "Height", "Main canvas height in pixels",
+      0, G_MAXUINT, DEFAULT_HEIGHT,
+      (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+
+  g_object_class_install_property
+    (gobject_class, PROPERTY_RESIZE,
+     g_param_spec_boolean
+     ("resize", "Resize", "Resize main canvas", DEFAULT_RESIZE,
       (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
   gst_element_class_set_static_metadata
@@ -194,323 +831,19 @@ gst_nclua_class_init (GstNCLuaClass *cls)
   gstpushsrc_class->fill = gst_nclua_fill;
 }
 
-/* Initialize GstNCLua instance NCLUA.  */
+/* Instance initializer.  */
 
 static void
 gst_nclua_init (GstNCLua *nclua)
 {
-  gst_video_info_init (&nclua->info);
-  g_atomic_int_set (&nclua->new_info, 0);
-  nclua->nw = NULL;
-  nclua->file = NULL;
-  gst_base_src_set_do_timestamp (GST_BASE_SRC (nclua), TRUE);
+  nclua->file = DEFAULT_FILE;
+  nclua->width = DEFAULT_WIDTH;
+  nclua->height = DEFAULT_HEIGHT;
+  nclua->resize = DEFAULT_RESIZE;
+  gst_base_src_set_format (GST_BASE_SRC (nclua), GST_FORMAT_TIME);
 }
 
-/* Gets property ID and stores its value into *VALUE.  */
-
-static void
-gst_nclua_get_property (GObject *obj, guint id, GValue *value,
-                        GParamSpec *spec)
-{
-  GstNCLua *nclua = GST_NCLUA (obj);
-  switch (id)
-    {
-    case PROPERTY_FILE:
-      g_value_set_string (value, nclua->file);
-      break;
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, id, spec);
-      break;
-    }
-}
-
-/* Sets property ID to the given value.  */
-
-static void
-gst_nclua_set_property (GObject *obj, guint id, const GValue *value,
-                        GParamSpec *spec)
-{
-  GstNCLua *nclua = GST_NCLUA (obj);
-  switch (id)
-    {
-    case PROPERTY_FILE:
-      g_free (nclua->file);
-      nclua->file = g_value_dup_string (value);
-      break;
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, id, spec);
-      break;
-    }
-}
-
-/* Captures navigation events and pushes them into the input event queue.
-   (Inherited from GstBaseSrc.)  */
-
-static gboolean
-gst_nclua_event (GstBaseSrc *basesrc, GstEvent *evt)
-{
-  if (GST_EVENT_TYPE (evt) == GST_EVENT_NAVIGATION)
-    {
-      GstNCLua *nclua;
-      GstEvent *dup;
-
-      nclua = GST_NCLUA (basesrc);
-      dup = gst_event_copy (evt);
-      g_assert (dup != NULL);
-      g_mutex_lock (&nclua->event_mutex);
-      g_queue_push_tail (nclua->event_queue, dup);
-      g_mutex_unlock (&nclua->event_mutex);
-    }
-
-  return GST_BASE_SRC_CLASS (parent_class)->event (basesrc, evt);
-}
-
-/* Fixates the new caps CAPS.
-   (Inherited from GstBaseSrc.)  */
-
-static GstCaps *
-gst_nclua_fixate (GstBaseSrc *basesrc, GstCaps *caps)
-{
-  GstNCLua *nclua;
-  GstStructure *st;
-
-  nclua = GST_NCLUA (basesrc);
-  caps = gst_caps_make_writable (caps);
-  st = gst_caps_get_structure (caps, 0);
-  gst_structure_fixate_field_nearest_int (st, "width", 800);
-  gst_structure_fixate_field_nearest_int (st, "height", 600);
-  gst_structure_fixate_field_nearest_fraction (st, "framerate", 30, 1);
-
-  GST_DEBUG_OBJECT (nclua, "fixating caps: %s", gst_caps_to_string (caps));
-
-  return GST_BASE_SRC_CLASS (parent_class)->fixate (basesrc, caps);
-}
-
-/* Sets a new caps.
-   (Inherited from GstBaseSrc.)  */
-
-static gboolean
-gst_nclua_set_caps (GstBaseSrc *basesrc, GstCaps *caps)
-{
-  GstNCLua *nclua;
-
-  nclua = GST_NCLUA (basesrc);
-  g_assert (gst_video_info_from_caps (&nclua->info, caps));
-  g_atomic_int_set (&nclua->new_info, 1);
-
-  GST_DEBUG_OBJECT (nclua, "new caps: %s\n", gst_caps_to_string (caps));
-
-  return TRUE;
-}
-
-/* Starts the given element.
-   (Inherited from GstBaseSrc.)  */
-
-static gboolean
-gst_nclua_start (GstBaseSrc *basesrc)
-{
-  GstNCLua *nclua;
-  ncluaw_t *nw;
-  char *errmsg;
-
-  gchar *dirname;
-  gchar *basename;
-
-  nclua = GST_NCLUA (basesrc);
-  g_assert (nclua->nw == NULL);
-  if (unlikely (nclua->file == NULL))
-    {
-      GST_ELEMENT_ERROR (nclua, RESOURCE, NOT_FOUND, (NULL),
-                         ("File property is not set"));
-      return FALSE;
-    }
-
-  dirname = g_path_get_dirname (nclua->file);
-  basename = g_path_get_basename (nclua->file);
-  g_assert (dirname != NULL);
-  g_assert (basename != NULL);
-
-  /* FIXME: This can fail if dirname is invalid.  */
-  g_assert (g_chdir (dirname) == 0);
-
-  nw = ncluaw_open (basename, 800, 600, &errmsg);
-  g_free (dirname);
-  g_free (basename);
-  if (unlikely (nw == NULL))
-    {
-      GST_ELEMENT_ERROR (nclua, LIBRARY, INIT, (NULL), ("%s", errmsg));
-      g_free (errmsg);
-      return FALSE;
-    }
-  /* ncluaw_at_panic (nw, gst_nclua_panic); */
-  ncluaw_send_ncl_event (nw, "presentation", "start", "", NULL);
-  nclua->nw = nw;
-
-  nclua->event_queue = g_queue_new ();
-  g_assert (nclua->event_queue != NULL);
-  g_mutex_init (&nclua->event_mutex);
-
-  GST_DEBUG_OBJECT (nclua, "nclua started");
-
-  return TRUE;
-}
-
-/* Stops the given element.
-   (Inherited from GstBaseSrc.)  */
-
-static gboolean
-gst_nclua_stop (GstBaseSrc *basesrc)
-{
-  GstNCLua *nclua;
-
-  nclua = GST_NCLUA (basesrc);
-  g_assert (nclua->nw != NULL);
-  ncluaw_close (nclua->nw);
-  nclua->nw = NULL;
-  g_queue_free_full (nclua->event_queue, (GDestroyNotify) gst_event_unref);
-  nclua->event_queue = NULL;
-  g_mutex_clear (&nclua->event_mutex);
-
-  GST_DEBUG_OBJECT (nclua, "nclua stopped");
-
-  return TRUE;
-}
-
-/* Fills buffer with the current frame.
-   (Inherited from GstPushSrc.)  */
-
-static GstFlowReturn
-gst_nclua_fill (GstPushSrc *pushsrc, GstBuffer *buf)
-{
-  GstNCLua *nclua;
-  ncluaw_t *nw;
-  GstVideoFrame frame;
-  gboolean status;
-  guint limit = 32;             /* max input events per cycle */
-
-  GstVideoFormat format;
-  const gchar *format_str;
-  gpointer data;
-  int width;
-  int height;
-  int stride;
-
-  nclua = GST_NCLUA (pushsrc);
-  nw = nclua->nw;
-
-  g_mutex_lock (&nclua->event_mutex);
-  while (!g_queue_is_empty (nclua->event_queue) && limit-- > 0)
-    {
-      GstEvent *evt;
-      GstNavigationEventType type;
-
-      evt = (GstEvent *) g_queue_pop_head (nclua->event_queue);
-      g_mutex_unlock (&nclua->event_mutex);
-
-      type = gst_navigation_event_get_type (evt);
-      switch (type)
-        {
-        case GST_NAVIGATION_EVENT_KEY_PRESS:
-        case GST_NAVIGATION_EVENT_KEY_RELEASE:
-          {
-            const gchar *key;
-            if (likely (gst_navigation_event_parse_key_event (evt, &key)))
-              {
-                key = gst_nclua_key_map_index (key);
-                ncluaw_send_key_event
-                  (nw, (type == GST_NAVIGATION_EVENT_KEY_PRESS)
-                   ? "press" : "release", key);
-              }
-            break;
-          }
-        case GST_NAVIGATION_EVENT_MOUSE_BUTTON_PRESS:
-        case GST_NAVIGATION_EVENT_MOUSE_BUTTON_RELEASE:
-          {
-            gdouble x, y;
-            if (likely (gst_navigation_event_parse_mouse_button_event
-                        (evt, NULL, &x, &y)))
-              {
-                ncluaw_send_pointer_event
-                  (nw, (type == GST_NAVIGATION_EVENT_MOUSE_BUTTON_PRESS)
-                   ? "press" : "release", (int) x, (int) y);
-              }
-            break;
-          }
-        case GST_NAVIGATION_EVENT_MOUSE_MOVE:
-          {
-            gdouble x, y;
-            if (likely (gst_navigation_event_parse_mouse_move_event
-                        (evt, &x, &y)))
-              {
-                ncluaw_send_pointer_event (nw, "move", (int) x, (int) y);
-              }
-            break;
-          }
-        default:
-          break;                /* unknown event */
-        }
-
-      gst_event_unref (evt);
-      g_mutex_lock (&nclua->event_mutex);
-    }
-  g_mutex_unlock (&nclua->event_mutex);
-
-  ncluaw_cycle (nw);
-
-  status = gst_video_frame_map (&frame, &nclua->info, buf, GST_MAP_WRITE);
-  if (unlikely (!status))
-    {
-      GST_DEBUG_OBJECT (nclua, "invalid buffer");
-      return GST_FLOW_OK;
-    }
-
-  format = GST_VIDEO_FRAME_FORMAT (&frame);
-  data = GST_VIDEO_FRAME_PLANE_DATA (&frame, 0);
-  width = GST_VIDEO_FRAME_WIDTH (&frame);
-  height = GST_VIDEO_FRAME_HEIGHT (&frame);
-  stride = GST_VIDEO_FRAME_PLANE_STRIDE (&frame, 0);
-
-  if (g_atomic_int_compare_and_exchange (&nclua->new_info, 1, 0))
-    {
-      gchar *w;
-      gchar *h;
-
-      ncluaw_resize (nw, width, height);
-      w = g_strdup_printf ("%d", width);
-      h = g_strdup_printf ("%d", height);
-      ncluaw_send_ncl_event (nw, "attribution", "start", "width", w);
-      ncluaw_send_ncl_event (nw, "attribution", "stop", "width", w);
-      ncluaw_send_ncl_event (nw, "attribution", "start", "height", h);
-      ncluaw_send_ncl_event (nw, "attribution", "stop", "height", h);
-      g_free (w);
-      g_free (h);
-
-      GST_DEBUG_OBJECT (nclua, "resizing canvas to %dx%d", width, height);
-    }
-
-  switch (format)
-    {
-    case GST_VIDEO_FORMAT_BGRA:
-      format_str = "ARGB32";
-      break;
-    case GST_VIDEO_FORMAT_BGRx:
-      format_str = "RGB24";
-      break;
-    default:
-      GST_DEBUG_OBJECT (nclua, "invalid format: %s",
-                        gst_video_format_to_string (format));
-      goto done;
-    }
-
-  ncluaw_paint (nw, (unsigned char *) data, format_str,
-                width, height, stride);
-
- done:
-  gst_video_frame_unmap (&frame);
-  return GST_FLOW_OK;
-}
-
-/* Initializes the GstNCLua plugin.  */
+/* Plugin initializer.  */
 
 static gboolean
 nclua_init (GstPlugin *nclua)
@@ -521,13 +854,12 @@ nclua_init (GstPlugin *nclua)
 }
 
 /* Plugin definition.  */
-/* FIXME: Define PACKAGE_LICENSE via config.h.  */
 /* *INDENT-OFF* */
-PRAGMA_DIAGNOSTIC_PUSH ()
-PRAGMA_DIAGNOSTIC_IGNORE (-Wcast-qual)
+PRAGMA_DIAG_PUSH ()
+PRAGMA_DIAG_IGNORE (-Wcast-qual)
 GST_PLUGIN_DEFINE (GST_VERSION_MAJOR, GST_VERSION_MINOR, nclua,
                    "Creates a video stream from an NCLua script",
                    nclua_init, PACKAGE_VERSION, "GPL", PACKAGE_NAME,
                    PACKAGE_URL)
-PRAGMA_DIAGNOSTIC_POP ()
+PRAGMA_DIAG_POP ()
 /* *INDENT-ON* */
