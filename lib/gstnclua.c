@@ -61,8 +61,8 @@ typedef struct _GstNCLua
 
   /* Properties: */
   gchar *file;                  /* path to NCLua script */
-  guint width;                  /* main canvas width in pixels */
-  guint height;                 /* main canvas height in pixels */
+  gint width;                   /* main canvas width in pixels */
+  gint height;                  /* main canvas height in pixels */
   gboolean resize;              /* resize main canvas */
 
   /* Internal data: */
@@ -139,13 +139,60 @@ GST_DEBUG_CATEGORY_STATIC (nclua_debug);
 #define debug GST_DEBUG_OBJECT
 
 
-/********************* GstNCLua: Internal data access *********************/
+/**************************** Property access *****************************/
+
+/* *INDENT-OFF* */
+#define GST_NCLUA_DEFUN_SCALAR_ACCESS(Name, Type)                       \
+  static Type                                                           \
+  CONCAT (gst_nclua_get_property_, Name) (GstNCLua *nclua)              \
+  {                                                                     \
+    Type Name;                                                          \
+    GST_OBJECT_LOCK (nclua);                                            \
+    Name = nclua->Name;                                                 \
+    GST_OBJECT_UNLOCK (nclua);                                          \
+    return Name;                                                        \
+  }                                                                     \
+  static void                                                           \
+  CONCAT (gst_nclua_set_property_, Name) (GstNCLua *nclua, Type Name)   \
+  {                                                                     \
+    GST_OBJECT_LOCK (nclua);                                            \
+    nclua->Name = Name;                                                 \
+    GST_OBJECT_UNLOCK (nclua);                                          \
+  }
+
+GST_NCLUA_DEFUN_SCALAR_ACCESS (width, gint)
+GST_NCLUA_DEFUN_SCALAR_ACCESS (height, gint)
+GST_NCLUA_DEFUN_SCALAR_ACCESS (resize, gboolean)
+/* *INDENT-ON* */
+
+static const gchar *
+gst_nclua_get_property_file (GstNCLua *nclua)
+{
+  const gchar *file;
+  GST_OBJECT_LOCK (nclua);
+  file = nclua->file;
+  GST_OBJECT_UNLOCK (nclua);
+  return file;
+}
+
+static void
+gst_nclua_set_property_file (GstNCLua *nclua, gchar *file)
+{
+  GST_OBJECT_LOCK (nclua);
+  g_free (nclua->file);
+  nclua->file = file;
+  GST_OBJECT_UNLOCK (nclua);
+}
+
+
+/************************** Internal data access **************************/
 
 /* Initializes internal data of element NCLUA.  */
 
 static void
 gst_nclua_internal_init (GstNCLua *nclua)
 {
+  GST_OBJECT_LOCK (nclua);
   nclua->nw = NULL;
   nclua->format.format = NULL;
   nclua->format.width = 0;
@@ -157,6 +204,7 @@ gst_nclua_internal_init (GstNCLua *nclua)
   nclua->queue.q = g_queue_new ();
   g_assert (nclua->queue.q != NULL); /* cannot fail */
   g_mutex_init (&nclua->queue.mutex);
+  GST_OBJECT_UNLOCK (nclua);
 }
 
 /* Finalizes internal data of element NCLUA.  */
@@ -164,9 +212,11 @@ gst_nclua_internal_init (GstNCLua *nclua)
 static void
 gst_nclua_internal_fini (GstNCLua *nclua)
 {
+  GST_OBJECT_LOCK (nclua);
   ncluaw_close (nclua->nw);
   g_queue_free_full (nclua->queue.q, (GDestroyNotify) gst_event_unref);
   g_mutex_clear (&nclua->queue.mutex);
+  GST_OBJECT_UNLOCK (nclua);
 }
 
 /* Gets the time and frame counters of element NCLUA and stores them into
@@ -489,7 +539,7 @@ gst_nclua_fill (GstPushSrc *pushsrc, GstBuffer *buf)
     return GST_FLOW_EOS;
 
   /* Resize canvas, if format was updated.  */
-  if (updated && nclua->resize)
+  if (updated && gst_nclua_get_property_resize (nclua))
     gst_nclua_send_resize_event (nw, width, height);
 
   /* Set buffer timings.  */
@@ -567,10 +617,10 @@ gst_nclua_fixate (GstBaseSrc *basesrc, GstCaps *caps)
   caps = gst_caps_make_writable (caps);
   st = gst_caps_get_structure (caps, 0);
 
-  width = (gint) clamp (nclua->width, 0, G_MAXINT);
-  height = (gint) clamp (nclua->height, 0, G_MAXINT);
+  width = gst_nclua_get_property_width (nclua);
+  height = gst_nclua_get_property_height (nclua);
 
-  if (nclua->resize)
+  if (gst_nclua_get_property_resize (nclua))
     {
       gst_structure_fixate_field_nearest_int (st, "width", width);
       gst_structure_fixate_field_nearest_int (st, "height", height);
@@ -646,12 +696,16 @@ gst_nclua_start (GstBaseSrc *basesrc)
 {
   GstNCLua *nclua;
   ncluaw_t *nw;
-  char *errmsg;
+
+  const gchar *file;
   gchar *dirname;
   gchar *basename;
+  gchar *errmsg;
+  gint width, height;
 
   nclua = GST_NCLUA (basesrc);
-  if (unlikely (nclua->file == NULL))
+  file = gst_nclua_get_property_file (nclua);
+  if (unlikely (file == NULL))
     {
       GST_ELEMENT_ERROR (nclua, RESOURCE, NOT_FOUND, (NULL),
                          ("File property is not set"));
@@ -659,8 +713,8 @@ gst_nclua_start (GstBaseSrc *basesrc)
     }
 
   /* Allocates the NCLua state.  */
-  dirname = g_path_get_dirname (nclua->file);
-  basename = g_path_get_basename (nclua->file);
+  dirname = g_path_get_dirname (file);
+  basename = g_path_get_basename (file);
   g_assert (dirname != NULL);
   g_assert (basename != NULL);
 
@@ -673,11 +727,9 @@ gst_nclua_start (GstBaseSrc *basesrc)
       return FALSE;
     }
 
-  /* TODO: Move hard-coded stuff to macros or properties.  */
-  nw = ncluaw_open (basename,
-                    (gint) clamp (nclua->width, 0, G_MAXINT),
-                    (gint) clamp (nclua->height, 0, G_MAXINT),
-                    &errmsg);
+  width = gst_nclua_get_property_width (nclua);
+  height = gst_nclua_get_property_height (nclua);
+  nw = ncluaw_open (basename, width, height, &errmsg);
   g_free (dirname);
   g_free (basename);
   if (unlikely (nw == NULL))
@@ -686,6 +738,7 @@ gst_nclua_start (GstBaseSrc *basesrc)
       g_free (errmsg);
       return FALSE;
     }
+
   ncluaw_send_ncl_event (nw, "presentation", "start", "", NULL);
 
   /* Initialize element.  */
@@ -721,20 +774,36 @@ gst_nclua_get_property (GObject *obj, guint id, GValue *value,
   switch (id)
     {
     case PROPERTY_FILE:
-      g_value_set_string (value, nclua->file);
-      break;
+      {
+        const gchar *file = gst_nclua_get_property_file (nclua);
+        g_value_set_string (value, file);
+        break;
+      }
     case PROPERTY_WIDTH:
-      g_value_set_uint (value, nclua->width);
-      break;
+      {
+        guint width = (guint) clamp (gst_nclua_get_property_width (nclua),
+                                     0, G_MAXINT);
+        g_value_set_uint (value, width);
+        break;
+      }
     case PROPERTY_HEIGHT:
-      g_value_set_uint (value, nclua->height);
-      break;
+      {
+        guint height = (guint) clamp (gst_nclua_get_property_height (nclua),
+                                      0, G_MAXINT);
+        g_value_set_uint (value, height);
+        break;
+      }
     case PROPERTY_RESIZE:
-      g_value_set_boolean (value, nclua->resize);
-      break;
+      {
+        gboolean resize = gst_nclua_get_property_resize (nclua);
+        g_value_set_boolean (value, resize);
+        break;
+      }
     default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, id, spec);
-      break;
+      {
+        G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, id, spec);
+        break;
+      }
     }
 }
 
@@ -748,21 +817,34 @@ gst_nclua_set_property (GObject *obj, guint id, const GValue *value,
   switch (id)
     {
     case PROPERTY_FILE:
-      g_free (nclua->file);
-      nclua->file = g_value_dup_string (value);
-      break;
+      {
+        gchar *file = g_value_dup_string (value);
+        gst_nclua_set_property_file (nclua, file);
+        break;
+      }
     case PROPERTY_WIDTH:
-      nclua->width = g_value_get_uint (value);
-      break;
+      {
+        gint width = (gint) clamp (g_value_get_uint (value), 0, G_MAXINT);
+        gst_nclua_set_property_width (nclua, width);
+        break;
+      }
     case PROPERTY_HEIGHT:
-      nclua->height = g_value_get_uint (value);
-      break;
+      {
+        gint height = (gint) clamp (g_value_get_uint (value), 0, G_MAXINT);
+        gst_nclua_set_property_height (nclua, height);
+        break;
+      }
     case PROPERTY_RESIZE:
-      nclua->resize = g_value_get_boolean (value);
-      break;
+      {
+        gboolean resize = g_value_get_boolean (value);
+        gst_nclua_set_property_resize (nclua, resize);
+        break;
+      }
     default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, id, spec);
-      break;
+      {
+        G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, id, spec);
+        break;
+      }
     }
 }
 
