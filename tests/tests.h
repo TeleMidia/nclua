@@ -42,7 +42,7 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "macros.h"
 
 /* Ignore warnings about big strings in tests.  */
-PRAGMA_DIAGNOSTIC_IGNORE (-Woverlength-strings)
+PRAGMA_DIAG_IGNORE (-Woverlength-strings)
 
 #include "luax-macros.h"
 
