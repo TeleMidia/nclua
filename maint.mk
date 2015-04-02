@@ -104,7 +104,6 @@ dist-win32:
 
 
 gnulib_git:= http://git.savannah.gnu.org/cgit/gnulib.git/plain
-misc_git:= https://github.com/gflima/misc/raw/master
 
 # Fetches remote files.
 .PHONY: fetch-remote
@@ -119,11 +118,6 @@ fetch-remote:
 	fetch $(gnulib_git)/m4/valgrind-tests.m4 ./build-aux;\
 	fetch $(gnulib_git)/m4/visibility.m4 ./build-aux;\
 	fetch $(gnulib_git)/m4/warnings.m4 ./build-aux;\
-	fetch $(misc_git)/bootstrap .;\
-	fetch $(misc_git)/luax-macros.h ./lib;\
-	fetch $(misc_git)/macros.h ./lib;\
-	fetch $(misc_git)/syntax-check ./build-aux;\
-	chmod +x ./bootstrap ./build-aux/syntax-check;\
 	true
 
 
