@@ -18,9 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef MACROS_H
 #define MACROS_H
 
-#if defined HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+
 #include <assert.h>
 #include <ctype.h>
 #include <math.h>
@@ -28,146 +29,126 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdlib.h>
 #include <string.h>
 
-#undef GNUC_PREREQ
-
-#if defined __GNUC__ && defined __GNUC_MINOR__
-# define GNUC_PREREQ(major, minor)\
-   ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((major) << 16) + (minor))
-#else
-# define GNUC_PREREQ(major, minor) 0
+#ifndef GNUC_PREREQ
+# if defined __GNUC__ && defined __GNUC_MINOR__
+#  define GNUC_PREREQ(major, minor)\
+    ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((major) << 16) + (minor))
+# else
+#  define GNUC_PREREQ(major, minor) 0
+# endif
 #endif
 
-#undef ATTRIBUTE_CONST
+#undef ATTR_CONST
+#undef ATTR_UNUSED
+#undef ATTR_PRINTF_FORMAT
 
 #if GNUC_PREREQ (2,5)
-# define ATTRIBUTE_CONST __attribute__ ((__const__))
-#else
-# define ATTRIBUTE_CONST
-#endif
-
-#undef ATTRIBUTE_UNUSED
-
-#if GNUC_PREREQ (2,5)
-# define ATTRIBUTE_UNUSED __attribute ((__unused__))
-#else
-# define ATTRIBUTE_UNUSED
-#endif
-
-#undef ATTRIBUTE_PRINTF_FORMAT
-
-#if GNUC_PREREQ (2,5)
-# define ATTRIBUTE_PRINTF_FORMAT(fmt, va)\
+# define ATTR_CONST __attribute__ ((__const__))
+# define ATTR_UNUSED __attribute__ ((__unused__))
+# define ATTR_PRINTF_FORMAT(fmt, va)\
   __attribute__ ((__format__ (__printf__, fmt, va)))
 #else
-# define ATTRIBUTE_PRINTF_FORMAT(fmt, va)
+# define ATTR_CONST
+# define ATTR_UNUSED
+# define ATTR_PRINTF_FORMAT(fmt, va)
 #endif
 
-#undef ATTRIBUTE_MALLOC
+#undef ATTR_MALLOC
+#undef ATTR_PURE
 
 #if GNUC_PREREQ (2,96)
-# define ATTRIBUTE_MALLOC __attribute__ ((__malloc__))
+# define ATTR_MALLOC __attribute__ ((__malloc__))
+# define ATTR_PURE __attribute__ ((__pure__))
 #else
-# define ATTRIBUTE_MALLOC
+# define ATTR_MALLOC
+# define ATTR_PURE
 #endif
 
-#undef ATTRIBUTE_PURE
-
-#if GNUC_PREREQ (2,96)
-# define ATTRIBUTE_PURE __attribute__ ((__pure__))
-#else
-# define ATTRIBUTE_PURE
-#endif
-
-#undef BUILTIN_EXPECT_LIKELY
-#undef BUILTIN_EXPECT_UNLIKELY
+#undef BUILTIN_LIKELY
+#undef BUILTIN_UNLIKELY
 
 #if GNUC_PREREQ (3,0)
-# define BUILTIN_EXPECT_LIKELY(cond) __builtin_expect((cond), 1)
-# define BUILTIN_EXPECT_UNLIKELY(cond) __builtin_expect((cond), 0)
+# define BUILTIN_LIKELY(cond) __builtin_expect ((cond), 1)
+# define BUILTIN_UNLIKELY(cond) __builtin_expect ((cond), 0)
 #else
-# define BUILTIN_EXPECT_LIKELY(cond)
-# define BUILTIN_EXPECT_UNLIKELY(cond)
+# define BUILTIN_LIKELY(cond)
+# define BUILTIN_UNLIKELY(cond)
 #endif
 
-#undef ATTRIBUTE_NOINLINE
+#undef ATTR_NOINLINE
+#undef ATTR_USED
 
 #if GNUC_PREREQ (3,1)
-# define ATTRIBUTE_NOINLINE __attribute__ ((__noinline__))
+# define ATTR_NOINLINE __attribute__ ((__noinline__))
+# define ATTR_USED __attribute__ ((__used__))
 #else
-# define ATTRIBUTE_NOINLINE
+# define ATTR_NOINLINE
+# define ATTR_USED
 #endif
 
-#undef ATTRIBUTE_USED
-
-#if GNUC_PREREQ (3,1)
-# define ATTRIBUTE_USED __attribute__ ((__used__))
-#else
-# define ATTRIBUTE_USED
-#endif
-
-#undef ATTRIBUTE_DEPRECATED
+#undef ATTR_DEPRECATED
 
 #if GNUC_PREREQ (3,2)
-# define ATTRIBUTE_DEPRECATED __attribute__ ((__deprecated__))
+# define ATTR_DEPRECATED __attribute__ ((__deprecated__))
 #else
-# define ATTRIBUTE_DEPRECATED
+# define ATTR_DEPRECATED
 #endif
 
-#undef ATTRIBUTE_NONNULL
+#undef ATTR_MAY_ALIAS
+#undef ATTR_NONNULL
 
 #if GNUC_PREREQ (3,3)
-# define ATTRIBUTE_NONNULL(params) __attribute__ ((__nonnull__ params))
+# define ATTR_MAY_ALIAS __attribute__ ((may_alias))
+# define ATTR_NONNULL(params) __attribute__ ((__nonnull__ params))
 #else
-# define ATTRIBUTE_NONNULL(params)
+# define ATTR_MAY_ALIAS
+# define ATTR_NONNULL(params)
 #endif
 
-#undef ATTRIBUTE_WARN_UNUSED_RESULT
+#undef ATTR_USE_RESULT
 
 #if GNUC_PREREQ (3,4)
-# define ATTRIBUTE_WARN_UNUSED_RESULT\
-  __attribute__ ((__warn_unused_result__))
+# define ATTR_USE_RESULT __attribute__ ((__warn_unused_result__))
 #else
-# define ATTRIBUTE_WARN_UNUSED_RESULT
+# define ATTR_USE_RESULT
 #endif
 
-#undef PRAGMA_DIAGNOSTIC
+#undef PRAGMA_DIAG
 
 #if GNUC_PREREQ (4,2)
 # define _GCC_PRAGMA(x) _Pragma (STRINGIFY (x))
-# define PRAGMA_DIAGNOSTIC(x) _GCC_PRAGMA (GCC diagnostic x)
+# define PRAGMA_DIAG(x) _GCC_PRAGMA (GCC diagnostic x)
 #elif defined (__clang__)
 # define _CLANG_PRAGMA(x) _Pragma (STRINGIFY (x))
-# define PRAGMA_DIAGNOSTIC(x) _CLANG_PRAGMA (clang diagnostic x)
+# define PRAGMA_DIAG(x) _CLANG_PRAGMA (clang diagnostic x)
 #else
-# define PRAGMA_DIAGNOSTIC(x)
+# define PRAGMA_DIAG(x)
 #endif
 
-#undef ATTRIBUTE_ARTIFICIAL
+#undef ATTR_ARTIFICIAL
 
 #if GNUC_PREREQ (4,3)
-# define ATTRIBUTE_ARTIFICIAL __attribute__ ((__artificial__))
+# define ATTR_ARTIFICIAL __attribute__ ((__artificial__))
 #else
-# define ATTRIBUTE_ARTIFICIAL
+# define ATTR_ARTIFICIAL
 #endif
 
-#undef PRAGMA_DIAGNOSTIC_PUSH
-#undef PRAGMA_DIAGNOSTIC_POP
+#undef PRAGMA_DIAG_PUSH
+#undef PRAGMA_DIAG_POP
 
 #if GNUC_PREREQ (4,6) || defined (__clang__)
-# define PRAGMA_DIAGNOSTIC_PUSH() PRAGMA_DIAGNOSTIC (push)
-# define PRAGMA_DIAGNOSTIC_POP() PRAGMA_DIAGNOSTIC (pop)
+# define PRAGMA_DIAG_PUSH() PRAGMA_DIAG (push)
+# define PRAGMA_DIAG_POP() PRAGMA_DIAG (pop)
 #else
-# define PRAGMA_DIAGNOSTIC_PUSH()
-# define PRAGMA_DIAGNOSTIC_POP()
+# define PRAGMA_DIAG_PUSH()
+# define PRAGMA_DIAG_POP()
 #endif
 
-#undef PRAGMA_DIAGNOSTIC_IGNORE
-#define PRAGMA_DIAGNOSTIC_IGNORE(x)\
-  PRAGMA_DIAGNOSTIC (ignored STRINGIFY (x))
+#undef PRAGMA_DIAG_IGNORE
+#define PRAGMA_DIAG_IGNORE(x) PRAGMA_DIAG (ignored STRINGIFY (x))
 
-#undef PRAGMA_DIAGNOSTIC_WARNING
-#define PRAGMA_DIAGNOSTIC_WARNING(x)\
-  PRAGMA_DIAGNOSTIC (warning STRINGIFY (x))
+#undef PRAGMA_DIAG_WARNING
+#define PRAGMA_DIAG_WARNING(x) PRAGMA_DIAG (warning STRINGIFY (x))
 
 #undef STMT_BEGIN
 #undef STMT_END
@@ -189,71 +170,50 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #undef arg_nonnull
-#define arg_nonnull(arg) ATTRIBUTE_NONNULL (arg)
+#define arg_nonnull(arg) ATTR_NONNULL (arg)
 
 #undef arg_unused
-#define arg_unused(arg) arg ATTRIBUTE_UNUSED
-
-#undef ATTR_CONST
-#define ATTR_CONST ATTRIBUTE_CONST
-
-#undef ATTR_DEPRECATED
-#define ATTR_DEPRECATED ATTRIBUTE_DEPRECATED
-
-#undef ATTR_MALLOC
-#define ATTR_MALLOC ATTRIBUTE_MALLOC
-
-#undef ATTR_PRINTF_FORMAT
-#define ATTR_PRINTF_FORMAT ATTRIBUTE_PRINTF_FORMAT
-
-#undef ATTR_PURE
-#define ATTR_PURE ATTRIBUTE_PURE
-
-#undef ATTR_UNUSED
-#define ATTR_UNUSED ATTRIBUTE_UNUSED
-
-#undef ATTR_USE_RESULT
-#define ATTR_USE_RESULT ATTRIBUTE_WARN_UNUSED_RESULT
+#define arg_unused(arg) arg ATTR_UNUSED
 
 #undef likely
+#define likely(cond) BUILTIN_LIKELY (cond)
+
 #undef unlikely
+#define unlikely(cond) BUILTIN_UNLIKELY (cond)
 
-#define likely(cond) BUILTIN_EXPECT_LIKELY (cond)
-#define unlikely(cond) BUILTIN_EXPECT_UNLIKELY (cond)
-
-#if !defined TRUE
+#ifndef TRUE
 # define TRUE 1
 #endif
 
-#if !defined FALSE
+#ifndef FALSE
 # define FALSE 0
 #endif
 
-#if !defined EXIT_SUCCESS
+#ifndef EXIT_SUCCESS
 # define EXIT_SUCCESS 0
 #endif
 
-#if !defined EXIT_FAILURE
+#ifndef EXIT_FAILURE
 # define EXIT_FAILURE 1
 #endif
 
 #undef ASSERT_NOT_REACHED
 #define ASSERT_NOT_REACHED (assert (0), abort ())
 
-#undef CONCAT
-#define CONCAT(x, y) CONCAT_ (x, y)
-
 #undef CONCAT_
 #define CONCAT_(x, y) x##y
 
-#undef STRINGIFY
-#define STRINGIFY(s) STRINGIFY_ (s)
+#undef CONCAT
+#define CONCAT(x, y) CONCAT_ (x, y)
 
 #undef STRINGIFY_
 #define STRINGIFY_(s) #s
 
+#undef STRINGIFY
+#define STRINGIFY(s) STRINGIFY_ (s)
+
 #undef nelementsof
-#define nelementsof(x) (sizeof (x) / sizeof ((x)[0]))
+#define nelementsof(x) (sizeof ((x)) / sizeof ((x)[0]))
 
 #undef integralof
 #define integralof(x) (((char *)(x)) - ((char *) 0))
@@ -262,7 +222,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define pointerof(x) ((void *)((char *) 0 + ((size_t)(x))))
 
 #undef ssizeof
-#define ssizeof(x) ((ptrdiff_t) sizeof (x))
+#define ssizeof(x) ((ptrdiff_t)(sizeof ((x))))
 
 #undef isodd
 #define isodd(n) ((n) & 1)
@@ -307,7 +267,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define set_if_nonnull(a, x) STMT_BEGIN {if (a) *(a) = (x); } STMT_END
 
 #if !defined round && defined HAVE_ROUND && !HAVE_ROUND
-# define round(x) floor (((double) (x)) + .5)
+# define round(x) floor (((double)(x)) + .5)
 #endif
 
 #if !defined lround && defined HAVE_LROUND && !HAVE_LROUND
