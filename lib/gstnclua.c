@@ -245,13 +245,15 @@ gst_nclua_set_counters (GstNCLua *nclua, GstClockTime time, guint64 frames)
 }
 
 /* Gets the format parameters of element NCLUA and stores them into *FORMAT,
-   *WIDTH, *HEIGHT, *STRIDE, *FPS_N, and *FPS_D.  Returns true if format was
-   updated since last call, otherwise returns false.  */
+   *WIDTH, *HEIGHT, *STRIDE, *FPS_N, and *FPS_D.
+
+   Returns the value of the updated flag; if RESET_UPDATED is TRUE then
+   resets updated flag.  */
 
 static gboolean
 gst_nclua_get_format (GstNCLua *nclua, const gchar **format,
                       gint *width, gint *height, gint *stride,
-                      gint *fps_n, gint *fps_d)
+                      gint *fps_n, gint *fps_d, gboolean reset_updated)
 {
   gboolean result;
 
@@ -263,7 +265,8 @@ gst_nclua_get_format (GstNCLua *nclua, const gchar **format,
   set_if_nonnull (fps_n, nclua->format.fps_n);
   set_if_nonnull (fps_d, nclua->format.fps_d);
   result = nclua->format.updated;
-  nclua->format.updated = FALSE;
+  if (reset_updated)
+    nclua->format.updated = FALSE;
   GST_OBJECT_UNLOCK (nclua);
 
   return result;
@@ -529,7 +532,7 @@ gst_nclua_fill (GstPushSrc *pushsrc, GstBuffer *buf)
 
   /* Get format.  */
   updated = gst_nclua_get_format (nclua, &format, &width, &height, &stride,
-                                  &fps_n, &fps_d);
+                                  &fps_n, &fps_d, TRUE);
   if (unlikely (format == NULL))
     return GST_FLOW_NOT_NEGOTIATED;
 
@@ -542,11 +545,6 @@ gst_nclua_fill (GstPushSrc *pushsrc, GstBuffer *buf)
   if (updated && gst_nclua_get_property_resize (nclua))
     gst_nclua_send_resize_event (nw, width, height);
 
-  /* Set buffer timings.  */
-  GST_BUFFER_DTS (buf) = time;
-  GST_BUFFER_PTS (buf) = GST_BUFFER_DTS (buf);
-  gst_object_sync_values (GST_OBJECT (nclua), GST_BUFFER_DTS (buf));
-
   /* Paint canvas onto buffer.  */
   if (unlikely (!gst_buffer_map (buf, &map, GST_MAP_WRITE)))
     {
@@ -556,7 +554,10 @@ gst_nclua_fill (GstPushSrc *pushsrc, GstBuffer *buf)
   ncluaw_paint (nw, map.data, format, width, height, stride);
   gst_buffer_unmap (buf, &map);
 
-  /* Complete timings.  */
+  /* Set buffer timing.  */
+  GST_BUFFER_DTS (buf) = time;
+  GST_BUFFER_PTS (buf) = GST_BUFFER_DTS (buf);
+  gst_object_sync_values (GST_OBJECT (nclua), GST_BUFFER_DTS (buf));
   GST_BUFFER_OFFSET (buf) = frames++;
   GST_BUFFER_OFFSET_END (buf) = GST_BUFFER_OFFSET (buf) + 1;
 
