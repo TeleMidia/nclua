@@ -162,8 +162,11 @@ perl_after_indent_type_list:=\
   GdkFrameClock\
   GstBaseSrc\
   GstBuffer\
+  GstBus\
   GstCaps\
+  GstClockTime\
   GstEvent\
+  GstMessage\
   GstNCLuaClass\
   GstNCLua\
   GstPlugin\
@@ -176,6 +179,8 @@ perl_after_indent_type_list:=\
   cairo_t\
   canvas_t\
   gchar\
+  gint\
+  guint64\
   lua_State\
   luax_callback_data_t\
   ncluaw_event_t\
@@ -297,6 +302,7 @@ sc-base:
 
 
 SC_COPYRIGHT_EXCLUDE_C:=\
+  lib/gstx-macros.h\
   lib/luax-macros.h\
   lib/macros.h\
   $(NULL)
