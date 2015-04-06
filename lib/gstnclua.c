@@ -330,23 +330,23 @@ gst_nclua_set_format (GstNCLua *nclua, const gchar *format,
   GST_OBJECT_UNLOCK (nclua);
 }
 
-/* Pushes event EVT into event queue of element NCLUA.
+/* Enqueues event EVT into event queue of element NCLUA.
    Returns true if successful, otherwise returns false.  */
 
 static void
-gst_nclua_push_event (GstNCLua *nclua, GstEvent *evt)
+gst_nclua_enqueue_event (GstNCLua *nclua, GstEvent *evt)
 {
   g_mutex_lock (&nclua->queue.mutex);
   g_queue_push_tail (nclua->queue.q, evt);
   g_mutex_unlock (&nclua->queue.mutex);
 }
 
-/* Pops an event from element NCLUA's event queue and stores it in *EVT.
+/* Dequeues an event from element NCLUA's event queue and stores it in *EVT.
    Returns true if successful; returns false if no element could be
    popped (queue is empty).  */
 
 static gboolean
-gst_nclua_pop_event (GstNCLua *nclua, GstEvent **evt)
+gst_nclua_dequeue_event (GstNCLua *nclua, GstEvent **evt)
 {
   GstEvent *tmp;
 
@@ -548,7 +548,7 @@ gst_nclua_fill (GstPushSrc *pushsrc, GstBuffer *buf)
   nw = nclua->nw;
 
   /* Process pending events.  */
-  while (gst_nclua_pop_event (nclua, &evt) && limit-- > 0)
+  while (gst_nclua_dequeue_event (nclua, &evt) && limit-- > 0)
     {
       ncluaw_event_t *e;
       switch (GST_EVENT_TYPE (evt))
@@ -634,7 +634,7 @@ gst_nclua_event (GstBaseSrc *basesrc, GstEvent *evt)
   switch (GST_EVENT_TYPE (evt))
     {
     case GST_EVENT_NAVIGATION:  /* push event into event queue */
-      gst_nclua_push_event (nclua, gst_event_ref (evt));
+      gst_nclua_enqueue_event (nclua, gst_event_ref (evt));
       break;
     default:                    /* nothing to do */
       break;
