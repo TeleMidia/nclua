@@ -66,6 +66,7 @@
 /nclua-*.tar.gz
 /nclua-*.tar.xz
 /src/nclua
+/src/nclua-gst
 /tests/env.sh
 /tests/gdb.cfg
 /tests/libnclua-echo

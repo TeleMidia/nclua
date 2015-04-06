@@ -19,11 +19,27 @@
 include $(top_srcdir)/build-aux/Makefile.am.common
 
 AM_CPPFLAGS = -I$(top_srcdir)/lib -I$(top_builddir)/lib
-AM_CFLAGS = $(WERROR_CFLAGS) $(WARN_CFLAGS)\
-  $(LUA_CFLAGS) $(CAIRO_CFLAGS) $(GLIB_CFLAGS) $(GTK_CFLAGS)
-AM_LDFLAGS = $(LIBM) $(LUA_LIBS) $(CAIRO_LIBS) $(GLIB_LIBS) $(GTK_LIBS)
+AM_CFLAGS = $(WERROR_CFLAGS) $(WARN_CFLAGS)
 LDADD = $(top_builddir)/lib/libnclua.la
 
-if HAVE_GTK
-bin_PROGRAMS = nclua
+bin_PROGRAMS =
+
+if BUILD_NCLUA_BIN
+bin_PROGRAMS+= nclua
 endif
+nclua_CFLAGS = $(AM_CFLAGS) $(LUA_CFLAGS) $(CAIRO_CFLAGS)\
+  $(GLIB_CFLAGS) $(GTK_CFLAGS)
+nclua_LDFLAGS = $(AM_LDFLAGS) $(LIBM) $(LUA_LIBS) $(CAIRO_LIBS)\
+  $(GLIB_LIBS) $(GTK_LIBS)
+nclua_SOURCES =\
+  nclua.c\
+  $(NULL)
+
+if BUILD_GSTNCLUA
+bin_PROGRAMS+= nclua-gst
+endif
+nclua_gst_CFLAGS = $(AM_CFLAGS) $(GSTREAMER_CFLAGS)
+nclua_gst_LDFLAGS = $(GSTREAMER_LIBS)
+nclua_gst_SOURCES =\
+  nclua-gst.c\
+  $(NULL)
