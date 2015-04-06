@@ -33,8 +33,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define GSTX_INCLUDE_EPILOGUE\
   PRAGMA_DIAG_POP ()
 
+/* *INDENT-OFF* */
 GSTX_INCLUDE_PROLOGUE
 #include <gst/gst.h>
 GSTX_INCLUDE_EPILOGUE
+/* *INDENT-ON* */
 
 #endif /* GSTX_MACROS_H */

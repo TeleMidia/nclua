@@ -25,11 +25,13 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <lauxlib.h>
 #include <lualib.h>
 
+/* *INDENT-OFF* */
 #include "gstx-macros.h"
 GSTX_INCLUDE_PROLOGUE
 #include <gst/base/gstpushsrc.h>
 #include <gst/video/gstvideometa.h>
 GSTX_INCLUDE_EPILOGUE
+/* *INDENT-ON* */
 
 #include "nclua.h"
 #include "ncluaw.h"
@@ -135,7 +137,6 @@ GST_DEBUG_CATEGORY_STATIC (nclua_debug);
 #define GST_CAT_DEFAULT nclua_debug
 #define debug GST_DEBUG_OBJECT
 
-
 /**************************** Property access *****************************/
 
 #define gst_nclua_property_init(nclua)          \
@@ -211,7 +212,6 @@ gst_nclua_set_property_fps (GstNCLua *nclua, gint fps_n, gint fps_d)
   GST_OBJECT_UNLOCK (nclua);
 }
 
-
 /************************** Internal data access **************************/
 
 /* Initializes internal data of element NCLUA.  */
@@ -229,7 +229,7 @@ gst_nclua_internal_init (GstNCLua *nclua)
   nclua->format.fps_d = 0;
   nclua->format.updated = FALSE;
   nclua->queue.q = g_queue_new ();
-  g_assert (nclua->queue.q != NULL); /* cannot fail */
+  g_assert (nclua->queue.q != NULL);    /* cannot fail */
   g_mutex_init (&nclua->queue.mutex);
   GST_OBJECT_UNLOCK (nclua);
 }
@@ -350,7 +350,6 @@ gst_nclua_dequeue_event (GstNCLua *nclua, GstEvent **evt)
   return TRUE;
 }
 
-
 /************** Conversion of GstNavigation to NCLua events ***************/
 
 typedef struct _GstNCLuaKeyMap
@@ -474,7 +473,6 @@ gst_nclua_navigation_convert (GstEvent *from, ncluaw_event_t **to)
   return TRUE;
 }
 
-
 /************************** Custom NCLua events ***************************/
 
 /* Sends a canvas resize event to state NW with the given dimensions.  */
@@ -510,7 +508,6 @@ gst_nclua_send_tick_event (ncluaw_t *nw, guint64 frames,
   nclua_send (L);
 }
 
-
 /******************************* GstPushSrc *******************************/
 
 /* Fills buffer BUF with the current frame.
@@ -542,7 +539,7 @@ gst_nclua_fill (GstPushSrc *pushsrc, GstBuffer *buf)
       ncluaw_event_t *e;
       switch (GST_EVENT_TYPE (evt))
         {
-        case GST_EVENT_NAVIGATION: /* send event to nclua  */
+        case GST_EVENT_NAVIGATION:     /* send event to nclua  */
           if (likely (gst_nclua_navigation_convert (evt, &e)))
             {
               ncluaw_send (nw, e);
@@ -598,7 +595,7 @@ gst_nclua_fill (GstPushSrc *pushsrc, GstBuffer *buf)
   else
     {
       time = 0;
-      GST_BUFFER_DURATION (buf) = GST_CLOCK_TIME_NONE; /* forever */
+      GST_BUFFER_DURATION (buf) = GST_CLOCK_TIME_NONE;  /* forever */
     }
 
   /* Update counters.  */
@@ -611,7 +608,6 @@ gst_nclua_fill (GstPushSrc *pushsrc, GstBuffer *buf)
   return GST_FLOW_OK;
 }
 
-
 /******************************* GstBaseSrc *******************************/
 
 /* Handles events on source pad.  */
@@ -622,10 +618,10 @@ gst_nclua_event (GstBaseSrc *basesrc, GstEvent *evt)
   GstNCLua *nclua = GST_NCLUA (basesrc);
   switch (GST_EVENT_TYPE (evt))
     {
-    case GST_EVENT_NAVIGATION:  /* push event into event queue */
+    case GST_EVENT_NAVIGATION: /* push event into event queue */
       gst_nclua_enqueue_event (nclua, gst_event_ref (evt));
       break;
-    default:                    /* nothing to do */
+    default:                   /* nothing to do */
       break;
     }
   return GST_BASE_SRC_CLASS (parent_class)->event (basesrc, evt);
@@ -667,7 +663,7 @@ gst_nclua_fixate (GstBaseSrc *basesrc, GstCaps *caps)
   gst_structure_fixate_field_nearest_fraction (st, "framerate",
                                                fps_n, fps_d);
 
-  debug (nclua, "fixating caps: %"GST_PTR_FORMAT, (void *) caps);
+  debug (nclua, "fixating caps: %" GST_PTR_FORMAT, (void *) caps);
 
   return GST_BASE_SRC_CLASS (parent_class)->fixate (basesrc, caps);
 }
@@ -705,16 +701,16 @@ gst_nclua_set_caps (GstBaseSrc *basesrc, GstCaps *caps)
   fps_d = info.fps_d;
 
   gst_nclua_set_format (nclua, format, width, height, stride, fps_n, fps_d);
-  debug (nclua, "new caps: %"GST_PTR_FORMAT, (void *) caps);
+  debug (nclua, "new caps: %" GST_PTR_FORMAT, (void *) caps);
 
   return TRUE;
 
  fail_bad_caps:
-  debug (nclua, "cannot parse caps: %"GST_PTR_FORMAT, (void *) caps);
+  debug (nclua, "cannot parse caps: %" GST_PTR_FORMAT, (void *) caps);
   return FALSE;
 
  fail_unsupported_caps:
-  debug (nclua, "unsupported caps: %"GST_PTR_FORMAT, (void *) caps);
+  debug (nclua, "unsupported caps: %" GST_PTR_FORMAT, (void *) caps);
   return FALSE;
 }
 
@@ -791,7 +787,6 @@ gst_nclua_stop (GstBaseSrc *basesrc)
   return TRUE;
 }
 
-
 /******************************** GObject *********************************/
 
 /* Gets property and stores its value into *VALUE.  */
@@ -893,7 +888,6 @@ gst_nclua_set_property (GObject *obj, guint id, const GValue *value,
     }
 }
 
-
 /***************************** Initialization *****************************/
 
 /* Class initializer.  */
