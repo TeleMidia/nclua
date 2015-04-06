@@ -2,12 +2,15 @@ NCLua NEWS -- History of user-visible changes.                 -*-outline-*-
 
 * Version 1.4, ???
 
-  - Add the NCLua GStreamer plugin (gstnclua).
+  - Add the NCLua GStreamer plugin (gstnclua) and interpreter (nclua-gst)
 
     We added a GStreamer plugin for NCLua, called gstnclua.  You can try it
     out by running something like:
 
         gst-launch nclua file=PATH-TO-SCRIPT ! ximagesink
+
+    Or you can run the standalone interpreter that uses this plugin, namely,
+    nclua-gst.
 
   - Add nclua_resize and ncluaw_resize to libnclua
 
