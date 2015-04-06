@@ -60,10 +60,15 @@ typedef struct _GstNCLua
   GstPushSrc element;           /* parent element */
 
   /* Properties: */
-  gchar *file;                  /* path to NCLua script */
-  gint width;                   /* main canvas width in pixels */
-  gint height;                  /* main canvas height in pixels */
-  gboolean resize;              /* resize main canvas */
+  struct
+  {
+    gchar *file;                /* path to NCLua script */
+    gint width;                 /* main canvas width in pixels */
+    gint height;                /* main canvas height in pixels */
+    gboolean resize;            /* resize main canvas */
+    gint fps_n;                 /* target fps numerator */
+    gint fps_d;                 /* target fps denominator */
+  } property;
 
   /* Internal data: */
   ncluaw_t *nw;                 /* NCLua state */
@@ -100,13 +105,16 @@ enum
   PROPERTY_FILE,
   PROPERTY_WIDTH,
   PROPERTY_HEIGHT,
-  PROPERTY_RESIZE
+  PROPERTY_RESIZE,
+  PROPERTY_FPS
 };
 
 #define DEFAULT_FILE NULL
 #define DEFAULT_WIDTH 800
 #define DEFAULT_HEIGHT 600
 #define DEFAULT_RESIZE TRUE
+#define DEFAULT_FPS_N 30
+#define DEFAULT_FPS_D 1
 
 /* Template for source pad.  */
 #define GST_NCLUA_SRC_STATIC_CAPS\
@@ -141,6 +149,18 @@ GST_DEBUG_CATEGORY_STATIC (nclua_debug);
 
 /**************************** Property access *****************************/
 
+#define gst_nclua_property_init(nclua)          \
+  STMT_BEGIN                                    \
+  {                                             \
+    (nclua)->property.file = DEFAULT_FILE;      \
+    (nclua)->property.width = DEFAULT_WIDTH;    \
+    (nclua)->property.height = DEFAULT_HEIGHT;  \
+    (nclua)->property.resize = DEFAULT_RESIZE;  \
+    (nclua)->property.fps_n = DEFAULT_FPS_N;    \
+    (nclua)->property.fps_d = DEFAULT_FPS_D;    \
+  }                                             \
+  STMT_END
+
 /* *INDENT-OFF* */
 #define GST_NCLUA_DEFUN_SCALAR_ACCESS(Name, Type)                       \
   static Type                                                           \
@@ -148,7 +168,7 @@ GST_DEBUG_CATEGORY_STATIC (nclua_debug);
   {                                                                     \
     Type Name;                                                          \
     GST_OBJECT_LOCK (nclua);                                            \
-    Name = nclua->Name;                                                 \
+    Name = nclua->property.Name;                                        \
     GST_OBJECT_UNLOCK (nclua);                                          \
     return Name;                                                        \
   }                                                                     \
@@ -156,7 +176,7 @@ GST_DEBUG_CATEGORY_STATIC (nclua_debug);
   CONCAT (gst_nclua_set_property_, Name) (GstNCLua *nclua, Type Name)   \
   {                                                                     \
     GST_OBJECT_LOCK (nclua);                                            \
-    nclua->Name = Name;                                                 \
+    nclua->property.Name = Name;                                        \
     GST_OBJECT_UNLOCK (nclua);                                          \
   }
 
@@ -170,7 +190,7 @@ gst_nclua_get_property_file (GstNCLua *nclua)
 {
   const gchar *file;
   GST_OBJECT_LOCK (nclua);
-  file = nclua->file;
+  file = nclua->property.file;
   GST_OBJECT_UNLOCK (nclua);
   return file;
 }
@@ -179,8 +199,26 @@ static void
 gst_nclua_set_property_file (GstNCLua *nclua, gchar *file)
 {
   GST_OBJECT_LOCK (nclua);
-  g_free (nclua->file);
-  nclua->file = file;
+  g_free (nclua->property.file);
+  nclua->property.file = file;
+  GST_OBJECT_UNLOCK (nclua);
+}
+
+static void
+gst_nclua_get_property_fps (GstNCLua *nclua, gint *fps_n, gint *fps_d)
+{
+  GST_OBJECT_LOCK (nclua);
+  set_if_nonnull (fps_n, nclua->property.fps_n);
+  set_if_nonnull (fps_d, nclua->property.fps_d);
+  GST_OBJECT_UNLOCK (nclua);
+}
+
+static void
+gst_nclua_set_property_fps (GstNCLua *nclua, gint fps_n, gint fps_d)
+{
+  GST_OBJECT_LOCK (nclua);
+  nclua->property.fps_n = fps_n;
+  nclua->property.fps_d = fps_d;
   GST_OBJECT_UNLOCK (nclua);
 }
 
@@ -612,7 +650,7 @@ gst_nclua_fixate (GstBaseSrc *basesrc, GstCaps *caps)
 {
   GstNCLua *nclua;
   GstStructure *st;
-  gint width, height;
+  gint width, height, fps_n, fps_d;
 
   nclua = GST_NCLUA (basesrc);
   caps = gst_caps_make_writable (caps);
@@ -620,6 +658,7 @@ gst_nclua_fixate (GstBaseSrc *basesrc, GstCaps *caps)
 
   width = gst_nclua_get_property_width (nclua);
   height = gst_nclua_get_property_height (nclua);
+  gst_nclua_get_property_fps (nclua, &fps_n, &fps_d);
 
   if (gst_nclua_get_property_resize (nclua))
     {
@@ -636,7 +675,8 @@ gst_nclua_fixate (GstBaseSrc *basesrc, GstCaps *caps)
       gst_structure_set_value (st, "height", &value);
     }
 
-  gst_structure_fixate_field_nearest_fraction (st, "framerate", 30, 1);
+  gst_structure_fixate_field_nearest_fraction (st, "framerate",
+                                               fps_n, fps_d);
 
   debug (nclua, "fixating caps: %"GST_PTR_FORMAT, (void *) caps);
 
@@ -742,7 +782,7 @@ gst_nclua_start (GstBaseSrc *basesrc)
 
   ncluaw_send_ncl_event (nw, "presentation", "start", "", NULL);
 
-  /* Initialize element.  */
+  /* Initialize element's internal data.  */
   gst_nclua_internal_init (nclua);
   nclua->nw = nw;
 
@@ -800,6 +840,13 @@ gst_nclua_get_property (GObject *obj, guint id, GValue *value,
         g_value_set_boolean (value, resize);
         break;
       }
+    case PROPERTY_FPS:
+      {
+        gint fps_n, fps_d;
+        gst_nclua_get_property_fps (nclua, &fps_n, &fps_d);
+        gst_value_set_fraction (value, fps_n, fps_d);
+        break;
+      }
     default:
       {
         G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, id, spec);
@@ -839,6 +886,14 @@ gst_nclua_set_property (GObject *obj, guint id, const GValue *value,
       {
         gboolean resize = g_value_get_boolean (value);
         gst_nclua_set_property_resize (nclua, resize);
+        break;
+      }
+    case PROPERTY_FPS:
+      {
+        gint fps_n, fps_d;
+        fps_n = gst_value_get_fraction_numerator (value);
+        fps_d = gst_value_get_fraction_denominator (value);
+        gst_nclua_set_property_fps (nclua, fps_n, fps_d);
         break;
       }
     default:
@@ -896,6 +951,13 @@ gst_nclua_class_init (GstNCLuaClass *cls)
      ("resize", "Resize", "Resize main canvas", DEFAULT_RESIZE,
       (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
+  g_object_class_install_property
+    (gobject_class, PROPERTY_FPS,
+     gst_param_spec_fraction
+     ("fps", "Framerate", "Target framerate",
+      0, 1, G_MAXINT, 1, DEFAULT_FPS_N, DEFAULT_FPS_D,
+      (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+
   gst_element_class_set_static_metadata
     (gstelement_class,
      "NCLua source", "Source/Video",
@@ -919,10 +981,7 @@ gst_nclua_class_init (GstNCLuaClass *cls)
 static void
 gst_nclua_init (GstNCLua *nclua)
 {
-  nclua->file = DEFAULT_FILE;
-  nclua->width = DEFAULT_WIDTH;
-  nclua->height = DEFAULT_HEIGHT;
-  nclua->resize = DEFAULT_RESIZE;
+  gst_nclua_property_init (nclua);
   gst_base_src_set_format (GST_BASE_SRC (nclua), GST_FORMAT_TIME);
 }
 
