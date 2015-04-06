@@ -25,27 +25,16 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <lauxlib.h>
 #include <lualib.h>
 
-/* *INDENT-OFF* */
-#include "macros.h"             /* for pragma diagnostic macros */
-PRAGMA_DIAG_IGNORE (-Wbad-function-cast)
-
-PRAGMA_DIAG_PUSH ()
-PRAGMA_DIAG_IGNORE (-Wcast-align)
-PRAGMA_DIAG_IGNORE (-Wcast-qual)
-PRAGMA_DIAG_IGNORE (-Wconversion)
-PRAGMA_DIAG_IGNORE (-Wpedantic)
-PRAGMA_DIAG_IGNORE (-Wsign-conversion)
-PRAGMA_DIAG_IGNORE (-Wvariadic-macros)
-
-#include <gst/gst.h>
+#include "gstx-macros.h"
+GSTX_INCLUDE_PROLOGUE
 #include <gst/base/gstpushsrc.h>
 #include <gst/video/gstvideometa.h>
-
-PRAGMA_DIAG_POP ()
-/* *INDENT-ON* */
+GSTX_INCLUDE_EPILOGUE
 
 #include "nclua.h"
 #include "ncluaw.h"
+
+#include "macros.h"
 #include "luax-macros.h"
 
 /* Class data.  */

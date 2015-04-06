@@ -76,7 +76,8 @@ uninstall-ms-lib:
 install-data-local: install-def-file install-ms-lib
 uninstall-local: uninstall-def-file uninstall-ms-lib
 
-libnclua_la_DEPENDENCIES = $(nclua_def_depedency) $(nclua_win32_res)
+libnclua_la_DEPENDENCIES = $(include_HEADERS) $(noinst_HEADERS)\
+  $(nclua_def_depedency) $(nclua_win32_res)
 libnclua_la_CPPFLAGS = -DNCLUA_BUILDING
 libnclua_la_CFLAGS = $(AM_CFLAGS) $(CFLAGS_VISIBILITY) $(LUA_CFLAGS)
 libnclua_la_LDFLAGS = $(LUA_LIBS) -version-info $(NCLUA_LIBTOOL_STRING)\
@@ -94,16 +95,15 @@ libnclua_la_SOURCES =\
 
 if BUILD_GSTNCLUA
 gstplugins_LTLIBRARIES = gstnclua.la
-else
-gstplugins_LTLIBRARIES =
+noinst_HEADERS+= gstx-macros.h
 endif
 
+gstnclua_la_DEPENDENCIES = $(lib_LTLIBRARIES) $(noinst_HEADERS)
 gstnclua_la_CFLAGS = $(AM_CFLAGS) $(LUA_CFLAGS) $(GLIB_CFLAGS)\
   $(GSTREAMER_CFLAGS)
 gstnclua_la_LDFLAGS = $(AM_LDFLAGS) -shared -module -avoid-version\
   -no-undefined $(LUA_LIBS) $(GLIB_LIBS) $(GSTREAMER_LIBS)
 gstnclua_la_LIBADD = $(top_builddir)/lib/libnclua.la
-gstnclua_la_DEPENDENCIES = $(lib_LTLIBRARIES)
 gstnclua_la_SOURCES =\
   gstnclua.c\
   $(NULL)
