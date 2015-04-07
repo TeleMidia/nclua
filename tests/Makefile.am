@@ -53,10 +53,10 @@ lua_LDADD =
 # Auxiliary scripts.
 noinst_SCRIPTS =
 
-# Generate env.sh and gdb.cfg if we have Perl.
+# Generate env.sh, env.csh and gdb.cfg if we have Perl.
 if HAVE_PERL
-noinst_SCRIPTS += $(builddir)/env.sh $(builddir)/gdb.cfg
-CLEANFILES += $(builddir)/env.sh $(builddir)/gdb.cfg
+noinst_SCRIPTS += $(builddir)/env.sh $(builddir)/env.csh $(builddir)/gdb.cfg
+CLEANFILES += $(builddir)/env.sh $(builddir)/env.csh $(builddir)/gdb.cfg
 
 perl_env_sh_get_tests_environment =\
   /^AM_TESTS_ENVIRONMENT\s*=\s*\\\n(.*?).\$$\(NULL\)/sm and printf "$$1";\
@@ -94,10 +94,19 @@ $(builddir)/env.sh:
 	  | $(PERL) -wple '$(perl_env_sh_expand_variables)'\
 	  | $(PERL) -wnle '$(perl_env_sh_remove_ld_preload)' > $@
 
+perl_env_csh_replace_env_sh =\
+  s/^export (\w+)=(.*);$$/setenv $$1 $$2/;\
+  $(NULL)
+
+$(builddir)/env.csh: $(builddir)/env.sh
+	$(AM_V_GEN)cat $(builddir)/env.sh\
+	  | $(PERL) -wple '$(perl_env_csh_replace_env_sh)' > $@
+
 perl_gdb_cfg_replace_env_sh =\
   s/^export/set environment/;\
   s/(.*);$$/$$1/;\
-  s/\"//g;
+  s/\"//g;\
+  $(NULL)
 
 $(builddir)/gdb.cfg: $(builddir)/env.sh
 	$(AM_V_GEN)cat $(builddir)/env.sh\
