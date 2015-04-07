@@ -100,6 +100,7 @@ enum
   PROPERTY_FPS
 };
 
+/* Property defaults.  */
 #define DEFAULT_FILE NULL
 #define DEFAULT_WIDTH 800
 #define DEFAULT_HEIGHT 600
@@ -128,7 +129,7 @@ G_DEFINE_TYPE (GstNCLua, gst_nclua, GST_TYPE_PUSH_SRC)
 #define GST_TYPE_NCLUA\
   (gst_nclua_get_type ())
 
-/* Casts object OBJ into GstNCLua.  */
+/* Casts object OBJ to GstNCLua.  */
 #define GST_NCLUA(obj)\
   (G_TYPE_CHECK_INSTANCE_CAST ((obj), GST_TYPE_NCLUA, GstNCLua))
 
