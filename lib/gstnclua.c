@@ -66,9 +66,11 @@ typedef struct _GstNCLua
 
   struct
   {                             /* counters */
-    GstClockTime time;          /* total running time */
-    guint64 frames;             /* total number of frames */
-  } counters;
+    GstClockTime time;          /* running time since last format update */
+    guint64 frames;             /* frames since last format update */
+    GstClockTime accum_time;    /* total running time */
+    guint64 accum_frames;       /* total number of frames */
+  } counter;
 
   struct
   {                             /* video format */
@@ -76,10 +78,14 @@ typedef struct _GstNCLua
     gint width;                 /* frame width in pixels */
     gint height;                /* frame height in pixels */
     gint stride;                /* frame stride */
-    gint fps_n;                 /* fps numerator */
-    gint fps_d;                 /* fps denominator */
     gboolean updated;           /* flags format updates */
   } format;
+
+  struct
+  {                             /* current target fps */
+    gint n;                     /* fps numerator */
+    gint d;                     /* fps denominator */
+  } fps;
 
   struct
   {                             /* event queue */
@@ -222,15 +228,19 @@ gst_nclua_internal_init (GstNCLua *nclua)
 {
   GST_OBJECT_LOCK (nclua);
   nclua->nw = NULL;
+  nclua->counter.time = 0;
+  nclua->counter.frames = 0;
+  nclua->counter.accum_time = 0;
+  nclua->counter.accum_frames = 0;
   nclua->format.format = NULL;
   nclua->format.width = 0;
   nclua->format.height = 0;
   nclua->format.stride = 0;
-  nclua->format.fps_n = 0;
-  nclua->format.fps_d = 0;
   nclua->format.updated = FALSE;
+  nclua->fps.n = 0;
+  nclua->fps.d = 0;
   nclua->queue.q = g_queue_new ();
-  g_assert (nclua->queue.q != NULL);    /* cannot fail */
+  g_assert (nclua->queue.q != NULL); /* cannot fail */
   g_mutex_init (&nclua->queue.mutex);
   GST_OBJECT_UNLOCK (nclua);
 }
@@ -248,32 +258,39 @@ gst_nclua_internal_fini (GstNCLua *nclua)
 }
 
 /* Gets the time and frame counters of element NCLUA and stores them into
-   *TIME and *FRAMES, respectively.  */
+   *TIME, *FRAMES, *ACCUM_TIME, and *ACCUM_FRAMES.  */
 
 static void
-gst_nclua_get_counters (GstNCLua *nclua, GstClockTime *time,
-                        guint64 *frames)
+gst_nclua_get_counters (GstNCLua *nclua,
+                        GstClockTime *time, guint64 *frames,
+                        GstClockTime *accum_time, guint64 *accum_frames)
 {
   GST_OBJECT_LOCK (nclua);
-  set_if_nonnull (time, nclua->counters.time);
-  set_if_nonnull (frames, nclua->counters.frames);
+  set_if_nonnull (time, nclua->counter.time);
+  set_if_nonnull (frames, nclua->counter.frames);
+  set_if_nonnull (accum_time, nclua->counter.accum_time);
+  set_if_nonnull (accum_frames, nclua->counter.accum_frames);
   GST_OBJECT_UNLOCK (nclua);
 }
 
-/* Sets the time and frame counters of element NCLUA to TIME and FRAME,
-   respectively.  */
+/* Sets the time and frame counters of element NCLUA to TIME, FRAME,
+   ACCUM_TIME, and ACCUM_FRAMES.  */
 
 static void
-gst_nclua_set_counters (GstNCLua *nclua, GstClockTime time, guint64 frames)
+gst_nclua_set_counters (GstNCLua *nclua,
+                        GstClockTime time, guint64 frames,
+                        GstClockTime accum_time, guint64 accum_frames)
 {
   GST_OBJECT_LOCK (nclua);
-  nclua->counters.time = time;
-  nclua->counters.frames = frames;
+  nclua->counter.time = time;
+  nclua->counter.frames = frames;
+  nclua->counter.accum_time = accum_time;
+  nclua->counter.accum_frames = accum_frames;
   GST_OBJECT_UNLOCK (nclua);
 }
 
 /* Gets the format parameters of element NCLUA and stores them into *FORMAT,
-   *WIDTH, *HEIGHT, *STRIDE, *FPS_N, and *FPS_D.
+   *WIDTH, *HEIGHT, and *STRIDE.
 
    Returns the value of the updated flag; if RESET_UPDATED is TRUE then
    resets updated flag.  */
@@ -281,42 +298,58 @@ gst_nclua_set_counters (GstNCLua *nclua, GstClockTime time, guint64 frames)
 static gboolean
 gst_nclua_get_format (GstNCLua *nclua, const gchar **format,
                       gint *width, gint *height, gint *stride,
-                      gint *fps_n, gint *fps_d, gboolean reset_updated)
+                      gboolean reset_updated)
 {
   gboolean result;
-
   GST_OBJECT_LOCK (nclua);
   set_if_nonnull (format, nclua->format.format);
   set_if_nonnull (width, nclua->format.width);
   set_if_nonnull (height, nclua->format.height);
   set_if_nonnull (stride, nclua->format.stride);
-  set_if_nonnull (fps_n, nclua->format.fps_n);
-  set_if_nonnull (fps_d, nclua->format.fps_d);
   result = nclua->format.updated;
   if (reset_updated)
     nclua->format.updated = FALSE;
   GST_OBJECT_UNLOCK (nclua);
-
   return result;
 }
 
 /* Sets the format parameters of element NCLUA to the given FORMAT, WIDTH,
-   HEIGHT, STRIDE, FPS_N, and FPS_D values; and sets the updated flag to
-   true.  */
+   HEIGHT, and STRIDE values; and sets the updated flag to true.  */
 
 static void
 gst_nclua_set_format (GstNCLua *nclua, const gchar *format,
-                      gint width, gint height, gint stride,
-                      gint fps_n, gint fps_d)
+                      gint width, gint height, gint stride)
 {
   GST_OBJECT_LOCK (nclua);
   nclua->format.format = format;
   nclua->format.width = width;
   nclua->format.height = height;
   nclua->format.stride = stride;
-  nclua->format.fps_n = fps_n;
-  nclua->format.fps_d = fps_d;
   nclua->format.updated = TRUE;
+  GST_OBJECT_UNLOCK (nclua);
+}
+
+/* Gets the current FPS parameter of element NCLUA and stores its numerator
+   and denominator into *N and *N, respectively.  */
+
+static void
+gst_nclua_get_fps (GstNCLua *nclua, gint *n, gint *d)
+{
+  GST_OBJECT_LOCK (nclua);
+  set_if_nonnull (n, nclua->fps.n);
+  set_if_nonnull (d, nclua->fps.d);
+  GST_OBJECT_UNLOCK (nclua);
+}
+
+/* Sets the current FPS parameter of element NCLUA to the given numerator N
+   and denominator D values.  */
+
+static void
+gst_nclua_set_fps (GstNCLua *nclua, gint n, gint d)
+{
+  GST_OBJECT_LOCK (nclua);
+  nclua->fps.n = n;
+  nclua->fps.d = d;
   GST_OBJECT_UNLOCK (nclua);
 }
 
@@ -515,24 +548,99 @@ gst_nclua_send_tick_event (ncluaw_t *nw, guint64 frames,
    TODO: Document return values.  */
 
 static GstFlowReturn
-gst_nclua_fill (GstPushSrc *pushsrc, GstBuffer *buf)
+gst_nclua_fill_func (GstPushSrc *pushsrc, GstBuffer *buf)
 {
   GstNCLua *nclua;
   ncluaw_t *nw;
 
+  GstMapInfo map;
+  gboolean update;
+  const gchar *format;
+  gint width, height, stride;
+
+  GstClockTime next;
+  GstClockTime time;
+  GstClockTime accum_time;
+  guint64 frames;
+  guint64 accum_frames;
+  gint fps_n, fps_d;
+
   GstEvent *evt;
   guint limit = 32;             /* max input events per cycle */
 
-  GstMapInfo map;
-  gboolean updated;
-  const gchar *format;
-  gint width, height, stride, fps_n, fps_d;
-
-  GstClockTime time;
-  guint64 frames;
-
   nclua = GST_NCLUA (pushsrc);
   nw = nclua->nw;
+
+  update = gst_nclua_get_format (nclua, &format, &width, &height,
+                                 &stride, TRUE);
+  if (unlikely (format == NULL))
+    return GST_FLOW_NOT_NEGOTIATED;
+
+  gst_nclua_get_counters (nclua, &time, &frames, &accum_time, &accum_frames);
+  gst_nclua_get_fps (nclua, &fps_n, &fps_d);
+
+  /* Format updated.  */
+  if (update)
+    {
+      accum_time += time;
+      accum_frames += frames;
+      time = 0;
+      frames = 0;
+      debug (nclua, "format changed: updating accumulators: "
+             "accum_time=%" GST_TIME_FORMAT " "
+             "accum_frames=%" G_GUINT64_FORMAT " "
+             "time=%" GST_TIME_FORMAT " "
+             "frames=%" G_GUINT64_FORMAT,
+             GST_TIME_ARGS (accum_time), accum_frames,
+             GST_TIME_ARGS (time), frames);
+
+      if (gst_nclua_get_property_resize (nclua))
+        {
+          debug (nclua, "resizing canvas to %dx%d", width, height);
+          gst_nclua_send_resize_event (nw, width, height);
+        }
+    }
+
+  /* Map buffer.  */
+  if (unlikely (!gst_buffer_map (buf, &map, GST_MAP_WRITE)))
+    {
+      debug (nclua, "invalid buffer");
+      return GST_FLOW_OK;
+    }
+
+  /* Set buffer timing and duration.  */
+  GST_BUFFER_DTS (buf) = accum_time + time;
+  GST_BUFFER_PTS (buf) = GST_BUFFER_DTS (buf);
+  gst_object_sync_values (GST_OBJECT (nclua), GST_BUFFER_DTS (buf));
+  GST_BUFFER_OFFSET (buf) = accum_frames + frames++;
+  GST_BUFFER_OFFSET_END (buf) = GST_BUFFER_OFFSET (buf) + 1;
+  if (likely (fps_n > 0))
+    {
+      next = gst_util_uint64_scale_int (frames * GST_SECOND, fps_d, fps_n);
+      GST_BUFFER_DURATION (buf) = next - time;
+    }
+  else
+    {
+      next = 0;
+      GST_BUFFER_DURATION (buf) = GST_CLOCK_TIME_NONE; /* forever */
+    }
+
+  debug (nclua, "timestamp: %" GST_TIME_FORMAT
+         " = accumulated %" GST_TIME_FORMAT
+         " + running time: %" GST_TIME_FORMAT,
+         GST_TIME_ARGS (GST_BUFFER_PTS (buf)),
+         GST_TIME_ARGS (accum_time),
+         GST_TIME_ARGS (time));
+
+  /* Send tick event.  */
+  gst_nclua_send_tick_event (nclua->nw,
+                             accum_frames + frames,
+                             accum_time + time,
+                             accum_time + time,
+                             GST_BUFFER_DURATION (buf));
+
+  /* Update counters.  */
+  gst_nclua_set_counters (nclua, next, frames, accum_time, accum_frames);
 
   /* Process pending events.  */
   while (gst_nclua_dequeue_event (nclua, &evt) && limit-- > 0)
@@ -540,7 +648,7 @@ gst_nclua_fill (GstPushSrc *pushsrc, GstBuffer *buf)
       ncluaw_event_t *e;
       switch (GST_EVENT_TYPE (evt))
         {
-        case GST_EVENT_NAVIGATION:     /* send event to nclua  */
+        case GST_EVENT_NAVIGATION: /* send event to nclua  */
           if (likely (gst_nclua_navigation_convert (evt, &e)))
             {
               ncluaw_send (nw, e);
@@ -555,56 +663,9 @@ gst_nclua_fill (GstPushSrc *pushsrc, GstBuffer *buf)
   /* Cycle the NCLua engine once.  */
   ncluaw_cycle (nw);
 
-  /* Get format.  */
-  updated = gst_nclua_get_format (nclua, &format, &width, &height, &stride,
-                                  &fps_n, &fps_d, TRUE);
-  if (unlikely (format == NULL))
-    return GST_FLOW_NOT_NEGOTIATED;
-
-  /* Get counters.  */
-  gst_nclua_get_counters (nclua, &time, &frames);
-  if (unlikely (fps_n == 0 && frames == 1))
-    return GST_FLOW_EOS;
-
-  /* Resize canvas, if format was updated.  */
-  if (updated && gst_nclua_get_property_resize (nclua))
-    gst_nclua_send_resize_event (nw, width, height);
-
   /* Paint canvas onto buffer.  */
-  if (unlikely (!gst_buffer_map (buf, &map, GST_MAP_WRITE)))
-    {
-      debug (nclua, "invalid buffer");
-      return GST_FLOW_OK;
-    }
   ncluaw_paint (nw, map.data, format, width, height, stride);
   gst_buffer_unmap (buf, &map);
-
-  /* Set buffer timing.  */
-  GST_BUFFER_DTS (buf) = time;
-  GST_BUFFER_PTS (buf) = GST_BUFFER_DTS (buf);
-  gst_object_sync_values (GST_OBJECT (nclua), GST_BUFFER_DTS (buf));
-  GST_BUFFER_OFFSET (buf) = frames++;
-  GST_BUFFER_OFFSET_END (buf) = GST_BUFFER_OFFSET (buf) + 1;
-
-  if (fps_n > 0)
-    {
-      GstClockTime next;
-      next = gst_util_uint64_scale_int (frames * GST_SECOND, fps_d, fps_n);
-      GST_BUFFER_DURATION (buf) = next - time;
-      time = next;
-    }
-  else
-    {
-      time = 0;
-      GST_BUFFER_DURATION (buf) = GST_CLOCK_TIME_NONE;  /* forever */
-    }
-
-  /* Update counters.  */
-  gst_nclua_set_counters (nclua, time, frames);
-
-  /* Send tick event.  */
-  gst_nclua_send_tick_event (nclua->nw, frames,
-                             time, time, GST_BUFFER_DURATION (buf));
 
   return GST_FLOW_OK;
 }
@@ -614,15 +675,64 @@ gst_nclua_fill (GstPushSrc *pushsrc, GstBuffer *buf)
 /* Handles events on source pad.  */
 
 static gboolean
-gst_nclua_event (GstBaseSrc *basesrc, GstEvent *evt)
+gst_nclua_event_func (GstBaseSrc *basesrc, GstEvent *evt)
 {
   GstNCLua *nclua = GST_NCLUA (basesrc);
   switch (GST_EVENT_TYPE (evt))
     {
-    case GST_EVENT_NAVIGATION: /* push event into event queue */
+    case GST_EVENT_QOS:
+      {
+        GstQOSType type;
+        gdouble prop;
+        GstClockTime time;
+        GstClockTime ts;
+        GstClockTimeDiff diff;
+        gint fps_n, fps_d, tgt_n, new_n;
+
+        gst_event_parse_qos (evt, &type, &prop, &diff, &ts);
+        if (type == GST_QOS_TYPE_THROTTLE)
+          break;
+
+        debug (nclua,
+               "prop=%g "
+               "diff=%" G_GINT64_FORMAT " "
+               "timestamp=%" GST_TIME_FORMAT,
+               prop,
+               diff / GST_MSECOND,
+               GST_TIME_ARGS (ts));
+
+        gst_nclua_get_counters (nclua, &time, NULL, NULL, NULL);
+
+        if (time < 100 * GST_MSECOND)
+          break;
+
+        gst_nclua_get_fps (nclua, &fps_n, &fps_d);
+        gst_nclua_get_property_fps (nclua, &tgt_n, NULL);
+
+        /* TODO: Use diff to calculate new FPS.  */
+        /* new_n = (gint) (GST_SECOND / ((GST_SECOND / fps_n) + diff)); */
+
+        new_n = (gint) lround (tgt_n / prop);
+        if (new_n > tgt_n)
+          break;
+
+        if (diff > 0)
+          {
+            GST_OBJECT_LOCK (nclua);
+            nclua->counter.time += (guint64) diff;
+            GST_OBJECT_UNLOCK (nclua);
+          }
+
+        debug (nclua, "old_fps=%d new_fps=%d", fps_n, new_n);
+
+        gst_nclua_set_fps (nclua, new_n, fps_d);
+        gst_pad_mark_reconfigure (GST_BASE_SRC_PAD (basesrc));
+        break;
+      }
+    case GST_EVENT_NAVIGATION:  /* push event into event queue */
       gst_nclua_enqueue_event (nclua, gst_event_ref (evt));
       break;
-    default:                   /* nothing to do */
+    default:                    /* nothing to do */
       break;
     }
   return GST_BASE_SRC_CLASS (parent_class)->event (basesrc, evt);
@@ -632,7 +742,7 @@ gst_nclua_event (GstBaseSrc *basesrc, GstEvent *evt)
    TODO: Move hard-coded stuff to macros.  */
 
 static GstCaps *
-gst_nclua_fixate (GstBaseSrc *basesrc, GstCaps *caps)
+gst_nclua_fixate_func (GstBaseSrc *basesrc, GstCaps *caps)
 {
   GstNCLua *nclua;
   GstStructure *st;
@@ -644,7 +754,9 @@ gst_nclua_fixate (GstBaseSrc *basesrc, GstCaps *caps)
 
   width = gst_nclua_get_property_width (nclua);
   height = gst_nclua_get_property_height (nclua);
-  gst_nclua_get_property_fps (nclua, &fps_n, &fps_d);
+  gst_nclua_get_fps (nclua, &fps_n, &fps_d);
+  if (fps_n == 0)
+    gst_nclua_get_property_fps (nclua, &fps_n, &fps_d);
 
   if (gst_nclua_get_property_resize (nclua))
     {
@@ -673,7 +785,7 @@ gst_nclua_fixate (GstBaseSrc *basesrc, GstCaps *caps)
    Returns TRUE if successful, otherwise returns false.  */
 
 static gboolean
-gst_nclua_set_caps (GstBaseSrc *basesrc, GstCaps *caps)
+gst_nclua_set_caps_func (GstBaseSrc *basesrc, GstCaps *caps)
 {
   GstNCLua *nclua;
   GstVideoInfo info;
@@ -701,7 +813,8 @@ gst_nclua_set_caps (GstBaseSrc *basesrc, GstCaps *caps)
   fps_n = info.fps_n;
   fps_d = info.fps_d;
 
-  gst_nclua_set_format (nclua, format, width, height, stride, fps_n, fps_d);
+  gst_nclua_set_format (nclua, format, width, height, stride);
+  gst_nclua_set_fps (nclua, fps_n, fps_d);
   debug (nclua, "new caps: %" GST_PTR_FORMAT, (void *) caps);
 
   return TRUE;
@@ -719,7 +832,7 @@ gst_nclua_set_caps (GstBaseSrc *basesrc, GstCaps *caps)
    Returns true if successful, otherwise returns false.  */
 
 static gboolean
-gst_nclua_start (GstBaseSrc *basesrc)
+gst_nclua_start_func (GstBaseSrc *basesrc)
 {
   GstNCLua *nclua;
   ncluaw_t *nw;
@@ -780,7 +893,7 @@ gst_nclua_start (GstBaseSrc *basesrc)
 /* Stops the given element.  */
 
 static gboolean
-gst_nclua_stop (GstBaseSrc *basesrc)
+gst_nclua_stop_func (GstBaseSrc *basesrc)
 {
   GstNCLua *nclua = GST_NCLUA (basesrc);
   gst_nclua_internal_fini (nclua);
@@ -952,12 +1065,12 @@ gst_nclua_class_init (GstNCLuaClass *cls)
     (gstelement_class,
      gst_static_pad_template_get (&gst_nclua_src_template));
 
-  gstbasesrc_class->event = gst_nclua_event;
-  gstbasesrc_class->fixate = gst_nclua_fixate;
-  gstbasesrc_class->set_caps = gst_nclua_set_caps;
-  gstbasesrc_class->start = gst_nclua_start;
-  gstbasesrc_class->stop = gst_nclua_stop;
-  gstpushsrc_class->fill = gst_nclua_fill;
+  gstbasesrc_class->event = GST_DEBUG_FUNCPTR (gst_nclua_event_func);
+  gstbasesrc_class->fixate = GST_DEBUG_FUNCPTR (gst_nclua_fixate_func);
+  gstbasesrc_class->set_caps = GST_DEBUG_FUNCPTR (gst_nclua_set_caps_func);
+  gstbasesrc_class->start = GST_DEBUG_FUNCPTR (gst_nclua_start_func);
+  gstbasesrc_class->stop = GST_DEBUG_FUNCPTR (gst_nclua_stop_func);
+  gstpushsrc_class->fill = GST_DEBUG_FUNCPTR (gst_nclua_fill_func);
 }
 
 /* Instance initializer.  */
