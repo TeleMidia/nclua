@@ -20,6 +20,7 @@ local canvas = canvas
 local event = event
 local ipairs = ipairs
 local math = math
+local os = os
 local table = table
 local tonumber = tonumber
 _ENV = nil
@@ -101,8 +102,8 @@ do
 end
 
 local function redraw (e)
-   if e.frame == 0 then
-      math.randomseed (e.absolute)
+   if e.frame == 1 then
+      math.randomseed (os.time ())
       for i=1,10 do
          CIRCLE_LIST[i] = new_circle ()
       end
