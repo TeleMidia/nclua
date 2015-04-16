@@ -59,6 +59,7 @@ typedef struct _GstNCLua
     gboolean resize;            /* resize main canvas */
     gint fps_n;                 /* target fps numerator */
     gint fps_d;                 /* target fps denominator */
+    gboolean qos;               /* handle QOS events */
   } property;
 
   /* Internal data: */
@@ -103,7 +104,8 @@ enum
   PROPERTY_WIDTH,
   PROPERTY_HEIGHT,
   PROPERTY_RESIZE,
-  PROPERTY_FPS
+  PROPERTY_FPS,
+  PROPERTY_QOS
 };
 
 /* Property defaults.  */
@@ -113,6 +115,7 @@ enum
 #define DEFAULT_RESIZE TRUE
 #define DEFAULT_FPS_N 30
 #define DEFAULT_FPS_D 1
+#define DEFAULT_QOS TRUE
 
 /* Template for source pad.  */
 #define GST_NCLUA_SRC_STATIC_CAPS\
@@ -155,6 +158,7 @@ GST_DEBUG_CATEGORY_STATIC (nclua_debug);
     (nclua)->property.resize = DEFAULT_RESIZE;  \
     (nclua)->property.fps_n = DEFAULT_FPS_N;    \
     (nclua)->property.fps_d = DEFAULT_FPS_D;    \
+    (nclua)->property.qos = DEFAULT_QOS;        \
   }                                             \
   STMT_END
 
@@ -180,6 +184,7 @@ GST_DEBUG_CATEGORY_STATIC (nclua_debug);
 GST_NCLUA_DEFUN_SCALAR_ACCESS (width, gint)
 GST_NCLUA_DEFUN_SCALAR_ACCESS (height, gint)
 GST_NCLUA_DEFUN_SCALAR_ACCESS (resize, gboolean)
+GST_NCLUA_DEFUN_SCALAR_ACCESS (qos, gboolean)
 /* *INDENT-ON* */
 
 static const gchar *
@@ -586,13 +591,16 @@ gst_nclua_fill_func (GstPushSrc *pushsrc, GstBuffer *buf)
       accum_frames += frames;
       time = 0;
       frames = 0;
-      debug (nclua, "format changed: updating accumulators: "
-             "accum_time=%" GST_TIME_FORMAT " "
-             "accum_frames=%" G_GUINT64_FORMAT " "
-             "time=%" GST_TIME_FORMAT " "
-             "frames=%" G_GUINT64_FORMAT,
-             GST_TIME_ARGS (accum_time), accum_frames,
-             GST_TIME_ARGS (time), frames);
+
+      debug (nclua, "format changed:"
+             " accum_time=%" GST_TIME_FORMAT ","
+             " accum_frames=%" G_GUINT64_FORMAT ","
+             " time=%" GST_TIME_FORMAT ","
+             " frames=%" G_GUINT64_FORMAT,
+             GST_TIME_ARGS (accum_time),
+             accum_frames,
+             GST_TIME_ARGS (time),
+             frames);
 
       if (gst_nclua_get_property_resize (nclua))
         {
@@ -625,9 +633,9 @@ gst_nclua_fill_func (GstPushSrc *pushsrc, GstBuffer *buf)
       GST_BUFFER_DURATION (buf) = GST_CLOCK_TIME_NONE; /* forever */
     }
 
-  debug (nclua, "timestamp: %" GST_TIME_FORMAT
+  debug (nclua, "timestamp %" GST_TIME_FORMAT
          " = accumulated %" GST_TIME_FORMAT
-         " + running time: %" GST_TIME_FORMAT,
+         " + running time %" GST_TIME_FORMAT,
          GST_TIME_ARGS (GST_BUFFER_PTS (buf)),
          GST_TIME_ARGS (accum_time),
          GST_TIME_ARGS (time));
@@ -663,7 +671,7 @@ gst_nclua_fill_func (GstPushSrc *pushsrc, GstBuffer *buf)
   /* Cycle the NCLua engine once.  */
   ncluaw_cycle (nw);
 
-  /* Paint canvas onto buffer.  */
+  /* Paint canvas onto buffer and un-map buffer.  */
   ncluaw_paint (nw, map.data, format, width, height, stride);
   gst_buffer_unmap (buf, &map);
 
@@ -689,31 +697,30 @@ gst_nclua_event_func (GstBaseSrc *basesrc, GstEvent *evt)
         GstClockTimeDiff diff;
         gint fps_n, fps_d, tgt_n, new_n;
 
+        if (!gst_nclua_get_property_qos (nclua))
+          break;
+
         gst_event_parse_qos (evt, &type, &prop, &diff, &ts);
         if (type == GST_QOS_TYPE_THROTTLE)
           break;
 
-        debug (nclua,
-               "prop=%g "
-               "diff=%" G_GINT64_FORMAT " "
-               "timestamp=%" GST_TIME_FORMAT,
+        debug (nclua, "QoS event:"
+               " proportion=%g,"
+               " diff=%" G_GINT64_FORMAT "ms,"
+               " timestamp=%" GST_TIME_FORMAT,
                prop,
                diff / GST_MSECOND,
                GST_TIME_ARGS (ts));
 
         gst_nclua_get_counters (nclua, &time, NULL, NULL, NULL);
-
-        if (time < 100 * GST_MSECOND)
+        if (time < 250 * GST_MSECOND)
           break;
 
         gst_nclua_get_fps (nclua, &fps_n, &fps_d);
         gst_nclua_get_property_fps (nclua, &tgt_n, NULL);
 
-        /* TODO: Use diff to calculate new FPS.  */
-        /* new_n = (gint) (GST_SECOND / ((GST_SECOND / fps_n) + diff)); */
-
-        new_n = (gint) lround (tgt_n / prop);
-        if (new_n > tgt_n)
+        new_n = (gint) clamp (ceil (fps_n / prop), 1, tgt_n);
+        if (new_n == fps_n)
           break;
 
         if (diff > 0)
@@ -722,8 +729,6 @@ gst_nclua_event_func (GstBaseSrc *basesrc, GstEvent *evt)
             nclua->counter.time += (guint64) diff;
             GST_OBJECT_UNLOCK (nclua);
           }
-
-        debug (nclua, "old_fps=%d new_fps=%d", fps_n, new_n);
 
         gst_nclua_set_fps (nclua, new_n, fps_d);
         gst_pad_mark_reconfigure (GST_BASE_SRC_PAD (basesrc));
@@ -945,6 +950,12 @@ gst_nclua_get_property (GObject *obj, guint id, GValue *value,
         gst_value_set_fraction (value, fps_n, fps_d);
         break;
       }
+    case PROPERTY_QOS:
+      {
+        gboolean qos = gst_nclua_get_property_qos (nclua);
+        g_value_set_boolean (value, qos);
+        break;
+      }
     default:
       {
         G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, id, spec);
@@ -992,6 +1003,12 @@ gst_nclua_set_property (GObject *obj, guint id, const GValue *value,
         fps_n = gst_value_get_fraction_numerator (value);
         fps_d = gst_value_get_fraction_denominator (value);
         gst_nclua_set_property_fps (nclua, fps_n, fps_d);
+        break;
+      }
+    case PROPERTY_QOS:
+      {
+        gboolean qos = g_value_get_boolean (value);
+        gst_nclua_set_property_qos (nclua, qos);
         break;
       }
     default:
@@ -1053,6 +1070,12 @@ gst_nclua_class_init (GstNCLuaClass *cls)
      gst_param_spec_fraction
      ("fps", "Framerate", "Target framerate",
       0, 1, G_MAXINT, 1, DEFAULT_FPS_N, DEFAULT_FPS_D,
+      (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+
+  g_object_class_install_property
+    (gobject_class, PROPERTY_QOS,
+     g_param_spec_boolean
+     ("qos", "QoS", "Handle QoS events", DEFAULT_QOS,
       (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
   gst_element_class_set_static_metadata
