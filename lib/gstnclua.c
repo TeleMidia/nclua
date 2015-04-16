@@ -59,6 +59,7 @@ typedef struct _GstNCLua
     gboolean resize;            /* resize main canvas */
     gint fps_n;                 /* target fps numerator */
     gint fps_d;                 /* target fps denominator */
+    gboolean navigation;        /* handle navigation events */
     gboolean qos;               /* handle QOS events */
   } property;
 
@@ -105,6 +106,7 @@ enum
   PROPERTY_HEIGHT,
   PROPERTY_RESIZE,
   PROPERTY_FPS,
+  PROPERTY_NAVIGATION,
   PROPERTY_QOS
 };
 
@@ -115,6 +117,7 @@ enum
 #define DEFAULT_RESIZE TRUE
 #define DEFAULT_FPS_N 30
 #define DEFAULT_FPS_D 1
+#define DEFAULT_NAVIGATION TRUE
 #define DEFAULT_QOS TRUE
 
 /* Template for source pad.  */
@@ -149,17 +152,18 @@ GST_DEBUG_CATEGORY_STATIC (nclua_debug);
 
 /**************************** Property access *****************************/
 
-#define gst_nclua_property_init(nclua)          \
-  STMT_BEGIN                                    \
-  {                                             \
-    (nclua)->property.file = DEFAULT_FILE;      \
-    (nclua)->property.width = DEFAULT_WIDTH;    \
-    (nclua)->property.height = DEFAULT_HEIGHT;  \
-    (nclua)->property.resize = DEFAULT_RESIZE;  \
-    (nclua)->property.fps_n = DEFAULT_FPS_N;    \
-    (nclua)->property.fps_d = DEFAULT_FPS_D;    \
-    (nclua)->property.qos = DEFAULT_QOS;        \
-  }                                             \
+#define gst_nclua_property_init(nclua)                  \
+  STMT_BEGIN                                            \
+  {                                                     \
+    (nclua)->property.file = DEFAULT_FILE;              \
+    (nclua)->property.width = DEFAULT_WIDTH;            \
+    (nclua)->property.height = DEFAULT_HEIGHT;          \
+    (nclua)->property.resize = DEFAULT_RESIZE;          \
+    (nclua)->property.fps_n = DEFAULT_FPS_N;            \
+    (nclua)->property.fps_d = DEFAULT_FPS_D;            \
+    (nclua)->property.navigation = DEFAULT_NAVIGATION;  \
+    (nclua)->property.qos = DEFAULT_QOS;                \
+  }                                                     \
   STMT_END
 
 /* *INDENT-OFF* */
@@ -184,6 +188,7 @@ GST_DEBUG_CATEGORY_STATIC (nclua_debug);
 GST_NCLUA_DEFUN_SCALAR_ACCESS (width, gint)
 GST_NCLUA_DEFUN_SCALAR_ACCESS (height, gint)
 GST_NCLUA_DEFUN_SCALAR_ACCESS (resize, gboolean)
+GST_NCLUA_DEFUN_SCALAR_ACCESS (navigation, gboolean)
 GST_NCLUA_DEFUN_SCALAR_ACCESS (qos, gboolean)
 /* *INDENT-ON* */
 
@@ -656,12 +661,14 @@ gst_nclua_fill_func (GstPushSrc *pushsrc, GstBuffer *buf)
       ncluaw_event_t *e;
       switch (GST_EVENT_TYPE (evt))
         {
-        case GST_EVENT_NAVIGATION: /* send event to nclua  */
-          if (likely (gst_nclua_navigation_convert (evt, &e)))
+        case GST_EVENT_NAVIGATION:
+          if (gst_nclua_get_property_navigation (nclua)
+              && gst_nclua_navigation_convert (evt, &e))
             {
               ncluaw_send (nw, e);
               ncluaw_event_free (e);
             }
+          break;
         default:
           break;                /* nothing to do */
         }
@@ -688,7 +695,7 @@ gst_nclua_event_func (GstBaseSrc *basesrc, GstEvent *evt)
   GstNCLua *nclua = GST_NCLUA (basesrc);
   switch (GST_EVENT_TYPE (evt))
     {
-    case GST_EVENT_QOS:
+    case GST_EVENT_QOS:         /* adjust current fps */
       {
         GstQOSType type;
         gdouble prop;
@@ -735,8 +742,11 @@ gst_nclua_event_func (GstBaseSrc *basesrc, GstEvent *evt)
         break;
       }
     case GST_EVENT_NAVIGATION:  /* push event into event queue */
-      gst_nclua_enqueue_event (nclua, gst_event_ref (evt));
-      break;
+      {
+        if (gst_nclua_get_property_navigation (nclua))
+          gst_nclua_enqueue_event (nclua, gst_event_ref (evt));
+        break;
+      }
     default:                    /* nothing to do */
       break;
     }
@@ -950,6 +960,12 @@ gst_nclua_get_property (GObject *obj, guint id, GValue *value,
         gst_value_set_fraction (value, fps_n, fps_d);
         break;
       }
+    case PROPERTY_NAVIGATION:
+      {
+        gboolean nav = gst_nclua_get_property_navigation (nclua);
+        g_value_set_boolean (value, nav);
+        break;
+      }
     case PROPERTY_QOS:
       {
         gboolean qos = gst_nclua_get_property_qos (nclua);
@@ -1003,6 +1019,12 @@ gst_nclua_set_property (GObject *obj, guint id, const GValue *value,
         fps_n = gst_value_get_fraction_numerator (value);
         fps_d = gst_value_get_fraction_denominator (value);
         gst_nclua_set_property_fps (nclua, fps_n, fps_d);
+        break;
+      }
+    case PROPERTY_NAVIGATION:
+      {
+        gboolean nav = g_value_get_boolean (value);
+        gst_nclua_set_property_navigation (nclua, nav);
         break;
       }
     case PROPERTY_QOS:
@@ -1070,6 +1092,13 @@ gst_nclua_class_init (GstNCLuaClass *cls)
      gst_param_spec_fraction
      ("fps", "Framerate", "Target framerate",
       0, 1, G_MAXINT, 1, DEFAULT_FPS_N, DEFAULT_FPS_D,
+      (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+
+  g_object_class_install_property
+    (gobject_class, PROPERTY_NAVIGATION,
+     g_param_spec_boolean
+     ("navigation", "Navigation", "Handle navigation events",
+      DEFAULT_NAVIGATION,
       (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
   g_object_class_install_property
