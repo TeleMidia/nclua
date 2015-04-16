@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include <stdio.h>
 #include "gstx-macros.h"
 
 /* Globals: */
@@ -24,10 +25,34 @@ static GstElement *pipeline;
 static GMainLoop *loop;
 static int exit_status = EXIT_SUCCESS;
 
+static void
+dump_message (const gchar *prefix, GstMessage *msg)
+{
+  static guint64 serial = 0;
+  const GstStructure *st;
+
+  g_print ("#%" G_GUINT64_FORMAT " t:%p %s %s: ",
+           serial++, (void *) g_thread_self (), prefix,
+           GST_STR_NULL (GST_ELEMENT_NAME (GST_MESSAGE_SRC (msg))));
+
+  st = gst_message_get_structure (msg);
+  if (st != NULL)
+    {
+      gchar *s = gst_structure_to_string (st);
+      g_print ("%s\n\n", s);
+      g_free (s);
+    }
+  else
+    {
+      g_print ("(empty)\n\n");
+    }
+}
+
 static GstBusSyncReply
-bus_sync_callback (arg_unused (GstBus *bus), arg_unused (GstMessage *msg),
+bus_sync_callback (arg_unused (GstBus *bus), GstMessage *msg,
                    arg_unused (gpointer data))
 {
+  dump_message ("SYNC", msg);
   return GST_BUS_PASS;
 }
 
@@ -35,6 +60,7 @@ static gboolean
 bus_async_callback (arg_unused (GstBus *bus), GstMessage *msg,
                     arg_unused (gpointer data))
 {
+  dump_message ("ASYNC", msg);
   switch (GST_MESSAGE_TYPE (msg))
     {
     case GST_MESSAGE_ERROR:
@@ -71,6 +97,7 @@ bus_async_callback (arg_unused (GstBus *bus), GstMessage *msg,
         break;
       }
     }
+  fflush (NULL);
   return TRUE;
 }
 
@@ -80,6 +107,7 @@ main (int argc, char **argv)
   GstElement *nclua;
   GstElement *sink;
   GstBus *bus;
+  GstStateChangeReturn ret;
 
   if (unlikely (argc != 2))
     {
@@ -113,7 +141,11 @@ main (int argc, char **argv)
   gst_bus_add_watch (bus, bus_async_callback, NULL);
   gst_object_unref (bus);
 
-  gst_element_set_state (pipeline, GST_STATE_PLAYING);
+  ret = gst_element_set_state (pipeline, GST_STATE_PLAYING);
+  if (ret == GST_STATE_CHANGE_ASYNC)
+    ret = gst_element_get_state (pipeline, NULL, NULL, GST_CLOCK_TIME_NONE);
+  g_assert (ret == GST_STATE_CHANGE_SUCCESS);
+
   g_main_loop_run (loop);
 
   gst_element_set_state (pipeline, GST_STATE_NULL);
