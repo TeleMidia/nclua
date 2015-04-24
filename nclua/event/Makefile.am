@@ -41,13 +41,13 @@ dist_eventdata_DATA =\
   user.lua\
   $(NULL)
 
-if BUILD_EVENT_HTTP
+if WITH_EVENT_HTTP
 dist_eventdata_DATA+= http.lua
 else
 EXTRA_DIST+= http.lua
 endif
 
-if BUILD_EVENT_TCP
+if WITH_EVENT_TCP
 dist_eventdata_DATA+= tcp.lua
 else
 EXTRA_DIST+= tcp.lua
@@ -58,7 +58,7 @@ def_dependency =
 endif
 
 # http_soup
-if BUILD_EVENT_HTTP
+if WITH_EVENT_HTTP
 eventlib_LTLIBRARIES+= http_soup.la
 if OS_WIN32
 http_soup_def_dependency = http_soup.def
@@ -91,7 +91,7 @@ stopwatch_la_SOURCES =\
   $(NULL)
 
 # tcp_socket
-if BUILD_EVENT_TCP
+if WITH_EVENT_TCP
 eventlib_LTLIBRARIES+= tcp_socket.la
 if OS_WIN32
 tcp_socket_def_dependency = tcp_socket.def

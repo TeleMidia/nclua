@@ -114,7 +114,7 @@ $(builddir)/gdb.cfg: $(builddir)/env.sh
 endif
 
 # Setup Valgrind; generate suppfile if we have M4.
-if VALGRIND_TESTS
+if ENABLE_VALGRIND
 _VALGRIND = $(VALGRIND) $(VALGRIND_OPTIONS)
 
 if HAVE_M4
@@ -139,10 +139,10 @@ SH_LOG_COMPILER = $(SHELL)
 # Setup tests environment.
 canvas_so = canvas$(SOEXT)
 stopwatch_so = stopwatch$(SOEXT)
-if BUILD_EVENT_HTTP
+if WITH_EVENT_HTTP
 http_soup_so = http_soup$(SOEXT)
 endif
-if BUILD_EVENT_TCP
+if WITH_EVENT_TCP
 tcp_socket_so = tcp_socket$(SOEXT)
 endif
 LD_PRELOAD = $(canvas_so):$(stopwatch_so):$(http_soup_so):$(tcp_socket_so)
@@ -205,7 +205,7 @@ scripts += test-event-stopwatch-api.lua
 scripts += test-event-stopwatch-new.lua
 scripts += test-event-stopwatch-get-time.lua
 
-if BUILD_EVENT_TCP
+if WITH_EVENT_TCP
 # event.tcp_socket
 scripts += test-event-tcp-socket-api.lua
 scripts += test-event-tcp-socket-new.lua
@@ -222,7 +222,7 @@ scripts += test-event-tcp-filter.lua
 scripts += test-event-tcp-engine.lua
 endif
 
-if BUILD_EVENT_HTTP
+if WITH_EVENT_HTTP
 # event.http_soup
 scripts += test-event-http-soup-api.lua
 scripts += test-event-http-soup-new.lua

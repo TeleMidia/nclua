@@ -24,7 +24,7 @@ LDADD = $(top_builddir)/lib/libnclua.la
 
 bin_PROGRAMS =
 
-if BUILD_NCLUA_BIN
+if WITH_NCLUA_GTK
 bin_PROGRAMS+= nclua
 endif
 nclua_CFLAGS = $(AM_CFLAGS) $(LUA_CFLAGS) $(CAIRO_CFLAGS)\
@@ -35,7 +35,7 @@ nclua_SOURCES =\
   nclua.c\
   $(NULL)
 
-if BUILD_GSTNCLUA
+if WITH_NCLUA_GST
 bin_PROGRAMS+= nclua-gst
 endif
 nclua_gst_CFLAGS = $(AM_CFLAGS) $(GSTREAMER_CFLAGS)

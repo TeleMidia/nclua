@@ -93,7 +93,7 @@ libnclua_la_SOURCES =\
   ncluaw.h\
   $(NULL)
 
-if BUILD_GSTNCLUA
+if WITH_NCLUA_GST
 gstplugins_LTLIBRARIES = gstnclua.la
 noinst_HEADERS+= gstx-macros.h
 endif

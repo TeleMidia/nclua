@@ -43,7 +43,7 @@ usage:
 	@perl -wnle '$(perl_usage)' $(ME)
 
 
-OPTIONS?= --enable-ansi --enable-debug --enable-gcc-warnings
+OPTIONS?= --enable-ansi --enable-debug --enable-warnings
 EXTRA?=
 
 # Bootstraps project for debugging.
@@ -115,7 +115,6 @@ fetch-remote:
 	fetch $(gnulib_git)/build-aux/useless-if-before-free ./build-aux;\
 	fetch $(gnulib_git)/m4/manywarnings.m4 ./build-aux;\
 	fetch $(gnulib_git)/m4/perl.m4 ./build-aux;\
-	fetch $(gnulib_git)/m4/valgrind-tests.m4 ./build-aux;\
 	fetch $(gnulib_git)/m4/visibility.m4 ./build-aux;\
 	fetch $(gnulib_git)/m4/warnings.m4 ./build-aux;\
 	true

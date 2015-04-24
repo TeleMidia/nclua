@@ -56,13 +56,9 @@ NCLua TODO -- Tasks that need implementing.                    -*-outline-*-
 
   + src/nclua.c: Improve GTK+ to NCLua key event mapping.
 
-  + build-aux/syntax-check-copyright: Make it project independent.
+  + build-aux/syntax-check-copyright: Make it project agnostic.
 
     This way we can use it in other projects (cf. syntax-check).
-
-  + configure.ac: Move code coverage setup to separated file.
-
-    E.g., configure.ac.coverage.
 
 ============================================================================
 

@@ -28,7 +28,7 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <glib-object.h>
 #include <pango/pangocairo.h>
 
-#if defined HAVE_GTK && HAVE_GTK
+#if defined WITH_NCLUA_GTK && WITH_NCLUA_GTK
 # include <gtk/gtk.h>
 #endif
 
@@ -222,7 +222,7 @@ cairox_surface_create_from_file (const char *path, cairo_surface_t **dup)
 {
   cairo_surface_t *sfc;
 
-#if defined HAVE_GTK && HAVE_GTK
+#if defined WITH_NCLUA_GTK && WITH_NCLUA_GTK
 
   GdkPixbuf *pixbuf;
   GError *error = NULL;
@@ -348,8 +348,8 @@ cairox_surface_duplicate (cairo_surface_t *src, cairo_surface_t **dup,
  *       -> nil, errmsg:string
  *
  * Creates a new canvas object.
- * 1st and 2nd forms: Return a canvas initialized with the given image.
- * 3rd and 4th forms: Return a transparent canvas with the given size.
+ * 1st and 2nd forms: Returns a canvas initialized with the given image.
+ * 3rd and 4th forms: Returns a transparent canvas with the given size.
  *
  * If DOUBLEBUF is true, then uses double-buffering, i.e., delay drawing and
  * composition operations until canvas:flush() is called.

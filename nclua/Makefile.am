@@ -46,7 +46,7 @@ canvas_la_LDFLAGS = $(AM_LDFLAGS) $(CAIRO_LIBS)\
   $(GLIB_LIBS) $(PANGO_LIBS) $(canvas_export_symbols)
 canvas_la_SOURCES = canvas.c canvas-color-table.h
 
-if HAVE_GTK
+if WITH_NCLUA_GTK
 canvas_la_CFLAGS += $(GTK_CFLAGS)
 canvas_la_LDFLAGS += $(GTK_LIBS)
 endif

@@ -45,7 +45,7 @@
 !/build-aux/syntax-check
 !/build-aux/syntax-check-copyright
 !/build-aux/useless-if-before-free
-!/build-aux/valgrind-tests.m4
+!/build-aux/util.m4
 !/build-aux/vc-list-files
 !/build-aux/visibility.m4
 !/build-aux/warnings.m4

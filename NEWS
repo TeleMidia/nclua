@@ -5,12 +5,12 @@ NCLua NEWS -- History of user-visible changes.                 -*-outline-*-
   - Add the NCLua GStreamer plugin (gstnclua) and interpreter (nclua-gst)
 
     We added a GStreamer plugin for NCLua, called gstnclua.  You can try it
-    out by running something like:
+    by running something like:
 
         gst-launch nclua file=PATH-TO-SCRIPT ! ximagesink
 
-    Or you can run the standalone interpreter that uses this plugin, namely,
-    nclua-gst.
+    Or you can run the standalone GStreamer interpreter that uses this
+    plugin, namely, nclua-gst.
 
   - Add nclua_resize and ncluaw_resize to libnclua
 
@@ -38,9 +38,9 @@ NCLua NEWS -- History of user-visible changes.                 -*-outline-*-
 
     Now a canvas can be composed onto itself.
 
-  - Add command-line options to NCLua interpreter.
+  - Add command-line options to NCLua GTK interpreter.
 
-    The interpreter now supports the following options:
+    The GTK interpreter now supports the following options:
 
        --fullscreen    enable full-screen mode,
        --help          print usage message,
@@ -50,6 +50,19 @@ NCLua NEWS -- History of user-visible changes.                 -*-outline-*-
 
     You can also press F11 to toggle full-screen mode while the script is
     running.
+
+  - Add new configure options.
+
+    We added the following configure options:
+
+       --enable-valgrind (renamed from --enable-valgrind-tests)
+       --enable-warnings (renamed from --enable-gcc-warnings)
+       --with-event-tcp
+       --with-event-http
+       --with-nclua-gst
+       --with-nclua-gtk
+
+    We moved the recurrent patterns in configure.ac to build-aux/util.m4.
 
 * Version 1.3, February 22, 2015, Guilherme F. Lima
 
