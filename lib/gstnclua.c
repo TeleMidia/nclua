@@ -442,7 +442,7 @@ gst_nclua_keymap_index (const gchar *from)
 
 /* Converts navigation event type TYPE to NCLua type.  */
 
-static const gchar *
+static ATTR_PURE const gchar *
 gst_nclua_navigation_convert_type (GstNavigationEventType type)
 {
   switch (type)
