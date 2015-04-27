@@ -250,7 +250,7 @@ gst_nclua_internal_init (GstNCLua *nclua)
   nclua->fps.n = 0;
   nclua->fps.d = 0;
   nclua->queue.q = g_queue_new ();
-  g_assert (nclua->queue.q != NULL); /* cannot fail */
+  g_assert (nclua->queue.q != NULL);    /* cannot fail */
   g_mutex_init (&nclua->queue.mutex);
   GST_OBJECT_UNLOCK (nclua);
 }
@@ -586,7 +586,8 @@ gst_nclua_fill_func (GstPushSrc *pushsrc, GstBuffer *buf)
   if (unlikely (format == NULL))
     return GST_FLOW_NOT_NEGOTIATED;
 
-  gst_nclua_get_counters (nclua, &time, &frames, &accum_time, &accum_frames);
+  gst_nclua_get_counters (nclua, &time, &frames, &accum_time,
+                          &accum_frames);
   gst_nclua_get_fps (nclua, &fps_n, &fps_d);
 
   /* Format updated.  */
@@ -603,9 +604,7 @@ gst_nclua_fill_func (GstPushSrc *pushsrc, GstBuffer *buf)
              " time=%" GST_TIME_FORMAT ","
              " frames=%" G_GUINT64_FORMAT,
              GST_TIME_ARGS (accum_time),
-             accum_frames,
-             GST_TIME_ARGS (time),
-             frames);
+             accum_frames, GST_TIME_ARGS (time), frames);
 
       if (gst_nclua_get_property_resize (nclua))
         {
@@ -635,22 +634,20 @@ gst_nclua_fill_func (GstPushSrc *pushsrc, GstBuffer *buf)
   else
     {
       next = 0;
-      GST_BUFFER_DURATION (buf) = GST_CLOCK_TIME_NONE; /* forever */
+      GST_BUFFER_DURATION (buf) = GST_CLOCK_TIME_NONE;  /* forever */
     }
 
   debug (nclua, "timestamp %" GST_TIME_FORMAT
          " = accumulated %" GST_TIME_FORMAT
          " + running time %" GST_TIME_FORMAT,
          GST_TIME_ARGS (GST_BUFFER_PTS (buf)),
-         GST_TIME_ARGS (accum_time),
-         GST_TIME_ARGS (time));
+         GST_TIME_ARGS (accum_time), GST_TIME_ARGS (time));
 
   /* Send tick event.  */
   gst_nclua_send_tick_event (nclua->nw,
                              accum_frames + frames,
                              accum_time + time,
-                             accum_time + time,
-                             GST_BUFFER_DURATION (buf));
+                             accum_time + time, GST_BUFFER_DURATION (buf));
 
   /* Update counters.  */
   gst_nclua_set_counters (nclua, next, frames, accum_time, accum_frames);
@@ -695,7 +692,7 @@ gst_nclua_event_func (GstBaseSrc *basesrc, GstEvent *evt)
   GstNCLua *nclua = GST_NCLUA (basesrc);
   switch (GST_EVENT_TYPE (evt))
     {
-    case GST_EVENT_QOS:         /* adjust current fps */
+    case GST_EVENT_QOS:        /* adjust current fps */
       {
         GstQOSType type;
         gdouble prop;
@@ -715,9 +712,7 @@ gst_nclua_event_func (GstBaseSrc *basesrc, GstEvent *evt)
                " proportion=%g,"
                " diff=%" G_GINT64_FORMAT "ms,"
                " timestamp=%" GST_TIME_FORMAT,
-               prop,
-               diff / GST_MSECOND,
-               GST_TIME_ARGS (ts));
+               prop, diff / GST_MSECOND, GST_TIME_ARGS (ts));
 
         gst_nclua_get_counters (nclua, &time, NULL, NULL, NULL);
         if (time < 250 * GST_MSECOND)
@@ -741,13 +736,13 @@ gst_nclua_event_func (GstBaseSrc *basesrc, GstEvent *evt)
         gst_pad_mark_reconfigure (GST_BASE_SRC_PAD (basesrc));
         break;
       }
-    case GST_EVENT_NAVIGATION:  /* push event into event queue */
+    case GST_EVENT_NAVIGATION: /* push event into event queue */
       {
         if (gst_nclua_get_property_navigation (nclua))
           gst_nclua_enqueue_event (nclua, gst_event_ref (evt));
         break;
       }
-    default:                    /* nothing to do */
+    default:                   /* nothing to do */
       break;
     }
   return GST_BASE_SRC_CLASS (parent_class)->event (basesrc, evt);
