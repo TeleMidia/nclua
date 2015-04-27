@@ -19,25 +19,26 @@
 include $(top_srcdir)/build-aux/Makefile.am.common
 include $(top_srcdir)/build-aux/Makefile.am.link
 
-AM_CFLAGS = $(WERROR_CFLAGS) $(WARN_CFLAGS)
+AM_CFLAGS= $(WERROR_CFLAGS) $(WARN_CFLAGS)
 
-EXTRA_DIST = nclua.pc.in nclua.rc.in ncluaconf.h.in
+EXTRA_DIST= nclua.pc.in nclua.rc.in ncluaconf.h.in
 DISTCLEANFILES+= nclua.pc nclua.rc ncluaconf.h
 
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = nclua.pc
+pkgconfigdir= $(libdir)/pkgconfig
+pkgconfig_DATA= nclua.pc
 
-include_HEADERS = nclua.h ncluaconf.h ncluaw.h
-noinst_HEADERS = macros.h luax-macros.h
-lib_LTLIBRARIES = libnclua.la
+include_HEADERS= nclua.h ncluaconf.h ncluaw.h
+noinst_HEADERS= macros.h luax-macros.h
+lib_LTLIBRARIES= libnclua.la
 
 if OS_WIN32
-export_symbols = -export-symbols $(builddir)/nclua.def
-nclua_def_depedency = $(builddir)/nclua.def
-nclua_win32_res = nclua-win32-res.o
-nclua_win32_res_ldflag = -Wl,$(nclua_win32_res)
-install_def_file_cmd = $(INSTALL) $(builddir)/nclua.def $(DESTDIR)$(libdir)/nclua.def
-uninstall_def_file_cmd = -rm $(DESTDIR)$(libdir)/nclua.def
+export_symbols= -export-symbols $(builddir)/nclua.def
+nclua_def_depedency= $(builddir)/nclua.def
+nclua_win32_res= nclua-win32-res.o
+nclua_win32_res_ldflag= -Wl,$(nclua_win32_res)
+install_def_file_cmd= $(INSTALL)\
+  $(builddir)/nclua.def $(DESTDIR)$(libdir)/nclua.def
+uninstall_def_file_cmd= -rm $(DESTDIR)$(libdir)/nclua.def
 endif
 
 sed_nclua_def=\
@@ -64,9 +65,9 @@ nclua.lib: libnclua.la nclua.def
 	  -def:$(builddir)/nclua.def -out:$@
 
 if HAVE_MS_LIB
-noinst_DATA = nclua.lib
-install_ms_lib_cmd = $(INSTALL) nclua.lib $(DESTDIR)$(libdir)
-uninstall_ms_lib_cmd = -rm $(DESTDIR)$(libdir)/nclua.lib
+noinst_DATA= nclua.lib
+install_ms_lib_cmd= $(INSTALL) nclua.lib $(DESTDIR)$(libdir)
+uninstall_ms_lib_cmd= -rm $(DESTDIR)$(libdir)/nclua.lib
 endif
 install-ms-lib:
 	$(install_ms_lib_cmd)
@@ -76,14 +77,14 @@ uninstall-ms-lib:
 install-data-local: install-def-file install-ms-lib
 uninstall-local: uninstall-def-file uninstall-ms-lib
 
-libnclua_la_DEPENDENCIES = $(include_HEADERS) $(noinst_HEADERS)\
+libnclua_la_DEPENDENCIES= $(include_HEADERS) $(noinst_HEADERS)\
   $(nclua_def_depedency) $(nclua_win32_res)
-libnclua_la_CPPFLAGS = -DNCLUA_BUILDING
-libnclua_la_CFLAGS = $(AM_CFLAGS) $(CFLAGS_VISIBILITY) $(LUA_CFLAGS)
-libnclua_la_LDFLAGS = $(LUA_LIBS) -version-info $(NCLUA_LIBTOOL_STRING)\
+libnclua_la_CPPFLAGS= -DNCLUA_BUILDING
+libnclua_la_CFLAGS= $(AM_CFLAGS) $(CFLAGS_VISIBILITY) $(LUA_CFLAGS)
+libnclua_la_LDFLAGS= $(LUA_LIBS) -version-info $(NCLUA_LIBTOOL_STRING)\
   $(export_symbols) -no-undefined $(nclua_win32_res_ldflag)
 
-libnclua_la_SOURCES =\
+libnclua_la_SOURCES=\
   luax-macros.h\
   macros.h\
   nclua.c\
@@ -94,16 +95,16 @@ libnclua_la_SOURCES =\
   $(NULL)
 
 if WITH_NCLUA_GST
-gstplugins_LTLIBRARIES = gstnclua.la
+gstplugins_LTLIBRARIES= gstnclua.la
 noinst_HEADERS+= gstx-macros.h
 endif
 
-gstnclua_la_DEPENDENCIES = $(lib_LTLIBRARIES) $(noinst_HEADERS)
-gstnclua_la_CFLAGS = $(AM_CFLAGS) $(LUA_CFLAGS) $(GLIB_CFLAGS)\
+gstnclua_la_DEPENDENCIES= $(lib_LTLIBRARIES) $(noinst_HEADERS)
+gstnclua_la_CFLAGS= $(AM_CFLAGS) $(LUA_CFLAGS) $(GLIB_CFLAGS)\
   $(GSTREAMER_CFLAGS)
-gstnclua_la_LDFLAGS = $(AM_LDFLAGS) -module $(LT_MODULE_LDFLAGS)\
+gstnclua_la_LDFLAGS= $(AM_LDFLAGS) -module $(LT_MODULE_LDFLAGS)\
   $(LUA_LIBS) $(GLIB_LIBS) $(GSTREAMER_LIBS)
-gstnclua_la_LIBADD = $(top_builddir)/lib/libnclua.la
-gstnclua_la_SOURCES =\
+gstnclua_la_LIBADD= $(top_builddir)/lib/libnclua.la
+gstnclua_la_SOURCES=\
   gstnclua.c\
   $(NULL)

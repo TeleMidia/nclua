@@ -15,19 +15,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 if ENABLE_COVERAGE
+LCOV_DIR= coverage
+LCOV_INFO= coverage.info
+COVERAGE_EXCLUDE=
 
-LCOV_DIR = coverage
-LCOV_INFO = coverage.info
-COVERAGE_EXCLUDE ?=
-
-lcov_capture_options = --capture --quiet --directory $(top_builddir)\
+lcov_capture_options= --capture --quiet --directory $(top_builddir)\
   --output-file $(LCOV_INFO) --test-name '$(PACKAGE_NAME)_PERF'\
   --no-checksum --compat-libtool --ignore-errors source
 
-lcov_remove_options = --quiet --output-file $(LCOV_INFO)\
+lcov_remove_options= --quiet --output-file $(LCOV_INFO)\
   --remove $(LCOV_INFO) $(COVERAGE_EXCLUDE)
 
-lcov_genhtml_options = --title '$(PACKAGE_NAME) Code Coverage' --quiet\
+lcov_genhtml_options= --title '$(PACKAGE_NAME) Code Coverage' --quiet\
   --prefix $(top_builddir) --output-directory $(LCOV_DIR) --legend\
   --frames --show-details $(LCOV_INFO) --ignore-errors source
 
@@ -47,6 +46,7 @@ coverage-clean:
 clean-local: coverage-clean
 
 else
+COVERAGE_EXCLUDE=
 .PHONY: coverage coverage-clean
 coverage coverage-clean:
 	@echo You need to configure $(PACKAGE_NAME) with support for gcov enabled.

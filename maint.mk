@@ -22,7 +22,7 @@ all: usage
 
 
 # Prints usage message and exits.
-perl_usage =\
+perl_usage=\
   BEGIN {\
     $$/ = "";\
     print "Usage: $(MAKE) -f $(ME) TARGET";\
@@ -57,8 +57,8 @@ perl_dist_get_version:=\
   /^VERSION\s*=\s*(.*)$$/ and print $$1;\
   $(NULL)
 
-dist_get_version = $(shell perl -wlne '$(perl_dist_get_version)' Makefile)
-VERSION = $(call dist_get_version)
+dist_get_version= $(shell perl -wlne '$(perl_dist_get_version)' Makefile)
+VERSION= $(call dist_get_version)
 
 # Outputs project version.
 .PHONY: dist-get-version
@@ -121,7 +121,7 @@ fetch-remote:
 
 
 # Lists project files.
-vc_list_exclude = $(filter-out $(2), $(1))
+vc_list_exclude= $(filter-out $(2), $(1))
 VC_LIST_AC:= $(shell git ls-files '*.ac')
 VC_LIST_ALL:= $(shell git ls-files | perl -wnle '-T and print;')
 VC_LIST_AM:= $(shell git ls-files '*.am' 'build-aux/Makefile.am.*')
@@ -228,7 +228,7 @@ INDENT_JOIN_EMPTY_LINES_EXCLUDE:=\
   examples/luarocks/%\
   $(NULL)
 
-INDENT_VC_LIST_C =\
+INDENT_VC_LIST_C=\
   $(call vc_list_exclude, $(VC_LIST_C), $(INDENT_EXCLUDE))\
   $(NULL)
 
@@ -296,7 +296,12 @@ SC_RULES+= sc-base
 sc-base:
 	@./build-aux/syntax-check\
 	  $(call vc_list_exclude,\
-	    $(VC_LIST_C) $(VC_LIST_LUA) $(VC_LIST_PL) $(VC_LIST_SH),\
+	    $(VC_LIST_AM)\
+	    $(VC_LIST_C)\
+	    $(VC_LIST_LUA)\
+	    $(VC_LIST_MK)\
+	    $(VC_LIST_PL)\
+	    $(VC_LIST_SH),\
 	    $(SC_BASE_EXCLUDE))
 
 
@@ -313,17 +318,28 @@ SC_COPYRIGHT_EXCLUDE_LUA:=\
   $(NULL)
 
 SC_COPYRIGHT_EXCLUDE_SH:=\
+  build-aux/Makefile.am.common\
+  build-aux/Makefile.am.coverage\
+  build-aux/Makefile.am.link\
   $(NULL)
 
-SC_COPYRIGHT_LIST_C =\
-  $(call vc_list_exclude, $(VC_LIST_C), $(SC_COPYRIGHT_EXCLUDE_C))
-
-SC_COPYRIGHT_LIST_LUA =\
-  $(call vc_list_exclude, $(VC_LIST_LUA), $(SC_COPYRIGHT_EXCLUDE_LUA))
-
-SC_COPYRIGHT_LIST_SH =\
+SC_COPYRIGHT_LIST_C=\
   $(call vc_list_exclude,\
-    $(VC_LIST_AC) $(VC_LIST_AM) $(VC_LIST_MK) $(VC_LIST_PL) $(VC_LIST_SH),\
+    $(VC_LIST_C),\
+    $(SC_COPYRIGHT_EXCLUDE_C))
+
+SC_COPYRIGHT_LIST_LUA=\
+  $(call vc_list_exclude,\
+    $(VC_LIST_LUA),\
+    $(SC_COPYRIGHT_EXCLUDE_LUA))
+
+SC_COPYRIGHT_LIST_SH=\
+  $(call vc_list_exclude,\
+    $(VC_LIST_AC)\
+    $(VC_LIST_AM)\
+    $(VC_LIST_MK)\
+    $(VC_LIST_PL)\
+    $(VC_LIST_SH),\
     $(SC_COPYRIGHT_EXCLUDE_SH))
 
 # Checks copyright notice.
@@ -377,7 +393,7 @@ COPYRIGHT_HOLDER:= PUC-Rio/Laboratorio TeleMidia
 
 perl_update_copyright:=\
   s:(\W*Copyright\s\(C\)\s\d+)-?\d*(\s\Q$(COPYRIGHT_HOLDER)\E\b)\
-   :$$1-$(COPYRIGHT_YEAR)$$2:x;
+  :$$1-$(COPYRIGHT_YEAR)$$2:x;
 
 # Updates copyright year.
 .PHONY: update-copyright

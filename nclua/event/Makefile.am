@@ -19,18 +19,18 @@
 include $(top_srcdir)/build-aux/Makefile.am.common
 include $(top_srcdir)/build-aux/Makefile.am.link
 
-AM_CPPFLAGS = -I$(top_srcdir)/lib -I$(top_builddir)/lib
-AM_CFLAGS = $(WERROR_CFLAGS) $(WARN_CFLAGS) $(LUA_CFLAGS)
-AM_LDFLAGS = -module $(LT_MODULE_LDFLAGS) $(LUA_LIBS)
+AM_CPPFLAGS= -I$(top_srcdir)/lib -I$(top_builddir)/lib
+AM_CFLAGS= $(WERROR_CFLAGS) $(WARN_CFLAGS) $(LUA_CFLAGS)
+AM_LDFLAGS= -module $(LT_MODULE_LDFLAGS) $(LUA_LIBS)
 
-EXTRA_DIST =
-noinst_HEADERS = luax-callback.h
+EXTRA_DIST=
+noinst_HEADERS= luax-callback.h
 
-eventlib_LTLIBRARIES =
-eventlibdir = $(lualibdir)/event
-eventdatadir = $(luadatadir)/event
+eventlib_LTLIBRARIES=
+eventlibdir= $(lualibdir)/event
+eventdatadir= $(luadatadir)/event
 
-dist_eventdata_DATA =\
+dist_eventdata_DATA=\
   check.lua\
   engine.lua\
   init.lua\
@@ -54,22 +54,22 @@ EXTRA_DIST+= tcp.lua
 endif
 
 if OS_WIN32
-def_dependency =
+def_dependency=
 endif
 
 # http_soup
 if WITH_EVENT_HTTP
 eventlib_LTLIBRARIES+= http_soup.la
 if OS_WIN32
-http_soup_def_dependency = http_soup.def
+http_soup_def_dependency= http_soup.def
 def_dependency+= $(http_soup_def_dependency)
-http_soup_export_symbols = -export-symbols $(http_soup_def_dependency)
+http_soup_export_symbols= -export-symbols $(http_soup_def_dependency)
 endif
-http_soup_la_DEPENDENCIES = $(http_soup_def_dependency)
-http_soup_la_CFLAGS = $(AM_CFLAGS) $(SOUP_CFLAGS)
-http_soup_la_LDFLAGS = $(AM_LDFLAGS) $(SOUP_LIBS)\
+http_soup_la_DEPENDENCIES= $(http_soup_def_dependency)
+http_soup_la_CFLAGS= $(AM_CFLAGS) $(SOUP_CFLAGS)
+http_soup_la_LDFLAGS= $(AM_LDFLAGS) $(SOUP_LIBS)\
   $(http_soup_export_symbols)
-http_soup_la_SOURCES =\
+http_soup_la_SOURCES=\
   luax-callback.h\
   http_soup.c\
   $(NULL)
@@ -78,15 +78,15 @@ endif
 # stopwatch
 eventlib_LTLIBRARIES+= stopwatch.la
 if OS_WIN32
-stopwatch_def_dependency = stopwatch.def
+stopwatch_def_dependency= stopwatch.def
 def_dependency+= $(stopwatch_def_dependency)
-stopwatch_export_symbols = -export-symbols $(stopwatch_def_dependency)
+stopwatch_export_symbols= -export-symbols $(stopwatch_def_dependency)
 endif
-stopwatch_la_DEPENDENCIES = $(stopwatch_def_dependency)
-stopwatch_la_CFLAGS = $(AM_CFLAGS) $(GLIB_CFLAGS)
-stopwatch_la_LDFLAGS = $(AM_LDFLAGS) $(GLIB_LIBS)\
+stopwatch_la_DEPENDENCIES= $(stopwatch_def_dependency)
+stopwatch_la_CFLAGS= $(AM_CFLAGS) $(GLIB_CFLAGS)
+stopwatch_la_LDFLAGS= $(AM_LDFLAGS) $(GLIB_LIBS)\
   $(stopwatch_export_symbols)
-stopwatch_la_SOURCES =\
+stopwatch_la_SOURCES=\
   stopwatch.c\
   $(NULL)
 
@@ -94,15 +94,15 @@ stopwatch_la_SOURCES =\
 if WITH_EVENT_TCP
 eventlib_LTLIBRARIES+= tcp_socket.la
 if OS_WIN32
-tcp_socket_def_dependency = tcp_socket.def
+tcp_socket_def_dependency= tcp_socket.def
 def_dependency+= $(tcp_socket_def_dependency)
-tcp_socket_export_symbols = -export-symbols $(tcp_socket_def_dependency)
+tcp_socket_export_symbols= -export-symbols $(tcp_socket_def_dependency)
 endif
-tcp_socket_la_DEPENDENCIES = $(tcp_socket_def_dependency)
-tcp_socket_la_CFLAGS = $(AM_CFLAGS) $(GLIB_CFLAGS) $(GIO_CFLAGS)
-tcp_socket_la_LDFLAGS = $(AM_LDFLAGS) $(GLIB_LIBS) $(GIO_LIBS)\
+tcp_socket_la_DEPENDENCIES= $(tcp_socket_def_dependency)
+tcp_socket_la_CFLAGS= $(AM_CFLAGS) $(GLIB_CFLAGS) $(GIO_CFLAGS)
+tcp_socket_la_LDFLAGS= $(AM_LDFLAGS) $(GLIB_LIBS) $(GIO_LIBS)\
   $(tcp_socket_export_symbols)
-tcp_socket_la_SOURCES =\
+tcp_socket_la_SOURCES=\
   luax-callback.h\
   tcp_socket.c\
   $(NULL)

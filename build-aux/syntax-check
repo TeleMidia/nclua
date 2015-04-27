@@ -1,5 +1,5 @@
 #!/usr/bin/perl -wnl
-my $VERSION = '2015-01-07 20:00'; # UTC
+my $VERSION = '2015-04-27 20:12'; # UTC
 
 # Copyright (C) 2014-2015 Free Software Foundation, Inc.
 #
@@ -62,6 +62,15 @@ sub ARGV_LUA {
     return $ARGV =~ /.*\.lua$/;
 }
 
+sub ARGV_MK {
+    return ($ARGV =~ /.*\.(am|mk)$/
+            or $ARGV =~ /(Makefile|Makefile\..*)$/);
+}
+
+sub ARGV_SH {
+    return `head -n1 $ARGV` =~ m:#\s*!\s*/bin/(ba|c|tc|)?sh:;
+}
+
 my (@lua_global_functions) = qw(assert collectgarbage dofile error
     getmetatable ipairs load loadfile next pairs pcall print rawequal rawget
     rawlen rawset require select setmetatable tonumber tostring type
@@ -95,7 +104,7 @@ sub lua_module_is_used {
 # Sanity checks:
 
 ARGV_ANY and do {
-    /\t/g
+    ((not ARGV_MK) and /\t/g)
         and fail_at 'don\'t use tabs';
 
     /.*(\s+)$/ and ($1 ne "\cL" or length $_ > 1)
@@ -135,8 +144,26 @@ ARGV_LUA and do {
         and fail_at "module '$1' declared but not used";
 };
 
-eof and do {
+ARGV_MK and do {
+    /^\w+\s+(=|:=|\+=|\?=)/
+        and fail_at 'useless space before assignment operator';
 
+    /^\w+(=|:=|\+=|\?=)[^\\ ]/
+        and fail_at 'missing space after assignment operator';
+
+    /^\t?\ \S/
+        and fail_at 'don\'t mix tabs and spaces';
+
+    /^\t?(\ +)/ and length ($1) % 2 != 0
+        and fail_at 'uneven indentation';
+};
+
+ARGV_SH and do {
+    /^(\ +)/ and length ($1) %2 != 0
+        and fail_at 'uneven indentation';
+};
+
+eof and do {
     ARGV_ANY and do {
         local $.;
         open FP, '<', $ARGV or die $!;

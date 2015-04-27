@@ -18,20 +18,20 @@
 
 include $(top_srcdir)/build-aux/Makefile.am.common
 
-SUBDIRS = lib nclua src tests
-ACLOCAL_AMFLAGS = -I build-aux ${ACLOCAL_FLAGS}
+SUBDIRS= lib nclua src tests
+ACLOCAL_AMFLAGS= -I build-aux ${ACLOCAL_FLAGS}
 
 # Setup code coverage.
 include $(top_srcdir)/build-aux/Makefile.am.coverage
-COVERAGE_EXCLUDE = tests/\* lib/macros.h lib/luax-macros.h
+COVERAGE_EXCLUDE+= tests/\* lib/macros.h lib/luax-macros.h
 
 # Setup version.
-BUILT_SOURCES = .version
+BUILT_SOURCES= .version
 .version:
 	$(AM_V_GEN)echo $(VERSION) > $@-t && mv $@-t $@
 
 # Prepare distribution.
-changelog_start_date = 2014-04-08
+changelog_start_date= 2014-04-08
 dist-hook:
 	$(AM_V_GEN)echo $(VERSION) > $(distdir)/.tarball-version
 	$(AM_V_GEN)if test -d .git; then\
@@ -43,7 +43,7 @@ dist-hook:
 	fi
 	cp -r $(srcdir)/contrib $(srcdir)/examples $(distdir)
 
-EXTRA_DIST =\
+EXTRA_DIST=\
   .version\
   README.md\
   bootstrap\
@@ -55,7 +55,7 @@ EXTRA_DIST =\
   build-aux/syntax-check-copyright\
   build-aux/syntax-check\
   build-aux/useless-if-before-free\
-  build-aux/valgrind-tests.m4\
+  build-aux/util.m4\
   build-aux/warnings.m4\
   maint.mk\
   $(NULL)
@@ -67,8 +67,8 @@ CLEANFILES+= README
 EXTRA_DIST+= README
 endif
 
-perl_strip_md_id_or_path_re = [\w\.\-/:]
-perl_strip_md =\
+perl_strip_md_id_or_path_re= [\w\.\-/:]
+perl_strip_md=\
   BEGIN { $$n = 0; }\
   s, , ,g;\
   s,`($(perl_strip_md_id_or_path_re)+)`,$$1,g;\
@@ -81,11 +81,11 @@ perl_strip_md =\
 README: README.md
 	$(AM_V_GEN)$(PERL) -wnle '$(perl_strip_md)' README.md > $@
 
-DISTCLEANFILES +=\
+DISTCLEANFILES+=\
   config.cache\
   $(NULL)
 
-MAINTAINERCLEANFILES +=\
+MAINTAINERCLEANFILES+=\
   .version\
   ChangeLog\
   INSTALL\

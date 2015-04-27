@@ -18,21 +18,21 @@
 
 include $(top_srcdir)/build-aux/Makefile.am.common
 
-AM_CPPFLAGS = -I$(top_srcdir)/lib -I$(top_builddir)/lib\
+AM_CPPFLAGS= -I$(top_srcdir)/lib -I$(top_builddir)/lib\
   -DTOP_SRCDIR=\"$(top_srcdir)\" -DTOP_BUILDDIR=\"$(top_builddir)\"
 
-AM_CFLAGS = $(WERROR_CFLAGS) $(WARN_CFLAGS)\
+AM_CFLAGS= $(WERROR_CFLAGS) $(WARN_CFLAGS)\
   $(LUA_CFLAGS) $(CAIRO_CFLAGS) $(GLIB_CFLAGS)
 
-AM_LDFLAGS = -static $(LUA_LIBS) $(CAIRO_LIBS) $(GLIB_LIBS)
-LDADD = $(top_builddir)/lib/libnclua.la
+AM_LDFLAGS= -static $(LUA_LIBS) $(CAIRO_LIBS) $(GLIB_LIBS)
+LDADD= $(top_builddir)/lib/libnclua.la
 
 # Auxiliary libraries.
-noinst_LTLIBRARIES = tests0.la
+noinst_LTLIBRARIES= tests0.la
 
 if OS_WIN32
-tests0_export_symbols = -export-symbols tests0.def
-tests0_def_dependency = tests0.def
+tests0_export_symbols= -export-symbols tests0.def
+tests0_def_dependency= tests0.def
 endif
 
 CLEANFILES+= tests0.def
@@ -40,30 +40,30 @@ tests0.def:
 	$(AM_V_GEN) (echo EXPORTS;\
 	echo luaopen_tests0) >$@
 
-tests0_la_DEPENDENCIES = $(tests0_def_dependency)
-tests0_la_CFLAGS = $(AM_CFLAGS) $(CAIRO_CFLAGS) $(GLIB_CFLAGS)
-tests0_la_LDFLAGS = -module $(LT_MODULE_LDFLAGS) -rpath '/force-shared'\
+tests0_la_DEPENDENCIES= $(tests0_def_dependency)
+tests0_la_CFLAGS= $(AM_CFLAGS) $(CAIRO_CFLAGS) $(GLIB_CFLAGS)
+tests0_la_LDFLAGS= -module $(LT_MODULE_LDFLAGS) -rpath '/force-shared'\
   $(AM_LDFLAGS) $(CAIRO_LIBS) $(GLIB_LIBS) $(tests0_export_symbols)
 
 # Auxiliary programs.
-noinst_PROGRAMS = libnclua-echo lua
-lua_LDADD =
+noinst_PROGRAMS= libnclua-echo lua
+lua_LDADD=
 
 # Auxiliary scripts.
-noinst_SCRIPTS =
+noinst_SCRIPTS=
 
 # Generate env.sh, env.csh and gdb.cfg if we have Perl.
 if HAVE_PERL
 noinst_SCRIPTS+= $(builddir)/env.sh $(builddir)/env.csh $(builddir)/gdb.cfg
 CLEANFILES+= $(builddir)/env.sh $(builddir)/env.csh $(builddir)/gdb.cfg
 
-perl_env_sh_get_tests_environment =\
+perl_env_sh_get_tests_environment=\
   /^AM_TESTS_ENVIRONMENT\s*=\s*\\\n(.*?).\$$\(NULL\)/sm and printf "$$1";\
   $(NULL)
 
 if OS_WIN32
-WINROOT = $(MINGW_ROOT)/msys/1.0
-perl_env_sh_expand_variables =\
+WINROOT= $(MINGW_ROOT)/msys/1.0
+perl_env_sh_expand_variables=\
   s/^\s*//g; s/\\//g;\
   s,\$$\(SOEXT\),$(SOEXT),g;\
   s,\$$\(builddir\),$(WINROOT)$(abs_builddir),g;\
@@ -73,7 +73,7 @@ perl_env_sh_expand_variables =\
   s,/,\\,g;\
   $(NULL)
 else
-perl_env_sh_expand_variables =\
+perl_env_sh_expand_variables=\
   s/^\s*//g; s/\\//g;\
   s:\$$\(SOEXT\):$(SOEXT):g;\
   s:\$$\(builddir\):$(abs_builddir):g;\
@@ -83,7 +83,7 @@ perl_env_sh_expand_variables =\
   $(NULL)
 endif
 
-perl_env_sh_remove_ld_preload =\
+perl_env_sh_remove_ld_preload=\
   /^\s*export\s*LD_PRELOAD=/ or print;\
   $(NULL)
 
@@ -93,7 +93,7 @@ $(builddir)/env.sh:
 	  | $(PERL) -wple '$(perl_env_sh_expand_variables)'\
 	  | $(PERL) -wnle '$(perl_env_sh_remove_ld_preload)' > $@
 
-perl_env_csh_replace_env_sh =\
+perl_env_csh_replace_env_sh=\
   s/^export (\w+)=(.*);$$/setenv $$1 $$2/;\
   $(NULL)
 
@@ -101,7 +101,7 @@ $(builddir)/env.csh: $(builddir)/env.sh
 	$(AM_V_GEN)cat $(builddir)/env.sh\
 	  | $(PERL) -wple '$(perl_env_csh_replace_env_sh)' > $@
 
-perl_gdb_cfg_replace_env_sh =\
+perl_gdb_cfg_replace_env_sh=\
   s/^export/set environment/;\
   s/(.*);$$/$$1/;\
   s/\"//g;\
@@ -114,39 +114,39 @@ endif
 
 # Setup Valgrind; generate suppfile if we have M4.
 if ENABLE_VALGRIND
-_VALGRIND = $(VALGRIND) $(VALGRIND_OPTIONS)
+_VALGRIND= $(VALGRIND) $(VALGRIND_OPTIONS)
 
 if HAVE_M4
 noinst_SCRIPTS+= $(builddir)/suppfile
 CLEANFILES+= $(builddir)/suppfile
-VALGRIND_OPTIONS = --suppressions=$(builddir)/suppfile
+VALGRIND_OPTIONS= --suppressions=$(builddir)/suppfile
 $(builddir)/suppfile: $(srcdir)/suppfile.m4
 	$(AM_V_GEN)$(M4) $(srcdir)/suppfile.m4 > $@
 endif
 else
-_VALGRIND =
+_VALGRIND=
 endif
 
 # Setup test framework.
-AM_COLOR_TESTS = always
-DISABLE_HARD_ERRORS = true
-TEST_EXTENSIONS = .lua .sh
-LOG_COMPILER = $(_VALGRIND)
-LUA_LOG_COMPILER = $(_VALGRIND) $(builddir)/lua
-SH_LOG_COMPILER = $(SHELL)
+AM_COLOR_TESTS= always
+DISABLE_HARD_ERRORS= true
+TEST_EXTENSIONS= .lua .sh
+LOG_COMPILER= $(_VALGRIND)
+LUA_LOG_COMPILER= $(_VALGRIND) $(builddir)/lua
+SH_LOG_COMPILER= $(SHELL)
 
 # Setup tests environment.
-canvas_so = canvas$(SOEXT)
-stopwatch_so = stopwatch$(SOEXT)
+canvas_so= canvas$(SOEXT)
+stopwatch_so= stopwatch$(SOEXT)
 if WITH_EVENT_HTTP
-http_soup_so = http_soup$(SOEXT)
+http_soup_so= http_soup$(SOEXT)
 endif
 if WITH_EVENT_TCP
-tcp_socket_so = tcp_socket$(SOEXT)
+tcp_socket_so= tcp_socket$(SOEXT)
 endif
-LD_PRELOAD = $(canvas_so):$(stopwatch_so):$(http_soup_so):$(tcp_socket_so)
+LD_PRELOAD= $(canvas_so):$(stopwatch_so):$(http_soup_so):$(tcp_socket_so)
 
-AM_TESTS_ENVIRONMENT =\
+AM_TESTS_ENVIRONMENT=\
   export GST_DEBUG="nclua:DEBUG";\
   export GST_PLUGIN_PATH="$(top_builddir)/lib/.libs";\
   export G_DEBUG="all";\
@@ -159,7 +159,7 @@ AM_TESTS_ENVIRONMENT =\
   $(NULL)
 
 # Test scripts.
-scripts =
+scripts=
 # canvas
 scripts+= test-canvas-api.lua
 scripts+= test-canvas-new.lua
@@ -264,10 +264,10 @@ scripts+= test-event-init-uptime.lua
 scripts+= test-event-init-timer.lua
 # libnclua
 scripts+= test-libnclua-echo.sh
-check_SCRIPTS = $(scripts)
+check_SCRIPTS= $(scripts)
 
 # Test programs.
-programs =
+programs=
 programs+= test-libnclua-open
 programs+= test-libnclua-open-x
 programs+= test-libnclua-close
@@ -285,22 +285,22 @@ programs+= test-libncluaw-event-free-x
 programs+= test-libncluaw-debug-get-surface
 programs+= test-libncluaw-debug-dump-surface
 programs+= test-libncluaw-cycle
-check_PROGRAMS = $(programs)
+check_PROGRAMS= $(programs)
 
-TESTS =\
+TESTS=\
   $(check_SCRIPTS)\
   $(check_PROGRAMS)\
   $(NULL)
 
 # Tests that should fail.
-XFAIL_TESTS =\
+XFAIL_TESTS=\
   test-libnclua-open-x\
   test-libncluaw-at-panic-x\
   test-libncluaw-event-clone-x\
   test-libncluaw-event-free-x\
   $(NULL)
 
-EXTRA_DIST =\
+EXTRA_DIST=\
   $(check_SCRIPTS)\
   libnclua-echo.lua\
   ref-cairo-1-14/test-canvas-drawEllipse-2-ref.png\
