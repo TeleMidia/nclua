@@ -35,16 +35,15 @@ tests0_export_symbols = -export-symbols tests0.def
 tests0_def_dependency = tests0.def
 endif
 
-CLEANFILES += tests0.def
+CLEANFILES+= tests0.def
 tests0.def:
 	$(AM_V_GEN) (echo EXPORTS;\
 	echo luaopen_tests0) >$@
 
 tests0_la_DEPENDENCIES = $(tests0_def_dependency)
 tests0_la_CFLAGS = $(AM_CFLAGS) $(CAIRO_CFLAGS) $(GLIB_CFLAGS)
-tests0_la_LDFLAGS = -shared -module -avoid-version -no-undefined\
-  -rpath '/force-shared' $(AM_LDFLAGS) $(CAIRO_LIBS) $(GLIB_LIBS)\
-  $(tests0_export_symbols)
+tests0_la_LDFLAGS = -module $(LT_MODULE_LDFLAGS) -rpath '/force-shared'\
+  $(AM_LDFLAGS) $(CAIRO_LIBS) $(GLIB_LIBS) $(tests0_export_symbols)
 
 # Auxiliary programs.
 noinst_PROGRAMS = libnclua-echo lua
@@ -55,8 +54,8 @@ noinst_SCRIPTS =
 
 # Generate env.sh, env.csh and gdb.cfg if we have Perl.
 if HAVE_PERL
-noinst_SCRIPTS += $(builddir)/env.sh $(builddir)/env.csh $(builddir)/gdb.cfg
-CLEANFILES += $(builddir)/env.sh $(builddir)/env.csh $(builddir)/gdb.cfg
+noinst_SCRIPTS+= $(builddir)/env.sh $(builddir)/env.csh $(builddir)/gdb.cfg
+CLEANFILES+= $(builddir)/env.sh $(builddir)/env.csh $(builddir)/gdb.cfg
 
 perl_env_sh_get_tests_environment =\
   /^AM_TESTS_ENVIRONMENT\s*=\s*\\\n(.*?).\$$\(NULL\)/sm and printf "$$1";\
@@ -118,8 +117,8 @@ if ENABLE_VALGRIND
 _VALGRIND = $(VALGRIND) $(VALGRIND_OPTIONS)
 
 if HAVE_M4
-noinst_SCRIPTS += $(builddir)/suppfile
-CLEANFILES += $(builddir)/suppfile
+noinst_SCRIPTS+= $(builddir)/suppfile
+CLEANFILES+= $(builddir)/suppfile
 VALGRIND_OPTIONS = --suppressions=$(builddir)/suppfile
 $(builddir)/suppfile: $(srcdir)/suppfile.m4
 	$(AM_V_GEN)$(M4) $(srcdir)/suppfile.m4 > $@
@@ -162,109 +161,109 @@ AM_TESTS_ENVIRONMENT =\
 # Test scripts.
 scripts =
 # canvas
-scripts += test-canvas-api.lua
-scripts += test-canvas-new.lua
-scripts += test-canvas-attrAntiAlias.lua
-scripts += test-canvas-attrClip.lua
-scripts += test-canvas-attrColor.lua
-scripts += test-canvas-attrCrop.lua
-scripts += test-canvas-attrFilter.lua
-scripts += test-canvas-attrFlip.lua
-scripts += test-canvas-attrFont.lua
-scripts += test-canvas-attrLineWidth.lua
-scripts += test-canvas-attrOpacity.lua
-scripts += test-canvas-attrRotation.lua
-scripts += test-canvas-attrScale.lua
-scripts += test-canvas-attrSize.lua
-scripts += test-canvas-clear.lua
-scripts += test-canvas-compose.lua
-scripts += test-canvas-drawEllipse.lua
-scripts += test-canvas-drawLine.lua
-scripts += test-canvas-drawPolygon.lua
-scripts += test-canvas-drawRect.lua
-scripts += test-canvas-drawRoundRect.lua
-scripts += test-canvas-drawText.lua
-scripts += test-canvas-flush.lua
-scripts += test-canvas-measureText.lua
-scripts += test-canvas-pixel.lua
-scripts += test-canvas-_resize.lua
+scripts+= test-canvas-api.lua
+scripts+= test-canvas-new.lua
+scripts+= test-canvas-attrAntiAlias.lua
+scripts+= test-canvas-attrClip.lua
+scripts+= test-canvas-attrColor.lua
+scripts+= test-canvas-attrCrop.lua
+scripts+= test-canvas-attrFilter.lua
+scripts+= test-canvas-attrFlip.lua
+scripts+= test-canvas-attrFont.lua
+scripts+= test-canvas-attrLineWidth.lua
+scripts+= test-canvas-attrOpacity.lua
+scripts+= test-canvas-attrRotation.lua
+scripts+= test-canvas-attrScale.lua
+scripts+= test-canvas-attrSize.lua
+scripts+= test-canvas-clear.lua
+scripts+= test-canvas-compose.lua
+scripts+= test-canvas-drawEllipse.lua
+scripts+= test-canvas-drawLine.lua
+scripts+= test-canvas-drawPolygon.lua
+scripts+= test-canvas-drawRect.lua
+scripts+= test-canvas-drawRoundRect.lua
+scripts+= test-canvas-drawText.lua
+scripts+= test-canvas-flush.lua
+scripts+= test-canvas-measureText.lua
+scripts+= test-canvas-pixel.lua
+scripts+= test-canvas-_resize.lua
 # event.queue
-scripts += test-event-queue-api.lua
-scripts += test-event-queue-new.lua
-scripts += test-event-queue-enqueue.lua
-scripts += test-event-queue-dequeue.lua
+scripts+= test-event-queue-api.lua
+scripts+= test-event-queue-new.lua
+scripts+= test-event-queue-enqueue.lua
+scripts+= test-event-queue-dequeue.lua
 # event.engine
-scripts += test-event-engine-api.lua
-scripts += test-event-engine-new.lua
-scripts += test-event-engine-send.lua
-scripts += test-event-engine-receive.lua
-scripts += test-event-engine-reset.lua
-scripts += test-event-engine-cycle.lua
+scripts+= test-event-engine-api.lua
+scripts+= test-event-engine-new.lua
+scripts+= test-event-engine-send.lua
+scripts+= test-event-engine-receive.lua
+scripts+= test-event-engine-reset.lua
+scripts+= test-event-engine-cycle.lua
 # event.stopwatch
-scripts += test-event-stopwatch-api.lua
-scripts += test-event-stopwatch-new.lua
-scripts += test-event-stopwatch-get-time.lua
+scripts+= test-event-stopwatch-api.lua
+scripts+= test-event-stopwatch-new.lua
+scripts+= test-event-stopwatch-get-time.lua
 
 if WITH_EVENT_TCP
 # event.tcp_socket
-scripts += test-event-tcp-socket-api.lua
-scripts += test-event-tcp-socket-new.lua
-scripts += test-event-tcp-socket-is-socket.lua
-scripts += test-event-tcp-socket-connect.lua
-scripts += test-event-tcp-socket-send.lua
-scripts += test-event-tcp-socket-receive.lua
-scripts += test-event-tcp-socket-echo.lua
-scripts += test-event-tcp-socket-timeout.lua
+scripts+= test-event-tcp-socket-api.lua
+scripts+= test-event-tcp-socket-new.lua
+scripts+= test-event-tcp-socket-is-socket.lua
+scripts+= test-event-tcp-socket-connect.lua
+scripts+= test-event-tcp-socket-send.lua
+scripts+= test-event-tcp-socket-receive.lua
+scripts+= test-event-tcp-socket-echo.lua
+scripts+= test-event-tcp-socket-timeout.lua
 # event.tcp (handler plugin)
-scripts += test-event-tcp-api.lua
-scripts += test-event-tcp-check.lua
-scripts += test-event-tcp-filter.lua
-scripts += test-event-tcp-engine.lua
+scripts+= test-event-tcp-api.lua
+scripts+= test-event-tcp-check.lua
+scripts+= test-event-tcp-filter.lua
+scripts+= test-event-tcp-engine.lua
 endif
 
 if WITH_EVENT_HTTP
 # event.http_soup
-scripts += test-event-http-soup-api.lua
-scripts += test-event-http-soup-new.lua
-scripts += test-event-http-soup-is-soup.lua
-scripts += test-event-http-soup-request.lua # requires network
+scripts+= test-event-http-soup-api.lua
+scripts+= test-event-http-soup-new.lua
+scripts+= test-event-http-soup-is-soup.lua
+scripts+= test-event-http-soup-request.lua # requires network
 # event.http (handler plugin)
-scripts += test-event-http-api.lua
-scripts += test-event-http-check.lua
-scripts += test-event-http-filter.lua
-scripts += test-event-http-engine.lua
+scripts+= test-event-http-api.lua
+scripts+= test-event-http-check.lua
+scripts+= test-event-http-filter.lua
+scripts+= test-event-http-engine.lua
 endif
 
 # event.user (handler plugin)
-scripts += test-event-user-api.lua
-scripts += test-event-user-check.lua
-scripts += test-event-user-filter.lua
-scripts += test-event-user-engine.lua
+scripts+= test-event-user-api.lua
+scripts+= test-event-user-check.lua
+scripts+= test-event-user-filter.lua
+scripts+= test-event-user-engine.lua
 # event.key (pass-through plugin)
-scripts += test-event-key-api.lua
-scripts += test-event-key-check.lua
-scripts += test-event-key-filter.lua
+scripts+= test-event-key-api.lua
+scripts+= test-event-key-check.lua
+scripts+= test-event-key-filter.lua
 # event.ncl (pass-through plugin)
-scripts += test-event-ncl-api.lua
-scripts += test-event-ncl-check.lua
-scripts += test-event-ncl-filter.lua
+scripts+= test-event-ncl-api.lua
+scripts+= test-event-ncl-check.lua
+scripts+= test-event-ncl-filter.lua
 # event.pointer (pass-through plugin)
-scripts += test-event-pointer-api.lua
-scripts += test-event-pointer-check.lua
-scripts += test-event-pointer-filter.lua
+scripts+= test-event-pointer-api.lua
+scripts+= test-event-pointer-check.lua
+scripts+= test-event-pointer-filter.lua
 # event.init
-scripts += test-event-init-api.lua
-scripts += test-event-init-init.lua
-scripts += test-event-init-load.lua
-scripts += test-event-init-unload.lua
-scripts += test-event-init-post.lua
-scripts += test-event-init-register.lua
-scripts += test-event-init-unregister.lua
-scripts += test-event-init-cycle.lua
-scripts += test-event-init-uptime.lua
-scripts += test-event-init-timer.lua
+scripts+= test-event-init-api.lua
+scripts+= test-event-init-init.lua
+scripts+= test-event-init-load.lua
+scripts+= test-event-init-unload.lua
+scripts+= test-event-init-post.lua
+scripts+= test-event-init-register.lua
+scripts+= test-event-init-unregister.lua
+scripts+= test-event-init-cycle.lua
+scripts+= test-event-init-uptime.lua
+scripts+= test-event-init-timer.lua
 # libnclua
-scripts += test-libnclua-echo.sh
+scripts+= test-libnclua-echo.sh
 check_SCRIPTS = $(scripts)
 
 # Test programs.
@@ -389,7 +388,7 @@ EXTRA_DIST =\
   tests.lua\
   $(NULL)
 
-CLEANFILES += *.log *.trs\
+CLEANFILES+= *.log *.trs\
   test-libnclua-debug-dump.png\
   test-libncluaw-debug-dump.png\
   $(NULL)

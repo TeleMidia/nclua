@@ -501,6 +501,17 @@ m4_ifnblank([$1], [AU_VAR_POP([CFLAGS])])
 m4_ifnblank([$1], [AU_VAR_POP([LIBS])])
 AC_LANG_POP])
 
+# AU_LIBTOOL_MODULE_LDFLAGS
+# -------------------------
+# LDFLAGS for library modules.
+#
+# Substitutes the variable LT_MODULE_LDFLAGS.
+#
+AC_DEFUN([AU_LIBTOOL_MODULE_LDFLAGS],[dnl
+dnl TODO: Check if linker supports these flags.
+LT_MODULE_LDFLAGS="-shared -avoid-version -no-undefined"
+AC_SUBST([LT_MODULE_LDFLAGS])])
+
 # AU_LIBTOOL_VERSION(PREFIX, CURRENT, REVISION, AGE)
 # --------------------------------------------------
 # Defines Libtool version variables for library with the given prefix.
@@ -512,8 +523,8 @@ AC_LANG_POP])
 # - [PREFIX]_LIBTOOL_CURRENT_MINUS_AGE    set to CURRENT minus AGE
 # - [PREFIX]_LIBTOOL_STRING     set to CURRENT:REVISION:AGE
 #
-AC_DEFUN([AU_LIBTOOL_VERSION],
-[AC_SUBST([$1][_LIBTOOL_CURRENT], [$2])
+AC_DEFUN([AU_LIBTOOL_VERSION],[dnl
+AC_SUBST([$1][_LIBTOOL_CURRENT], [$2])
 AC_SUBST([$1][_LIBTOOL_REVISION], [$3])
 AC_SUBST([$1][_LIBTOOL_AGE], [$4])
 AC_SUBST([$1][_LIBTOOL_CURRENT_MINUS_AGE], m4_eval([$2 - $4]))

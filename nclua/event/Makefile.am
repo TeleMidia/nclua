@@ -21,7 +21,7 @@ include $(top_srcdir)/build-aux/Makefile.am.link
 
 AM_CPPFLAGS = -I$(top_srcdir)/lib -I$(top_builddir)/lib
 AM_CFLAGS = $(WERROR_CFLAGS) $(WARN_CFLAGS) $(LUA_CFLAGS)
-AM_LDFLAGS = -shared -module -avoid-version  -no-undefined $(LUA_LIBS)
+AM_LDFLAGS = -module $(LT_MODULE_LDFLAGS) $(LUA_LIBS)
 
 EXTRA_DIST =
 noinst_HEADERS = luax-callback.h
@@ -110,7 +110,7 @@ endif
 
 # Generate .def files if we're on Win32.
 if OS_WIN32
-CLEANFILES += $(def_dependency)
+CLEANFILES+= $(def_dependency)
 $(def_dependency):
 	$(AM_V_GEN) (echo EXPORTS;\
 	echo luaopen_nclua_event_`echo "$@" | sed s/\.def//`) >$@

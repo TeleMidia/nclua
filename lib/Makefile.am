@@ -43,11 +43,11 @@ endif
 sed_nclua_def=\
   s/^NCLUA_API[ 	]\+[a-zA-Z0-9_]\+[ 	]*\*\?[ 	]*\(nclua[a-zA-Z0-9_]\+\).*/\1/p
 
-CLEANFILES += nclua-win32-res.o
+CLEANFILES+= nclua-win32-res.o
 nclua-win32-res.o: nclua.rc
 	$(AM_V_GEN) $(WINDRES) nclua.rc $@
 
-CLEANFILES += nclua.def
+CLEANFILES+= nclua.def
 nclua.def: nclua.h ncluaw.h
 	$(AM_V_GEN) (echo EXPORTS;\
 	cat nclua.h ncluaw.h | sed -n '$(sed_nclua_def)' | sort;\
@@ -57,7 +57,7 @@ install-def-file:
 uninstall-def-file:
 	$(uninstall_def_file_cmd)
 
-CLEANFILES += nclua.exp nclua.lib
+CLEANFILES+= nclua.exp nclua.lib
 nclua.lib: libnclua.la nclua.def
 	$(AM_V_GEN) lib -machine:$(LIB_EXE_MACHINE_FLAG)\
 	  -name:libnclua-$(NCLUA_LIBTOOL_CURRENT_MINUS_AGE)$(SOEXT)\
@@ -101,8 +101,8 @@ endif
 gstnclua_la_DEPENDENCIES = $(lib_LTLIBRARIES) $(noinst_HEADERS)
 gstnclua_la_CFLAGS = $(AM_CFLAGS) $(LUA_CFLAGS) $(GLIB_CFLAGS)\
   $(GSTREAMER_CFLAGS)
-gstnclua_la_LDFLAGS = $(AM_LDFLAGS) -shared -module -avoid-version\
-  -no-undefined $(LUA_LIBS) $(GLIB_LIBS) $(GSTREAMER_LIBS)
+gstnclua_la_LDFLAGS = $(AM_LDFLAGS) -module $(LT_MODULE_LDFLAGS)\
+  $(LUA_LIBS) $(GLIB_LIBS) $(GSTREAMER_LIBS)
 gstnclua_la_LIBADD = $(top_builddir)/lib/libnclua.la
 gstnclua_la_SOURCES =\
   gstnclua.c\

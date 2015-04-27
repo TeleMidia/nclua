@@ -37,6 +37,7 @@ AM_PROG_AR
 
 LT_PREREQ([2.2])
 LT_INIT([win32-dll])
+AU_LIBTOOL_MODULE_LDFLAGS
 
 # NCLua (package) version.
 AC_SUBST([NCLUA_VERSION_MAJOR], nclua_version_major)
@@ -91,17 +92,17 @@ AU_CHECK_MACROS_H
 AU_CHECK_LUA(ua_required_version)
 
 # Helper macro: Breaks version into major, minor, and micro.
-m4_define([__my_break_version],[dnl
+m4_define([_my_break_version],[dnl
 AC_DEFINE(m4_toupper([$1])[_REQUIRED_]m4_toupper([$3]),
   m4_default(au_version_$3([$2]), [0]),
  [$1 required $3 version])])
-m4_define([_my_break_version],[dnl
-__my_break_version([$1], [$2], [major])
-__my_break_version([$1], [$2], [minor])
-__my_break_version([$1], [$2], [micro])])
+m4_define([my_break_version],[dnl
+_my_break_version([$1], [$2], [major])
+_my_break_version([$1], [$2], [minor])
+_my_break_version([$1], [$2], [micro])])
 
 # Check for Cairo.
-_my_break_version([cairo], cairo_required_version)
+my_break_version([cairo], cairo_required_version)
 AU_CHECK_PKG([CAIRO], [cairo >= cairo_required_version],
  [AC_LANG_PROGRAM([[
 #include <cairo.h>
@@ -115,7 +116,7 @@ AU_CHECK_PKG([CAIRO], [cairo >= cairo_required_version],
  [AC_LANG_PROGRAM([[]], [[cairo_create (0);]])])
 
 # Check for GLib.
-_my_break_version([glib], glib_required_version)
+my_break_version([glib], glib_required_version)
 AU_CHECK_PKG([GLIB],
   glib-2.0 >= glib_required_version dnl
   gobject-2.0 >= glib_required_version,
@@ -159,7 +160,7 @@ AH_VERBATIM([G_TYPE_INIT_WRAPPER],
 AC_MSG_RESULT([$must_call_g_type_init])
 
 # Check for Pango.
-_my_break_version([pango], pango_required_version)
+my_break_version([pango], pango_required_version)
 AU_CHECK_PKG([PANGO],
   pango >= pango_required_version dnl
   pangocairo >= pango_required_version,
@@ -190,7 +191,7 @@ AU_CHECK_OPTIONAL_PKG([event-tcp], [build the tcp event class], [],
  [AC_LANG_PROGRAM([[]], [[g_socket_client_new ();]])])
 
 # Check for SOUP (optional).
-_my_break_version([soup], soup_required_version)
+my_break_version([soup], soup_required_version)
 AU_CHECK_OPTIONAL_PKG([event-http], [build the http event class], [],
  [SOUP], libsoup-2.4 >= soup_required_version,
  [AC_LANG_PROGRAM([[
@@ -205,7 +206,7 @@ AU_CHECK_OPTIONAL_PKG([event-http], [build the http event class], [],
  [AC_LANG_PROGRAM([[]], [[soup_session_new_with_options (0, 0, 0);]])])
 
 # Check for GStreamer (optional).
-_my_break_version([gstreamer], gstreamer_required_version)
+my_break_version([gstreamer], gstreamer_required_version)
 AU_CHECK_OPTIONAL_PKG([nclua-gst],
  [build the NCLua plugin for GStreamer], [],
  [GSTREAMER],
@@ -235,7 +236,7 @@ AS_IF([test -z "$with_gstpluginsdir"],
 AC_SUBST([gstpluginsdir], [$with_gstpluginsdir])
 
 # Check for GTK (optional).
-_my_break_version([gtk], gtk_required_version)
+my_break_version([gtk], gtk_required_version)
 AU_CHECK_OPTIONAL_PKG([nclua-gtk], [build the nclua GTK interpreter], [],
  [GTK], gtk+-3.0 >= gtk_required_version,
  [AC_LANG_PROGRAM([[
@@ -262,7 +263,7 @@ tests/Makefile
 ])
 
 # Helper macro: Removes 'check' value from with_... variables.
-m4_define([_my_uncheck],[dnl
+m4_define([my_uncheck],[dnl
 m4_case(m4_cmp([$#], [3]),
  [-1], [m4_fatal([$0: wrong number of arguments])],
  [0],  [AS_IF([test "$with_$1" = check],
@@ -271,7 +272,7 @@ m4_case(m4_cmp([$#], [3]),
            [with_$1="no	(requires $3)"])])],
        [$0([$1], [$2], [$3])m4_newline()$0(m4_shift3($@))])])
 
-_my_uncheck(dnl
+my_uncheck(dnl
 [event_tcp],  [GIO],       gio-2.0 >= glib_required_version,
 [event_http], [SOUP],      libsoup-2.4 >= soup_required_version,
 [nclua_gst],  [GSTREAMER], gstreamer-1.0 >= gstreamer_required_version,
