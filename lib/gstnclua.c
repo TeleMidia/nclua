@@ -48,7 +48,7 @@ typedef struct _GstNCLuaClass
 /* Instance data.  */
 typedef struct _GstNCLua
 {
-  GstPushSrc element;           /* parent element */
+  GstPushSrc parent_instance;
 
   /* Properties: */
   struct
@@ -921,8 +921,8 @@ gst_nclua_stop_func (GstBaseSrc *basesrc)
 /* Gets property and stores its value into *VALUE.  */
 
 static void
-gst_nclua_get_property (GObject *obj, guint id, GValue *value,
-                        GParamSpec *spec)
+gst_nclua_get_property_func (GObject *obj, guint id, GValue *value,
+                             GParamSpec *spec)
 {
   GstNCLua *nclua = GST_NCLUA (obj);
   switch (id)
@@ -983,8 +983,8 @@ gst_nclua_get_property (GObject *obj, guint id, GValue *value,
 /* Sets property to the given value.  */
 
 static void
-gst_nclua_set_property (GObject *obj, guint id, const GValue *value,
-                        GParamSpec *spec)
+gst_nclua_set_property_func (GObject *obj, guint id, const GValue *value,
+                             GParamSpec *spec)
 {
   GstNCLua *nclua = GST_NCLUA (obj);
   switch (id)
@@ -1058,8 +1058,8 @@ gst_nclua_class_init (GstNCLuaClass *cls)
   gstbasesrc_class = GST_BASE_SRC_CLASS (cls);
   gstpushsrc_class = GST_PUSH_SRC_CLASS (cls);
 
-  gobject_class->get_property = gst_nclua_get_property;
-  gobject_class->set_property = gst_nclua_set_property;
+  gobject_class->get_property = gst_nclua_get_property_func;
+  gobject_class->set_property = gst_nclua_set_property_func;
 
   g_object_class_install_property
     (gobject_class, PROPERTY_FILE,
