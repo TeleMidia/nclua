@@ -460,6 +460,24 @@ AS_CASE(["$1"],
    [_AU_ERROR_REQ([], [$1], [ are required])],
  [AC_MSG_FAILURE([$1 is required])])])
 
+# AU_GITLOG_TO_CHANGELOG([START-DATE])
+# ------------------------------------
+# Generates ChangeLog from Git log.
+#
+# Substitutes the variables:
+# - GITLOG_TO_CHANGELOG    path to gitlog-to-changelog script
+# - GITLOG_START_DATE      start date to be passed to the above script
+# - GITLOG_FIX             path to git-log-fix script, if any
+#
+# WARNING: Depends on Gnulib's gitlog-to-changelog.
+#
+AC_DEFUN_ONCE([AU_GITLOG_TO_CHANGELOG],[dnl
+AC_REQUIRE_AUX_FILE([gitlog-to-changelog])
+AC_REQUIRE_AUX_FILE([Makefile.am.gitlog])
+AC_SUBST([GITLOG_TO_CHANGELOG], [$ac_aux_dir/gitlog-to-changelog])
+AC_SUBST([GITLOG_FIX], [$ac_aux_dir/git-log-fix])
+AC_SUBST([GITLOG_START_DATE], [$1])])
+
 # AU_GIT_VERSION_GEN(PREFIX)
 # --------------------------
 # Gets version string via Gnulib's git-version-gen script.

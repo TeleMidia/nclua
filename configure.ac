@@ -30,6 +30,7 @@ AC_CONFIG_MACRO_DIR([build-aux])
 AC_USE_SYSTEM_EXTENSIONS
 AC_CONFIG_SRCDIR([lib/nclua.h])
 AC_CONFIG_HEADERS([lib/config.h])
+AU_GITLOG_TO_CHANGELOG([2014-04-08])
 
 AM_INIT_AUTOMAKE([1.14 -Wall -Werror dist-xz gnu no-dist-gzip])
 AM_SILENT_RULES([yes])

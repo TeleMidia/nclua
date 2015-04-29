@@ -31,17 +31,10 @@ BUILT_SOURCES= .version
 	$(AM_V_GEN)echo $(VERSION) > $@-t && mv $@-t $@
 
 # Prepare distribution.
-changelog_start_date= 2014-04-08
+include $(top_srcdir)/build-aux/Makefile.am.gitlog
 dist-hook:
-	$(AM_V_GEN)echo $(VERSION) > $(distdir)/.tarball-version
-	$(AM_V_GEN)if test -d .git; then\
-	  $(top_srcdir)/build-aux/gitlog-to-changelog\
-	    --amend=$(srcdir)/build-aux/git-log-fix\
-	    --since=$(changelog_start_date) > $(distdir)/cl-t;\
-	  rm -f $(distdir)/ChangeLog;\
-	  mv $(distdir)/cl-t $(distdir)/ChangeLog;\
-	fi
-	cp -r $(srcdir)/contrib $(srcdir)/examples $(distdir)
+	@echo $(VERSION) > $(distdir)/.tarball-version
+	@cp -r $(srcdir)/contrib $(srcdir)/examples $(distdir)
 
 EXTRA_DIST=\
   .version\
