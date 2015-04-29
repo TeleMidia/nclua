@@ -432,7 +432,7 @@ sc-useless-if-before-free:
 	$(V_at)$(SHELL) $(build_aux)/useless-if-before-free\
 	  $(SC_USELESS_IF_BEFORE_FREE_ALIASES:%=--name=%)\
 	  $(call vc_list_exclude,\
-	    $(VC_LIST_C),
+	    $(VC_LIST_C),\
 	    $(SC_USELESS_IF_BEFORE_FREE_EXCLUDE))\
 	  && exit 1 || :
 
