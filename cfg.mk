@@ -86,8 +86,10 @@ SYNTAX_CHECK_EXCLUDE=\
 SC_COPYRIGHT_EXCLUDE=\
   build-aux/Makefile.am.common\
   build-aux/Makefile.am.coverage\
+  build-aux/Makefile.am.env\
   build-aux/Makefile.am.gitlog\
   build-aux/Makefile.am.link\
+  build-aux/Makefile.am.valgrind\
   examples/luarocks/%\
   examples/pacman/%\
   examples/www/tcp.lua\

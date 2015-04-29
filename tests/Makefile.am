@@ -52,23 +52,11 @@ lua_LDADD=
 # Auxiliary scripts.
 noinst_SCRIPTS=
 
-# Generate env.sh, env.csh and gdb.cfg.
+# Generate env.sh, env.csh, and gdb.cfg.
 include $(top_srcdir)/build-aux/Makefile.am.env
 
-# Setup Valgrind; generate suppfile if we have M4.
-if ENABLE_VALGRIND
-_VALGRIND= $(VALGRIND) $(VALGRIND_OPTIONS)
-
-if HAVE_M4
-noinst_SCRIPTS+= $(builddir)/suppfile
-CLEANFILES+= $(builddir)/suppfile
-VALGRIND_OPTIONS= --suppressions=$(builddir)/suppfile
-$(builddir)/suppfile: $(srcdir)/suppfile.m4
-	$(AM_V_GEN)$(M4) $(srcdir)/suppfile.m4 > $@
-endif
-else
-_VALGRIND=
-endif
+# Configure Valgrind and generate suppfile from suppfile.m4.
+include $(top_srcdir)/build-aux/Makefile.am.valgrind
 
 # Setup test framework.
 AM_COLOR_TESTS= always

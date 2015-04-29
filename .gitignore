@@ -39,6 +39,7 @@
 !/build-aux/Makefile.am.env
 !/build-aux/Makefile.am.gitlog
 !/build-aux/Makefile.am.link
+!/build-aux/Makefile.am.valgrind
 !/build-aux/git-log-fix
 !/build-aux/git-version-gen
 !/build-aux/gitlog-to-changelog
