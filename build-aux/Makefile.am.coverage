@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-if ENABLE_COVERAGE
 LCOV_DIR= coverage
 LCOV_INFO= coverage.info
 COVERAGE_EXCLUDE=
@@ -30,7 +29,9 @@ lcov_genhtml_options= --title '$(PACKAGE_NAME) Code Coverage' --quiet\
   --prefix $(top_builddir) --output-directory $(LCOV_DIR) --legend\
   --frames --show-details $(LCOV_INFO) --ignore-errors source
 
-.PHONY: coverage
+.PHONY: coverage coverage-clean
+
+if ENABLE_COVERAGE
 coverage: all
 	@$(LCOV) --zerocounters --quiet --directory $(top_builddir)
 	-$(MAKE) $(AM_MAKEFLAGS) -k check
@@ -39,15 +40,11 @@ coverage: all
 	@LANG=C $(GENHTML) $(lcov_genhtml_options)
 	@echo 'REPORT: file://$(abs_top_builddir)/$(LCOV_DIR)/index.html'
 
-.PHONY: coverage-clean
+clean-local: coverage-clean
 coverage-clean:
 	-rm -rf $(LCOV_DIR) $(LCOV_INFO)
 
-clean-local: coverage-clean
-
 else
-COVERAGE_EXCLUDE=
-.PHONY: coverage coverage-clean
 coverage coverage-clean:
 	@echo You need to configure $(PACKAGE_NAME) with support for gcov enabled.
 	@echo E.g., ./configure --enable-debug --enable-coverage
