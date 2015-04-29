@@ -52,65 +52,8 @@ lua_LDADD=
 # Auxiliary scripts.
 noinst_SCRIPTS=
 
-# Generate env.sh, env.csh and gdb.cfg if we have Perl.
-if HAVE_PERL
-noinst_SCRIPTS+= $(builddir)/env.sh $(builddir)/env.csh $(builddir)/gdb.cfg
-CLEANFILES+= $(builddir)/env.sh $(builddir)/env.csh $(builddir)/gdb.cfg
-
-perl_env_sh_get_tests_environment=\
-  /^AM_TESTS_ENVIRONMENT\s*=\s*\\\n(.*?).\$$\(NULL\)/sm and printf "$$1";\
-  $(NULL)
-
-if OS_WIN32
-WINROOT= $(MINGW_ROOT)/msys/1.0
-perl_env_sh_expand_variables=\
-  s/^\s*//g; s/\\//g;\
-  s,\$$\(SOEXT\),$(SOEXT),g;\
-  s,\$$\(builddir\),$(WINROOT)$(abs_builddir),g;\
-  s,\$$\(srcdir\),$(WINTROOT)$(abs_srcdir),g;\
-  s,\$$\(top_builddir\),$(WINROOT)$(abs_top_builddir),g;\
-  s,\$$\(top_srcdir\),$(WINROOT)$(abs_top_srcdir),g;\
-  s,/,\\,g;\
-  $(NULL)
-else
-perl_env_sh_expand_variables=\
-  s/^\s*//g; s/\\//g;\
-  s:\$$\(SOEXT\):$(SOEXT):g;\
-  s:\$$\(builddir\):$(abs_builddir):g;\
-  s:\$$\(srcdir\):$(abs_srcdir):g;\
-  s:\$$\(top_builddir\):$(abs_top_builddir):g;\
-  s:\$$\(top_srcdir\):$(abs_top_srcdir):g;\
-  $(NULL)
-endif
-
-perl_env_sh_remove_ld_preload=\
-  /^\s*export\s*LD_PRELOAD=/ or print;\
-  $(NULL)
-
-$(builddir)/env.sh:
-	$(AM_V_GEN)cat $(builddir)/Makefile\
-	  | $(PERL) -00 -wnle '$(perl_env_sh_get_tests_environment)'\
-	  | $(PERL) -wple '$(perl_env_sh_expand_variables)'\
-	  | $(PERL) -wnle '$(perl_env_sh_remove_ld_preload)' > $@
-
-perl_env_csh_replace_env_sh=\
-  s/^export (\w+)=(.*);$$/setenv $$1 $$2/;\
-  $(NULL)
-
-$(builddir)/env.csh: $(builddir)/env.sh
-	$(AM_V_GEN)cat $(builddir)/env.sh\
-	  | $(PERL) -wple '$(perl_env_csh_replace_env_sh)' > $@
-
-perl_gdb_cfg_replace_env_sh=\
-  s/^export/set environment/;\
-  s/(.*);$$/$$1/;\
-  s/\"//g;\
-  $(NULL)
-
-$(builddir)/gdb.cfg: $(builddir)/env.sh
-	$(AM_V_GEN)cat $(builddir)/env.sh\
-	  | $(PERL) -wple '$(perl_gdb_cfg_replace_env_sh)' > $@
-endif
+# Generate env.sh, env.csh and gdb.cfg.
+include $(top_srcdir)/build-aux/Makefile.am.env
 
 # Setup Valgrind; generate suppfile if we have M4.
 if ENABLE_VALGRIND
