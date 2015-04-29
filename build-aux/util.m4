@@ -479,6 +479,7 @@ AC_DEFUN([au_version_minor], [m4_bregexp([$1], _au_version_re, [\2])])
 AC_DEFUN([au_version_micro], [m4_bregexp([$1], _au_version_re, [\3])])
 AC_DEFUN_ONCE([AU_GIT_VERSION_GEN],[dnl
 AC_BEFORE([$0], [AC_INIT])
+AC_REQUIRE_AUX_FILE([git-version-gen])
 m4_define([$1][_version_string], m4_esyscmd(_au_version_cmd))
 m4_define([$1][_version_major],
   m4_default(au_version_major($1_version_string), [0]))
