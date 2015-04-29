@@ -232,7 +232,16 @@ perl_fetch_remote_utilm4=\
 # Fetches remote files.
 .PHONY: fetch-remote
 fetch-remote:
-	$(V_at)$(MAKE) -f $(ME) clean-remote
+	@case "$(REMOTE_FILES)" in \
+	*\ $(ME)\ *)\
+	  $(V_P) && echo "chmod +w $(ME)";\
+	  chmod +w $(ME);\
+	  $(V_P) && echo "rm -f $(filter-out $(ME), $(REMOTE_FILES))";\
+	  rm -f $(filter-out $(ME), $(REMOTE_FILES));;\
+	*)\
+	  $(V_P) && echo "rm -f $(REMOTE_FILES)";\
+	  rm -f $(REMOTE_FILES);;\
+	esac
 	@$(PERL) -0777 -wne '$(perl_fetch_remote_utilm4)' $(configure_ac)
 	@$(FETCH) -dir=build-aux '$(gnulib)/build-aux/useless-if-before-free'
 	$(V_at)$(MAKE) -f $(ME) fetch-remote-local
