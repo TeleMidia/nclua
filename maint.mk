@@ -264,7 +264,8 @@ fetch-remote-local:
 # Cleans remote files.
 .PHONY: clean-remote
 clean-remote:
-	-test -n "$(REMOTE_FILES)" && rm -f $(REMOTE_FILES)
+	test -n "$(filter-out $(ME), $(REMOTE_FILES))"\
+	  && rm -f $(filter-out $(ME), $(REMOTE_FILES))
 
 
 # Lists project files.
