@@ -41,20 +41,6 @@ static const int _luax_callback_data_magic = 0;
 #define LUAX_CALLBACK_REGISTRY_INDEX\
   (deconst (void *, &_luax_callback_data_magic))
 
-/* Auxiliary function used by data_push, data_unref, and
-   data_push_and_unref.  */
-
-static inline lua_State *
-_luax_callback_data_get_registry (luax_callback_data_t *cb_data)
-{
-  lua_State *L;
-  L = cb_data->L;
-  assert (L != NULL);
-  luax_mregistry_get (L, LUAX_CALLBACK_REGISTRY_INDEX);
-  assert (!lua_isnil (L, -1));
-  return L;
-}
-
 /* Allocates a new callback-data object and associates it with object at the
    top of stack (and pops the latter).  Returns the allocated callback-data
    object.  */
@@ -82,6 +68,20 @@ luax_callback_data_ref (lua_State *L, void *data)
   lua_pop (L, 1);
 
   return cb_data;
+}
+
+/* Internal function used by data_push, data_unref, and
+   data_push_and_unref.  */
+
+static ATTR_UNUSED lua_State *
+_luax_callback_data_get_registry (luax_callback_data_t *cb_data)
+{
+  lua_State *L;
+  L = cb_data->L;
+  assert (L != NULL);
+  luax_mregistry_get (L, LUAX_CALLBACK_REGISTRY_INDEX);
+  assert (!lua_isnil (L, -1));
+  return L;
 }
 
 /* Gets the data associated with callback-data object CB_DATA.  */
