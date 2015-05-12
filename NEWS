@@ -2,6 +2,12 @@ NCLua NEWS -- History of user-visible changes.
 
 * Version 1.4, ???
 
+  - Add support to incremental responses to the HTTP event class.
+
+    We updated the syntax and semantics of HTTP events.  Now the response
+    body can be received incrementally, via multiple response events; and
+    pending requests can be canceled.
+
   - Add the NCLua GStreamer plugin (gstnclua) and interpreter (nclua-gst)
 
     We added a GStreamer plugin for NCLua, called gstnclua.  You can try it
