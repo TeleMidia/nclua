@@ -150,7 +150,7 @@ l_soup_cancel (lua_State *L)
 /*-
  * soup.cycle ()
  *
- * Cycles the soup engine one, i.e., process the pending requests for all
+ * Cycles the soup engine once, i.e., process the pending requests for all
  * sessions, triggering the appropriate callbacks.
  */
 static int
@@ -220,7 +220,7 @@ request_finished (GObject *source, GAsyncResult *result, gpointer data)
       request = SOUP_REQUEST (soup->request);
       if (unlikely (request == NULL || SOUP_REQUEST (source) != request))
         {
-          /* Request was canceled; do nothing.   */
+          /* Request was canceled; nothing to do.   */
           luax_callback_data_unref (cb_data);
           return;
         }
