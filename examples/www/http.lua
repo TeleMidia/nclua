@@ -23,7 +23,6 @@ local http = {}
 
 local assert = assert
 local coroutine = coroutine
-local pairs = pairs
 
 local event = event
 _ENV =nil

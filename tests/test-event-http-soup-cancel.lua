@@ -22,7 +22,6 @@ local ASSERT_CHECK_OBJECT = tests.ASSERT_CHECK_OBJECT
 local FAIL = tests.fail
 local TRACE_SEP = tests.trace_sep
 local TRACE = tests.trace
-local print = print
 
 local soup = require ('nclua.event.http_soup')
 _ENV = nil
