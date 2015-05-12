@@ -34,35 +34,22 @@ local function ASSERT_ERROR_FILTER (...)
    TRACE (errmsg)
 end
 
--- A valid uri.
-local URI = 'http://www.telemidia.puc-rio.br'
-
 -- Check bad class.
 ASSERT_ERROR_FILTER (nil)
 ASSERT_ERROR_FILTER ('unknown')
 
--- Check bad uri.
+-- Check bad type.
 ASSERT_ERROR_FILTER ('http', {})
-
--- Check bad method.
-ASSERT_ERROR_FILTER ('http', URI, {})
-
--- Check bad session.
-ASSERT_ERROR_FILTER ('http', URI, 'get', {})
 
 -- Check class-only.
 local t = http:filter ('http')
 ASSERT (tests.objeq (t, {class='http'}))
 
--- Check class and uri.
-local t = http:filter ('http', URI)
-ASSERT (tests.objeq (t, {class='http', uri=URI}))
+-- Check class and type.
+local t = http:filter ('http', 'request')
+ASSERT (tests.objeq (t, {class='http', type='request'}))
 
--- Check class, uri, and method.
-local t = http:filter ('http', URI, 'post')
-ASSERT (tests.objeq (t, {class='http', uri=URI, method='post'}))
-
--- Check class, uri, method, and session.
-local s = soup:new ()
-local t = http:filter ('http', URI, 'get', s)
-ASSERT (tests.objeq (t, {class='http', uri=URI, method='get', session=s}))
+-- Check class, type, and session.
+local session = {}
+local t = http:filter ('http', 'cancel', session)
+ASSERT (tests.objeq (t, {class='http', type='cancel', session=session}))

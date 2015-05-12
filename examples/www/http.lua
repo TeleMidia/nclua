@@ -28,24 +28,22 @@ local pairs = pairs
 local event = event
 _ENV =nil
 
--- Maps a co-routine object to a table of the form {uri=URI, method=METHOD,
--- session=SESSION}.
-local SESSIONS = {}
+-- Maps a co-routine to the response headers and body so far collected.
+local DATA = {}
 
 -- Resumes co-routine CO with the given arguments.
--- If CO is dead remove it from the SESSIONS table.
+-- If CO is dead remove it from the DATA table.
 local function resume (co, ...)
    assert (coroutine.status (co) == 'suspended')
    assert (coroutine.resume (co, ...))
    if coroutine.status (co) == 'dead' then
-      SESSIONS[co] = nil
+      DATA[co] = nil
    end
 end
 
--- Returns the current co-routing and its associated connection (if any).
+-- Returns the current co-routing.
 local function current ()
-   local co = assert (coroutine.running ())
-   return co, SESSIONS[co]
+   return assert (coroutine.running ())
 end
 
 ---
@@ -62,42 +60,35 @@ end
 -- message.
 --
 local function request_finished (e)
-   local co = nil
-   for _co,t in pairs (SESSIONS) do
-      if t.session == e.session
-      or (t.uri == e.uri and t.method == e.method) then
-         co = _co
-         if t.session == nil then -- register session
-            t.session = e.session
-         end
-         break
-      end
-   end
-   if co == nil then
-      return false              -- nothing to do
-   end
-   if e.error == nil then
-      resume (co, true, e.code, e.headers, e.body)
-   else
+   local co = assert (e.session)
+   if e.error then
       resume (co, false, e.error)
+   else
+      if e.headers then
+         DATA[co].headers = e.headers
+      end
+      if e.body then
+         DATA[co].body = DATA[co].body .. e.body
+      end
+      if e.finished then
+         resume (co, true, e.code, DATA[co].headers, DATA[co].body)
+      end
    end
    return true                  -- consume event
 end
-event.register (request_finished, {class='http'})
+event.register (request_finished, {class='http', type='response'})
 
 function http.request (method, uri, headers, body)
-   local co, t = current ()
-   if t == nil then
-      t = {method=method, uri=uri}
-      SESSIONS[co] = t
-   end
+   local co = current ()
+   DATA[co] = {headers={}, body=''}
    local status, errmsg = event.post {
       class='http',
+      type='request',
       method=method,
       uri=uri,
       headers=headers,
       body=body,
-      session=t.session
+      session=co,
    }
    if status == false then
       return false, errmsg

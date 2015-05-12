@@ -41,6 +41,8 @@ ASSERT_ERROR (soup.request, session, 'GET')
 ASSERT_ERROR (soup.request, session, 'GET', URI, 1)
 ASSERT_ERROR (soup.request, session, 'GET', URI, {}, nil)
 ASSERT_ERROR (soup.request, session, 'GET', URI, {}, '', nil)
+ASSERT_ERROR (soup.request, session, 'GET', URI, {}, '', soup.new, {})
+ASSERT_ERROR (soup.request, session, 'GET', URI, {}, '', soup.new, 0, {})
 
 -- Sanity check: request an invalid URI.
 ASSERT_ERROR (soup.request, session, 'GET', '<invalid-uri>', {}, '',
@@ -54,15 +56,33 @@ ASSERT_ERROR (soup.request, session, 'GET', URI, {['in\nvalid']='abc'}, '',
 ASSERT_ERROR (soup.request, session, 'GET', URI, {['X-test']='\n'}, '',
               function () end)
 
+-- Force a transport error.
+local DONE = false
+local function request_cb (status, soup, method, uri, code, headers, body,
+                           error)
+   TRACE (status, method, uri, soup, error)
+   ASSERT (error ~= nil)
+   DONE = true
+end
+session:request ('GET', 'http://www.x1x1.br', {}, '', request_cb)
+CYCLE_UNTIL (function () return DONE end)
+
 -- Force an HTTP error.
 local DONE = false
-local function request_cb (status, soup, method, uri, code, headers, body)
+local full_body = ''
+local function request_cb (status, soup, method, uri, code, headers, body,
+                           error)
    TRACE (status, method, uri, soup, code)
-   -- tests.dump (headers)
-   -- TRACE (body)
+   tests.dump (headers)
+   TRACE (body)
    ASSERT (status == true)
    ASSERT (code ~= 200)
-   DONE = true
+   ASSERT (error == nil)
+   if #body == 0 then
+      DONE = true
+   else
+      full_body = full_body .. body
+   end
 end
 
 session:request ('POST', 'http://www.puc-rio.br/404', {}, '',
@@ -70,19 +90,24 @@ session:request ('POST', 'http://www.puc-rio.br/404', {}, '',
 CYCLE_UNTIL (function () return DONE end)
 
 -- Make a successful request and check the response body.
-local response_body = ''
 local DONE = false
-local function request_cb (status, soup, method, uri, code, headers, body)
+local full_body = ''
+local function request_cb (status, soup, method, uri, code, headers, body,
+                           error)
    TRACE (status, soup, method, uri, code)
    tests.dump (headers)
    ASSERT (status == true)
    ASSERT (code == 200)
-   response_body = body
-   DONE = true
+   ASSERT (error == nil)
+   if #body == 0 then
+      DONE = true
+   else
+      full_body = full_body .. body
+   end
 end
 
 session:request ('GET', URI, {Accept='text/plain'}, '', request_cb)
 CYCLE_UNTIL (function () return DONE end)
 
 local authors = tests.read_file (tests.mk.top_srcdir..'/AUTHORS')
-ASSERT (response_body == authors)
+ASSERT (full_body == authors)

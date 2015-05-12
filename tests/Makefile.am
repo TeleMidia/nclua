@@ -157,12 +157,13 @@ if WITH_EVENT_HTTP
 scripts+= test-event-http-soup-api.lua
 scripts+= test-event-http-soup-new.lua
 scripts+= test-event-http-soup-is-soup.lua
+scripts+= test-event-http-soup-cancel.lua  # requires network
 scripts+= test-event-http-soup-request.lua # requires network
 # event.http (handler plugin)
 scripts+= test-event-http-api.lua
 scripts+= test-event-http-check.lua
 scripts+= test-event-http-filter.lua
-scripts+= test-event-http-engine.lua
+scripts+= test-event-http-engine.lua # requires network
 endif
 
 # event.user (handler plugin)

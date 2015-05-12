@@ -26,6 +26,7 @@ ASSERT_CHECK_API {
    __gc = 'function',
    __index = 'table',
    __metatable = 'string',
+   cancel = 'function',
    cycle = 'function',
    is_soup = 'function',
    new = 'function',

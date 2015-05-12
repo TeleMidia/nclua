@@ -39,33 +39,41 @@ end
 ASSERT_ERROR_CHECK {}
 ASSERT_ERROR_CHECK {class='unknown'}
 
--- Check bad session.
-ASSERT_ERROR_CHECK {class='http', session=0}
+-- Check missing or bad type.
+ASSERT_ERROR_CHECK {class='http'}
+ASSERT_ERROR_CHECK {class='http', type='unknown'}
 
 -- Check missing or bad method.
 ASSERT_ERROR_CHECK {class='http'}
-ASSERT_ERROR_CHECK {class='http', method='unknown'}
+ASSERT_ERROR_CHECK {class='http', type='request', method='unknown'}
 
 -- Check missing or bad URI.
-ASSERT_ERROR_CHECK {class='http', method='get'}
-ASSERT_ERROR_CHECK {class='http', session=soup:new (),
-                    method='get', uri={}}
+ASSERT_ERROR_CHECK {class='http', type='request', method='get'}
+ASSERT_ERROR_CHECK {class='http', type='request', method='get', uri={}}
 
 -- Check bad headers.
-ASSERT_ERROR_CHECK {class='http', method='post', uri='http://github.com/',
+ASSERT_ERROR_CHECK {class='http', type='request', method='post',
+                    uri='http://github.com/',
                     headers=function () end}
 
 -- Check bad body.
-ASSERT_ERROR_CHECK {class='http', method='post', uri='http://github.com/',
-                    headers={}, body=function ()end}
+ASSERT_ERROR_CHECK {class='http', type='request', method='post',
+                    uri='http://github.com/', headers={},
+                    body=function ()end}
 
--- Check valid request events.
-local evt = {class='http', method='post',
+-- Check valid request events
+local evt = {class='http', type='request', method='post',
              uri='http://www.telemidia.puc-rio.br/',
              headers={['Content-Type']='text/html'},
-             body='moving'}
-
+             body='moving', timeout=33, session={}}
 ASSERT (http:check (evt))
 
-evt.session = soup:new ()
+-- Check valid response event.
+local evt = {class='http', type='response', method='get',
+             uri='http://www.telemidia.puc-rio.br/',
+             headers={}, body='moving', session={}}
+ASSERT (http:check (evt))
+
+-- Check valid cancel event.
+local evt = {class='http', type='cancel', session={}}
 ASSERT (http:check (evt))

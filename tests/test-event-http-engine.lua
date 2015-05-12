@@ -38,28 +38,87 @@ local function AWAIT ()
    return evt
 end
 
--- Fetch project's README from remote site and compare it to local README.
+-- Fetch project's NEWS from remote site and compare it to local NEWS.
+local URI = 'https://github.com/gflima/nclua/raw/master/NEWS'
 http:send {
    class='http',
+   type='request',
    method='GET',
-   uri='https://github.com/gflima/nclua/raw/master/AUTHORS',
+   uri=URI,
+   session=1,
+}
+
+local body = ''
+while true do
+   local evt = AWAIT ()
+   local headers = ''
+   for k,v in pairs (evt.headers or {}) do
+      headers = headers .. ('%s: %s\n'):format (k,v)
+   end
+   TRACE('get:', evt.class, evt.type, evt.method, evt.uri, evt.session,
+         headers, evt.body, evt.finished, evt.error)
+   ASSERT (evt.type == 'response',
+           evt.method == 'get',
+           evt.uri == URI,
+           evt.session == 1,
+           evt.error == nil)
+   body = body .. evt.body
+   if evt.finished then
+      break
+   end
+end
+local readme = tests.read_file (tests.mk.top_srcdir..'/NEWS')
+ASSERT (body == readme)
+
+-- Try to cancel the previous request.
+http:send {
+   class='http',
+   type='cancel',
+   session=1,
+}
+http.cycle ()
+
+-- Force some errors.
+http:send {
+   class='http',
+   type='request',
+   method='get',
+   uri='invalid-uri',
 }
 
 local evt = AWAIT ()
-local headers = ''
-for k,v in pairs (evt.headers) do
-   headers = headers .. ('%s: %s\n'):format (k,v)
-end
-TRACE('get:', evt.class, evt.method, evt.uri, evt.session,
-      headers, evt.body)
-local readme = tests.read_file (tests.mk.top_srcdir..'/AUTHORS')
-ASSERT (evt.body == readme)
+ASSERT (evt.error and #evt.error > 0)
+TRACE ('error:', evt.error)
 
--- Force an error.
 http:send {
    class='http',
-   method='GET',
-   uri='http://www.this-uri-should-be-invalid.com.br/',
+   type='request',
+   method='get',
+   uri='http://www.this-uri-should-not-exist.com/',
+}
+
+local evt = AWAIT ()
+ASSERT (evt.error and #evt.error > 0)
+TRACE ('error:', evt.error)
+
+http:send {
+   class='http',
+   type='request',
+   method='get',
+   uri='http://www.puc-rio.br/',
+   headers={x='\n\n'},
+}
+
+local evt = AWAIT ()
+ASSERT (evt.error and #evt.error > 0)
+TRACE ('error:', evt.error)
+
+http:send {
+   class='http',
+   type='request',
+   method='get',
+   uri='http://www.puc-rio.br/',
+   headers={['\n\n']='x'},
 }
 
 local evt = AWAIT ()
@@ -74,6 +133,7 @@ TRACE ('writing data to '..tmpfile)
 
 http:send {
    class='http',
+   type='request',
    method='GET',
    uri=('http://%s:%s'):format (host, port),
    timeout=1,
