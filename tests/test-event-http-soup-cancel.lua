@@ -19,7 +19,7 @@ local tests = require ('tests')
 local ASSERT = tests.ASSERT
 local ASSERT_ERROR = tests.ASSERT_ERROR
 local ASSERT_CHECK_OBJECT = tests.ASSERT_CHECK_OBJECT
-local FAIL = tests.fail
+local FAIL = tests.FAIL
 local TRACE_SEP = tests.trace_sep
 local TRACE = tests.trace
 
@@ -45,7 +45,8 @@ ASSERT (session:cancel () == false)
 TRACE_SEP ()
 local function request_cb (...)
    TRACE (...)
-   FAIL ()
+   local t = {...}
+   ASSERT (t[#t] == 'Operation was cancelled')
 end
 session:request ('GET', 'http://github.com/', {}, '', request_cb)
 ASSERT (session:cancel () == true)

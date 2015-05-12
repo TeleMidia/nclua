@@ -220,9 +220,9 @@ request_finished (GObject *source, GAsyncResult *result, gpointer data)
       request = SOUP_REQUEST (soup->request);
       if (unlikely (request == NULL || SOUP_REQUEST (source) != request))
         {
-          /* Request was canceled; nothing to do.   */
-          luax_callback_data_unref (cb_data);
-          return;
+          error = g_error_new_literal (G_IO_ERROR, G_IO_ERROR_CANCELLED,
+                                       "Operation was cancelled");
+          goto error;
         }
 
       error = NULL;
