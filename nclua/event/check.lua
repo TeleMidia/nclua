@@ -58,6 +58,21 @@ function check.throw_bad_option (prefix, name, got)
 end
 
 ---
+-- Checks if VALUE is a boolean.  If DEF is given, then assumes that VALUE
+-- is optional and that its default value is DEF.  Returns boolean VALUE if
+-- successful, otherwise throws an error.
+--
+function check.boolean (prefix, name, value, def)
+   local value = value or def
+   local t = type (value)
+   if t == 'boolean' then
+      return value
+   else
+      return check.throw_bad_type (prefix, name, 'boolean', t)
+   end
+end
+
+---
 -- Checks if VALUE is a function.  If DEF is given, then assumes that VALUE
 -- is optional and that its default value is DEF.  Returns function VALUE if
 -- successful,  otherwise throws an error.
@@ -140,14 +155,15 @@ local function build_check_functions (prefix)
       return function (...) return f (prefix, ...) end
    end
    local t = {}
-   t.throw_bad        = wrap (check.throw_bad)
-   t.throw_bad_type   = wrap (check.throw_bad_type)
-   t.throw_bad_option = wrap (check.throw_bad_option)
+   t.boolean          = wrap (check.boolean)
    t.func             = wrap (check.func)
    t.number           = wrap (check.number)
    t.option           = wrap (check.option)
    t.string           = wrap (check.string)
    t.table            = wrap (check.table)
+   t.throw_bad        = wrap (check.throw_bad)
+   t.throw_bad_option = wrap (check.throw_bad_option)
+   t.throw_bad_type   = wrap (check.throw_bad_type)
    return t
 end
 
