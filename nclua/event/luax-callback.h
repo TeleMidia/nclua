@@ -41,6 +41,20 @@ static const int _luax_callback_data_magic = 0;
 #define LUAX_CALLBACK_REGISTRY_INDEX\
   (deconst (void *, &_luax_callback_data_magic))
 
+/* Auxiliary function used by data_push, data_unref, and
+   data_push_and_unref.  */
+
+static inline lua_State *
+_luax_callback_data_get_registry (luax_callback_data_t *cb_data)
+{
+  lua_State *L;
+  L = cb_data->L;
+  assert (L != NULL);
+  luax_mregistry_get (L, LUAX_CALLBACK_REGISTRY_INDEX);
+  assert (!lua_isnil (L, -1));
+  return L;
+}
+
 /* Allocates a new callback-data object and associates it with object at the
    top of stack (and pops the latter).  Returns the allocated callback-data
    object.  */
@@ -72,7 +86,7 @@ luax_callback_data_ref (lua_State *L, void *data)
 
 /* Gets the data associated with callback-data object CB_DATA.  */
 
-static void
+static ATTR_UNUSED void
 luax_callback_data_get_data (luax_callback_data_t *cb_data,
                              lua_State **L, void **data)
 {
@@ -80,19 +94,38 @@ luax_callback_data_get_data (luax_callback_data_t *cb_data,
   set_if_nonnull (data, cb_data->data);
 }
 
-/* Pushes onto stack the object associated with callback-data object CB_DATA
-   and frees CB_DATA.  */
+/* Pushes onto stack the object associated with callback-data object
+   CB_DATA.  */
 
-static void
+static ATTR_UNUSED void
+luax_callback_data_push (luax_callback_data_t *cb_data)
+{
+  lua_State *L;
+  L = _luax_callback_data_get_registry (cb_data);
+  lua_rawgeti (L, -1, cb_data->ref);
+  lua_remove (L, -2);
+}
+
+/* Frees CB_DATA.  */
+
+static ATTR_UNUSED void
 luax_callback_data_unref (luax_callback_data_t *cb_data)
 {
   lua_State *L;
+  L = _luax_callback_data_get_registry (cb_data);
+  luaL_unref (L, -1, cb_data->ref);
+  lua_pop (L, 1);
+  free (cb_data);
+}
 
-  assert (cb_data->L != NULL);
-  L = cb_data->L;
-  luax_mregistry_get (L, LUAX_CALLBACK_REGISTRY_INDEX);
-  assert (!lua_isnil (L, -1));
+/* Pushes onto stack the object associated with callback-data object CB_DATA
+   and frees CB_DATA. */
 
+static ATTR_UNUSED void
+luax_callback_data_push_and_unref (luax_callback_data_t *cb_data)
+{
+  lua_State *L;
+  L = _luax_callback_data_get_registry (cb_data);
   lua_rawgeti (L, -1, cb_data->ref);
   luaL_unref (L, -2, cb_data->ref);
   lua_remove (L, -2);

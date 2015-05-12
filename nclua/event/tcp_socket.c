@@ -110,6 +110,7 @@ __l_socket_gc (lua_State *L)
   GSocketConnection *conn;
 
   socket_check (L, 1, &client, &conn);
+  /* TODO: Check if pending requests are canceled.  */
   g_object_unref (client);
 
   if (conn != NULL)
@@ -145,7 +146,7 @@ connect_finished (GObject *source, GAsyncResult *result, gpointer data)
   luax_callback_data_get_data (cb_data, &L, (void **) &sock);
   assert (sock->client == G_SOCKET_CLIENT (source));
 
-  luax_callback_data_unref (cb_data);
+  luax_callback_data_push_and_unref (cb_data);
   assert (lua_type (L, -1) == LUA_TFUNCTION);
 
   error = NULL;
@@ -264,7 +265,7 @@ disconnect_finished (GObject *source, GAsyncResult *result, gpointer data)
   stream = G_IO_STREAM (sock->conn);
   assert (stream == G_IO_STREAM (source));
 
-  luax_callback_data_unref (cb_data);
+  luax_callback_data_push_and_unref (cb_data);
   assert (lua_type (L, -1) == LUA_TFUNCTION);
 
   error = NULL;
@@ -391,7 +392,7 @@ receive_finished (GObject *source, GAsyncResult *result, gpointer data)
   in = g_io_stream_get_input_stream (G_IO_STREAM (sock->conn));
   assert (in == G_INPUT_STREAM (source));
 
-  luax_callback_data_unref (cb_data);
+  luax_callback_data_push_and_unref (cb_data);
   assert (lua_type (L, -1) == LUA_TFUNCTION);
 
   error = NULL;
@@ -506,7 +507,7 @@ send_finished (GObject *source, GAsyncResult *result, gpointer data)
   out = g_io_stream_get_output_stream (G_IO_STREAM (sock->conn));
   assert (out == G_OUTPUT_STREAM (source));
 
-  luax_callback_data_unref (cb_data);
+  luax_callback_data_push_and_unref (cb_data);
   assert (lua_type (L, -1) == LUA_TFUNCTION);
 
   error = NULL;
