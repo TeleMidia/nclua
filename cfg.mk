@@ -52,6 +52,7 @@ INDENT_TYPES=\
   GstPushSrc\
   GtkWidget\
   SoupMessage\
+  SoupRequestHTTP\
   SoupSession\
   cairo_rectangle_int_t\
   cairo_surface_t\

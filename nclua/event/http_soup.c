@@ -81,9 +81,9 @@ l_soup_new (lua_State *L)
   assert (soup != NULL);        /* cannot fail */
   memset (soup, 0, sizeof (*soup));
   soup->session = soup_session_new ();
-  assert (soup->session != NULL); /* cannot fail */
+  assert (soup->session != NULL);       /* cannot fail */
   soup->cancel = g_cancellable_new ();
-  assert (soup->cancel != NULL); /* cannot fail */
+  assert (soup->cancel != NULL);        /* cannot fail */
   luaL_setmetatable (L, SOUP);
 
   return 1;
@@ -139,7 +139,7 @@ l_soup_cancel (lua_State *L)
   g_cancellable_cancel (soup->cancel);
   g_object_unref (soup->cancel);
   soup->cancel = g_cancellable_new ();
-  assert (soup->cancel != NULL); /* cannot fail */
+  assert (soup->cancel != NULL);        /* cannot fail */
   g_object_unref (soup->request);
   soup->request = NULL;
 
@@ -304,12 +304,12 @@ l_soup_request_callback_closure (lua_State *L)
       assert (lua_type (L, 1) == LUA_TBOOLEAN);
       assert (lua_type (L, 2) == LUA_TSTRING);
 
-      lua_pushvalue (L, 1);      /* true */
-      luax_pushupvalue (L, 1);   /* soup */
-      luax_pushupvalue (L, 2);   /* method */
-      luax_pushupvalue (L, 3);   /* uri */
-      lua_pushinteger (L, code); /* code */
-      if (soup->serial == 1)     /* headers */
+      lua_pushvalue (L, 1);     /* true */
+      luax_pushupvalue (L, 1);  /* soup */
+      luax_pushupvalue (L, 2);  /* method */
+      luax_pushupvalue (L, 3);  /* uri */
+      lua_pushinteger (L, code);        /* code */
+      if (soup->serial == 1)    /* headers */
         {
           SoupMessageHeadersIter it;
           const char *name;
@@ -333,15 +333,15 @@ l_soup_request_callback_closure (lua_State *L)
       assert (lua_type (L, 1) == LUA_TBOOLEAN);
       assert (lua_type (L, 2) == LUA_TSTRING);
 
-      lua_pushvalue (L, 1);       /* false */
-      luax_pushupvalue (L, 1);    /* soup */
-      luax_pushupvalue (L, 2);    /* method */
-      luax_pushupvalue (L, 3);    /* uri */
-      lua_pushnil (L);            /* code */
-      lua_pushnil (L);            /* headers */
-      lua_pushnil (L);            /* body */
-      lua_pushvalue (L, 2);       /* error */
-      luax_pushupvalue (L, 4);    /* callback */
+      lua_pushvalue (L, 1);     /* false */
+      luax_pushupvalue (L, 1);  /* soup */
+      luax_pushupvalue (L, 2);  /* method */
+      luax_pushupvalue (L, 3);  /* uri */
+      lua_pushnil (L);          /* code */
+      lua_pushnil (L);          /* headers */
+      lua_pushnil (L);          /* body */
+      lua_pushvalue (L, 2);     /* error */
+      luax_pushupvalue (L, 4);  /* callback */
       lua_insert (L, -9);
       lua_call (L, 8, 0);
     }
