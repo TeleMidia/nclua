@@ -183,7 +183,7 @@ end
 -- Fail with error message ERRMSG.
 --
 function tests.FAIL (errmsg)
-   error (errmsg, 2)
+   error (errmsg or "should not get here", 2)
 end
 
 ---
