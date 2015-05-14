@@ -385,11 +385,12 @@ int
 main (int argc, char **argv)
 {
   GOptionContext *ctx;
+  gboolean status;
   GError *error = NULL;
   gchar *dirname;
   gchar *basename;
   char *errmsg = NULL;
-  volatile int status = EXIT_SUCCESS;
+  volatile int exit_status = EXIT_SUCCESS;
 
   gtk_init (&argc, &argv);
 
@@ -399,13 +400,15 @@ main (int argc, char **argv)
   g_option_context_set_description (ctx, OPTION_DESC);
   g_option_context_add_main_entries (ctx, options, NULL);
   g_option_context_add_group (ctx, gtk_get_option_group (TRUE));
-  if (unlikely (!g_option_context_parse (ctx, &argc, &argv, &error)))
+  status = g_option_context_parse (ctx, &argc, &argv, &error);
+  g_option_context_free (ctx);
+  if (unlikely (!status))
     {
+      g_assert (error != NULL);
       usage_error (error->message);
       g_error_free (error);
       exit (EXIT_FAILURE);
     }
-  g_option_context_free (ctx);
 
   if (unlikely (argc != 2))
     {
@@ -428,14 +431,17 @@ main (int argc, char **argv)
   g_assert (dirname != NULL);
   g_assert (basename != NULL);
   g_assert (g_chdir (dirname) == 0);
+  g_free (dirname);
 
   /* Open the NCLua state.  */
   ncluaw_state = ncluaw_open (basename, opt_width, opt_height, &errmsg);
+  g_free (basename);
   if (unlikely (ncluaw_state == NULL))
     {
       print_error (errmsg);
       free (errmsg);
-      goto done;
+      ncluaw_close (ncluaw_state);
+      exit (EXIT_FAILURE);
     }
 
   ncluaw_at_panic (ncluaw_state, panic);
@@ -485,10 +491,10 @@ main (int argc, char **argv)
   /* Show interpreter window.  */
   gtk_widget_show_all (app);
 
-  /* Setup panic longjmp stuff.  */
+  /* Setup panic longjmp.  */
   if (setjmp (panic_jmp))
     {
-      status = EXIT_FAILURE;
+      exit_status = EXIT_FAILURE;
       goto done;
     }
 
@@ -496,8 +502,6 @@ main (int argc, char **argv)
   gtk_main ();
 
  done:
-  g_free (dirname);
-  g_free (basename);
   ncluaw_close (ncluaw_state);
-  exit (status);
+  exit (exit_status);
 }
