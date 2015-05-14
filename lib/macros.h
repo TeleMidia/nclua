@@ -198,7 +198,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #undef ASSERT_NOT_REACHED
-#define ASSERT_NOT_REACHED (assert (0), abort ())
+#define ASSERT_NOT_REACHED assert (0 && "unreachable reached!")
 
 #undef CONCAT_
 #define CONCAT_(x, y) x##y
