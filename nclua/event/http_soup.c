@@ -213,6 +213,7 @@ request_finished (GObject *source, GAsyncResult *result, gpointer data)
   cb_data = (luax_callback_data_t *) data;
   luax_callback_data_get_data (cb_data, &L, (void **) &soup);
 
+  input = NULL;
   if (SOUP_IS_REQUEST (source))
     {
       SoupRequest *request;
@@ -243,12 +244,11 @@ request_finished (GObject *source, GAsyncResult *result, gpointer data)
       assert (error == NULL);
       soup->serial++;
 
+      luaL_pushresultsize (&soup->buffer, (size_t) n_received);
       luax_callback_data_push (cb_data);
       assert (lua_type (L, -1) == LUA_TFUNCTION);
-
       lua_pushboolean (L, TRUE);
-      luaL_addsize (&soup->buffer, (size_t) n_received);
-      luaL_pushresult (&soup->buffer);
+      lua_pushvalue (L, -3);
       lua_call (L, 2, 0);
 
       if (n_received == 0)      /* eof */
@@ -264,6 +264,7 @@ request_finished (GObject *source, GAsyncResult *result, gpointer data)
       ASSERT_NOT_REACHED;       /* bad source */
     }
 
+  assert (input != NULL);
   buf = luaL_buffinitsize (L, &soup->buffer, soup->buffer_size);
   g_input_stream_read_async (input, buf, soup->buffer_size,
                              G_PRIORITY_DEFAULT, soup->cancel,
