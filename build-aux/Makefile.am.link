@@ -18,6 +18,7 @@
 link-so: $(LTLIBRARIES)
 	@for soname in $(LTLIBRARIES:.la=$(SOEXT)); do\
 	  if ! test -f $$soname; then\
+	    rm -f $$soname;\
 	    $(LN_S) .libs/$$soname $$soname;\
 	  fi;\
 	done
