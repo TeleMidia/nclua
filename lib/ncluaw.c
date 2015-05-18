@@ -242,6 +242,7 @@ ncluaw_event_equals (const ncluaw_event_t *e1, const ncluaw_event_t *e2)
   if (e1->cls != e2->cls)
     return FALSE;
 
+  result = FALSE;
   switch (e1->cls)
     {
     case NCLUAW_EVENT_KEY:

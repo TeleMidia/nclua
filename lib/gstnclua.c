@@ -458,6 +458,8 @@ gst_nclua_navigation_convert_type (GstNavigationEventType type)
     default:
       ASSERT_NOT_REACHED;
     }
+  ASSERT_NOT_REACHED;
+  return NULL;
 }
 
 /* Converts navigation event FROM into an equivalent NCLua event.  If
