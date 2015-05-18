@@ -2,7 +2,7 @@ NCLua TODO -- Tasks that need implementing.                    -*-outline-*-
 
 * KNOWN BUGS
 
-  + nclua/event/socket.c: Pending operations on disconnect_finished().
+  + nclua/event/tcp_socket.c: Pending operations on disconnect_finished().
 
     The disconnect_finished() function should cancel pending send or receive
     operations.  Otherwise, the 'disconnect' event will cause these
@@ -54,7 +54,11 @@ NCLua TODO -- Tasks that need implementing.                    -*-outline-*-
 
 * OPTIMIZATION AND CLEAN UP
 
-  + src/nclua.c: Improve GTK+ to NCLua key event mapping.
+  + nclua/event/tcp_socket.c: Use luaL_Buffer to reduce string copies.
+
+    Cf. nclua/event/http_soup.c.
+
+  + src/nclua.c: Improve GTK to NCLua key event mapping.
 
   + build-aux/syntax-check-copyright: Make it project agnostic.
 
