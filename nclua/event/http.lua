@@ -97,7 +97,7 @@ local function dispatch (evt)
    http.OUTQ:enqueue (evt)
 end
 
--- Maps user sessions to soup objects and vice-versa.
+-- Maps user sessions to soup objects and vice versa.
 local MAP = {
    _session_to_soup = {},
    _soup_to_session = {},

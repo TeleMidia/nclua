@@ -180,9 +180,9 @@ l_soup_is_soup (lua_State *L)
  * to the given URI.  Calls the callback function CALLBACK whenever a
  * response chunk is received.
  *
- * If TIMEOUT is given, set the request timeout to TIMEOUT seconds.
- * If BUFFER_SIZE is given, then use a buffer of BUFFER_SIZE bytes to
- * collect the chunks of the response body (defaults to 4096 bytes).
+ * If TIMEOUT is given, sets the request timeout to TIMEOUT seconds.
+ * If BUFFER_SIZE is given, uses a buffer of BUFFER_SIZE bytes
+ * (defaults to 4096 bytes) to collect the chunks of the response body.
  *
  * If a response chunk was successfully received, calls CALLBACK as follows:
  *
