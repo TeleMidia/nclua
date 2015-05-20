@@ -21,14 +21,14 @@ include $(top_srcdir)/build-aux/Makefile.am.link
 
 AM_CPPFLAGS= -I$(top_srcdir)/lib -I$(top_builddir)/lib
 AM_CFLAGS= $(WERROR_CFLAGS) $(WARN_CFLAGS) $(LUA_CFLAGS)
-AM_LDFLAGS= -module $(LT_MODULE_LDFLAGS) $(LUA_LIBS)
+AM_LDFLAGS= -module $(LT_MODULE_LDFLAGS)
 
 EXTRA_DIST=
 noinst_HEADERS= luax-callback.h
 
 eventlib_LTLIBRARIES=
-eventlibdir= $(lualibdir)/event
-eventdatadir= $(luadatadir)/event
+eventlibdir= $(nclualibdir)/event
+eventdatadir= $(ncluadatadir)/event
 
 dist_eventdata_DATA=\
   check.lua\

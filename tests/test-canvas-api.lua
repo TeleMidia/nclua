@@ -19,6 +19,7 @@ local tests = require ('tests')
 local ASSERT_CHECK_API = tests.ASSERT_CHECK_API
 
 local canvas = require ('nclua.canvas')
+local print = print
 _ENV = nil
 
 ASSERT_CHECK_API {

@@ -81,8 +81,9 @@ libnclua_la_DEPENDENCIES= $(include_HEADERS) $(noinst_HEADERS)\
   $(nclua_def_depedency) $(nclua_win32_res)
 libnclua_la_CPPFLAGS= -DNCLUA_BUILDING
 libnclua_la_CFLAGS= $(AM_CFLAGS) $(CFLAGS_VISIBILITY) $(LUA_CFLAGS)
-libnclua_la_LDFLAGS= $(LUA_LIBS) -version-info $(NCLUA_LIBTOOL_STRING)\
-  $(export_symbols) -no-undefined $(nclua_win32_res_ldflag)
+libnclua_la_LDFLAGS= -version-info $(NCLUA_LIBTOOL_STRING)\
+  $(export_symbols) -no-undefined $(nclua_win32_res_ldflag)\
+  $(LUA_LIBS)
 
 libnclua_la_SOURCES=\
   luax-macros.h\
@@ -100,10 +101,10 @@ noinst_HEADERS+= gstx-macros.h
 endif
 
 gstnclua_la_DEPENDENCIES= $(lib_LTLIBRARIES) $(noinst_HEADERS)
-gstnclua_la_CFLAGS= $(AM_CFLAGS) $(LUA_CFLAGS) $(GLIB_CFLAGS)\
-  $(GSTREAMER_CFLAGS)
+gstnclua_la_CFLAGS= $(AM_CFLAGS) $(GLIB_CFLAGS)\
+  $(GSTREAMER_CFLAGS) $(LUA_CFLAGS)
 gstnclua_la_LDFLAGS= $(AM_LDFLAGS) -module $(LT_MODULE_LDFLAGS)\
-  $(LUA_LIBS) $(GLIB_LIBS) $(GSTREAMER_LIBS)
+  $(GLIB_LIBS) $(GSTREAMER_LIBS)
 gstnclua_la_LIBADD= $(top_builddir)/lib/libnclua.la
 gstnclua_la_SOURCES=\
   gstnclua.c\

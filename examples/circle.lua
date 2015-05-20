@@ -23,6 +23,7 @@ local math = math
 local os = os
 local table = table
 local tonumber = tonumber
+local toint = math.modf or function (x) return x end
 _ENV = nil
 
 -- Dimensions of the top-level canvas.
@@ -43,7 +44,7 @@ do
 end
 
 local function new_circle ()
-   local max = 1 + WIDTH / 10
+   local max = toint (1 + WIDTH / 10)
    local t = {}
    t.r = math.random (1, max)   -- radius in pixels
    t.w = t.r * 2                -- width in pixels
@@ -120,7 +121,7 @@ local function redraw (e)
          (t.color[3] + 127) % 255,
          255)
       canvas:attrFont ('sans', 7)
-      local text = ('(%d,%d)'):format (xc, yc)
+      local text = ('(%d,%d)'):format (toint (xc), toint (yc))
       local text_w, text_h = canvas:measureText (text)
       canvas:drawText (t.x + w/2 - text_w/2,
                        t.y + h/2 - text_h/2, text)
@@ -131,12 +132,12 @@ local function redraw (e)
    local s = 's'
    if #CIRCLE_LIST == 1 then s = '' end
    local text = ('(%ds, %d circle%s, %dx%d, %d fps)')
-      :format (e.relative / 1000000,
+      :format (toint (e.relative / 1000000),
                #CIRCLE_LIST,
                s,
                WIDTH,
                HEIGHT,
-               1000000 / math.max (e.diff, 1))
+               toint (1000000 / math.max (e.diff, 1)))
    local text_w, text_h = canvas:measureText (text)
    canvas:attrColor ('gray')
    canvas:drawText (1 + (WIDTH - text_w) / 2, 1 + (HEIGHT + text_h) / 2, text)

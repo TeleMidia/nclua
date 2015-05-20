@@ -22,9 +22,9 @@ AM_CPPFLAGS= -I$(top_srcdir)/lib -I$(top_builddir)/lib\
   -DTOP_SRCDIR=\"$(top_srcdir)\" -DTOP_BUILDDIR=\"$(top_builddir)\"
 
 AM_CFLAGS= $(WERROR_CFLAGS) $(WARN_CFLAGS)\
-  $(LUA_CFLAGS) $(CAIRO_CFLAGS) $(GLIB_CFLAGS)
+  $(CAIRO_CFLAGS) $(GLIB_CFLAGS) $(LUA_CFLAGS)
 
-AM_LDFLAGS= -static $(LUA_LIBS) $(CAIRO_LIBS) $(GLIB_LIBS)
+AM_LDFLAGS= -static $(CAIRO_LIBS) $(GLIB_LIBS) $(LUA_LIBS)
 LDADD= $(top_builddir)/lib/libnclua.la
 
 # Auxiliary libraries.
@@ -41,13 +41,12 @@ tests0.def:
 	echo luaopen_tests0) >$@
 
 tests0_la_DEPENDENCIES= $(tests0_def_dependency)
-tests0_la_CFLAGS= $(AM_CFLAGS) $(CAIRO_CFLAGS) $(GLIB_CFLAGS)
+tests0_la_CFLAGS= $(AM_CFLAGS)
 tests0_la_LDFLAGS= -module $(LT_MODULE_LDFLAGS) -rpath '/force-shared'\
-  $(AM_LDFLAGS) $(CAIRO_LIBS) $(GLIB_LIBS) $(tests0_export_symbols)
+  $(CAIRO_LIBS) $(GLIB_LIBS) $(tests0_export_symbols)
 
 # Auxiliary programs.
 noinst_PROGRAMS= libnclua-echo lua
-lua_LDADD=
 
 # Auxiliary scripts.
 noinst_SCRIPTS=

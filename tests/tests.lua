@@ -145,6 +145,9 @@ function tests.ASSERT_CHECK_API (args)
    local mod = args[1]
    table.remove (args, 1)
    local sig = args
+   if mod.__name ~= nil then
+      sig.__name = type (mod.__name)
+   end
    for k,v in pairs (mod) do
       if sig[k] == nil then
          error (("extra %s '%s'"):format (type (v), k), 2)
@@ -312,7 +315,7 @@ function tests.trace (...)
       tests._stopwatch = stopwatch.new ()
       tests._stopwatch:start ()
    end
-   print (('[%dms]'):format (tests._stopwatch:get_time ('ms')), ...)
+   print (('[%.2gms]'):format (tests._stopwatch:get_time ('ms')), ...)
 end
 
 ---

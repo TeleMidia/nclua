@@ -91,6 +91,12 @@ AU_CHECK_MACROS_H
 
 # Check for Lua.
 AU_CHECK_LUA(ua_required_version)
+LUA_LIBS="$LUA_LIBS $LIBM -export-dynamic"
+AS_IF([test "$au_lua_version" = 5.3],
+ [AC_DEFINE([LUA_COMPAT_APIINTCASTS], [1],
+   [Define to 1 to enable Lua macros for integer manipulation])])
+AC_SUBST([ncluadatadir], ["${luadatadir}/$PACKAGE"])
+AC_SUBST([nclualibdir], ["${lualibdir}/$PACKAGE"])
 
 # Helper macro: Breaks version into major, minor, and micro.
 m4_define([_my_break_version],[dnl

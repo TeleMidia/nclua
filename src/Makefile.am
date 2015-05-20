@@ -20,17 +20,17 @@ include $(top_srcdir)/build-aux/Makefile.am.common
 
 AM_CPPFLAGS= -I$(top_srcdir)/lib -I$(top_builddir)/lib
 AM_CFLAGS= $(WERROR_CFLAGS) $(WARN_CFLAGS)
-LDADD= $(top_builddir)/lib/libnclua.la
 
 bin_PROGRAMS=
 
 if WITH_NCLUA_GTK
 bin_PROGRAMS+= nclua
 endif
-nclua_CFLAGS= $(AM_CFLAGS) $(LUA_CFLAGS) $(CAIRO_CFLAGS)\
-  $(GLIB_CFLAGS) $(GTK_CFLAGS)
-nclua_LDFLAGS= $(AM_LDFLAGS) $(LIBM) $(LUA_LIBS) $(CAIRO_LIBS)\
-  $(GLIB_LIBS) $(GTK_LIBS)
+nclua_CFLAGS= $(AM_CFLAGS) $(CAIRO_CFLAGS)\
+  $(GLIB_CFLAGS) $(GTK_CFLAGS) $(LUA_CFLAGS)
+nclua_LDADD= $(top_builddir)/lib/libnclua.la
+nclua_LDFLAGS= $(AM_LDFLAGS) $(CAIRO_LIBS)\
+  $(GLIB_LIBS) $(GTK_LIBS) $(LUA_LIBS)
 nclua_SOURCES=\
   nclua.c\
   $(NULL)
