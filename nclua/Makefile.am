@@ -23,10 +23,11 @@ SUBDIRS= event
 
 AM_CPPFLAGS= -I$(top_srcdir)/lib -I$(top_builddir)/lib
 AM_CFLAGS= $(WERROR_CFLAGS) $(WARN_CFLAGS) $(LUA_CFLAGS)
-AM_LDFLAGS= -module $(LT_MODULE_LDFLAGS) $(LIBM) $(LUA_LIBS)
+AM_LDFLAGS= -module $(LT_MODULE_LDFLAGS)
 
-lualib_LTLIBRARIES=\
+nclualib_LTLIBRARIES=\
   canvas.la\
+  dir.la\
   $(NULL)
 
 if OS_WIN32
@@ -49,3 +50,17 @@ if WITH_NCLUA_GTK
 canvas_la_CFLAGS+= $(GTK_CFLAGS)
 canvas_la_LDFLAGS+= $(GTK_LIBS)
 endif
+
+if OS_WIN32
+dir_export_symbols= -export-symbols dir.def
+dir_def_dependency= dir.def
+endif
+
+CLEANFILES+= dir.def
+dir.def:
+	$(AM_V_GEN) (echo EXPORTS; echo luaopen_nclua_dir) >$@
+
+dir_la_DEPENDENCIES= $(dir_def_depedency)
+dir_la_CFLAGS= $(AM_CFLAGS) $(GLIB_CFLAGS)
+dir_la_LDFLAGS= $(AM_LDFLAGS) $(GLIB_LIBS) $(dir_export_symbols)
+dir_la_SOURCES= dir.c
