@@ -260,7 +260,7 @@ AS_CASE("m4_default([$2], [5.1])",
 au_lua_min_version="5.$au_lua_min_version_minor"
 au_lua_min_version_num="50$au_lua_min_version_minor"
 AC_DEFINE_UNQUOTED([LUA_REQUIRED_VERSION], [$au_lua_min_version_num],
- [lua required version])
+ [Lua required version.])
 dnl Check if we can use pkg-config.
 AC_REQUIRE([PKG_PROG_PKG_CONFIG])
 au_lua_pc="$with_lua_pc"
