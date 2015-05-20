@@ -148,7 +148,7 @@ l_dir_test (lua_State *L)
     NULL
   };
   const char *path;
-  GFileTest test;
+  GFileTest test = G_FILE_TEST_EXISTS;
 
   path = luaL_checkstring (L, 1);
   switch (luaL_checkoption (L, 2, "exists", query_list))
