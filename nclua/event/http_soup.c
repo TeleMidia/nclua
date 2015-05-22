@@ -223,13 +223,13 @@ request_finished (GObject *source, GAsyncResult *result, gpointer data)
         {
           error = g_error_new_literal (G_IO_ERROR, G_IO_ERROR_CANCELLED,
                                        "Operation was cancelled");
-          goto error;
+          goto fail;
         }
 
       error = NULL;
       input = soup_request_send_finish (request, result, &error);
-      if (error != NULL)
-        goto error;
+      if (unlikely (error != NULL))
+        goto fail;
     }
   else if (G_IS_INPUT_STREAM (source))
     {
@@ -238,8 +238,8 @@ request_finished (GObject *source, GAsyncResult *result, gpointer data)
       input = G_INPUT_STREAM (source);
       error = NULL;
       n_received = g_input_stream_read_finish (input, result, &error);
-      if (n_received < 0)
-        goto error;
+      if (unlikely (n_received < 0))
+        goto fail;
 
       assert (error == NULL);
       soup->serial++;
@@ -271,16 +271,14 @@ request_finished (GObject *source, GAsyncResult *result, gpointer data)
                              request_finished, cb_data);
   return;
 
- error:
-  {
-    luax_callback_data_push_and_unref (cb_data);
-    assert (lua_type (L, -1) == LUA_TFUNCTION);
-    lua_pushboolean (L, FALSE);
-    lua_pushstring (L, error->message);
-    g_error_free (error);
-    lua_call (L, 2, 0);
-    return;
-  }
+ fail:
+  luax_callback_data_push_and_unref (cb_data);
+  assert (lua_type (L, -1) == LUA_TFUNCTION);
+  lua_pushboolean (L, FALSE);
+  lua_pushstring (L, error->message);
+  g_error_free (error);
+  lua_call (L, 2, 0);
+  return;
 }
 
 static int
@@ -387,7 +385,7 @@ l_soup_request (lua_State *L)
 
   error = NULL;
   soup->request = soup_session_request_http (session, method, uri, &error);
-  if (error != NULL)
+  if (unlikely (error != NULL))
     {
       lua_pushfstring (L, "%s", error->message);
       g_error_free (error);
@@ -414,11 +412,11 @@ l_soup_request (lua_State *L)
           const char *value;
 
           name = lua_tostring (L, -2);
-          if (strpbrk (name, " \t\r\n:"))
+          if (unlikely (strpbrk (name, " \t\r\n:") != NULL))
             return error_throw_invalid_header (L, "name", name);
 
           value = lua_tostring (L, -1);
-          if (strpbrk (value, "\r\n"))
+          if (unlikely (strpbrk (value, "\r\n") != NULL))
             return error_throw_invalid_header (L, "value", value);
 
           soup_message_headers_append (message->request_headers, name,

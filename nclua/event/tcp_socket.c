@@ -56,7 +56,7 @@ socket_check (lua_State *L, int index, GSocketClient ** client,
 }
 
 /* Returns true if socket SOCK is connected.  */
-#define socket_is_connected(sock)                                       \
+#define socket_is_connected(sock)\
   ((sock)->conn != NULL && g_socket_connection_is_connected ((sock)->conn))
 
 /* Throws "socket already connected" error.  */
