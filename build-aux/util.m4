@@ -528,7 +528,8 @@ AC_LANG_POP])
 #
 AC_DEFUN([AU_LIBTOOL_MODULE_LDFLAGS],[dnl
 dnl TODO: Check if linker supports these flags.
-LT_MODULE_LDFLAGS="-shared -avoid-version -no-undefined"
+dnl TODO: Check if we should use -no-undefined on Linux.
+LT_MODULE_LDFLAGS="-shared -avoid-version"
 AC_SUBST([LT_MODULE_LDFLAGS])])
 
 # AU_LIBTOOL_VERSION(PREFIX, CURRENT, REVISION, AGE)
