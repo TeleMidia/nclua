@@ -119,10 +119,10 @@ get_event_class (lua_State *L, int index)
 }
 
 /* Returns the Lua state associate with NW.  */
-#define ncluaw_get_lua_state(nw) ((lua_State *) (nw))
+#define ncluaw_get_lua_state(nw) ((lua_State *)(nw))
 
 /* Returns the wrapper associated with Lua state L.  */
-#define ncluaw_get_nw_from_lua_state(L) ((ncluaw_t *) (L))
+#define ncluaw_get_nw_from_lua_state(L) ((ncluaw_t *)(L))
 
 /* Calls the panic function stored in field "panic" of module's registry.
    If this field is empty, calls the default panic function (which is stored

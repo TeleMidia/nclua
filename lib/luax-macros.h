@@ -38,13 +38,13 @@ luax_getfield (lua_State *L, int i, const char *k)
       if (*end == '.')
         {
           assert (end - begin > 0);
-          lua_pushlstring (L, begin, (size_t) (end - begin));
+          lua_pushlstring (L, begin, (size_t)(end - begin));
           lua_gettable (L, -2);
           begin = ++end;
         }
     }
   assert (end - begin > 0);
-  lua_pushlstring (L, begin, (size_t) (end - begin));
+  lua_pushlstring (L, begin, (size_t)(end - begin));
   lua_gettable (L, -2);
 
   lua_insert (L, top + 1);
@@ -265,7 +265,7 @@ _luax_dump_stack (lua_State *L, int depth)
   int i;
 
   fflush (stdout);
-  fprintf (stderr, "NCLua stack dump (%p):\n", (void *) L);
+  fprintf (stderr, "Lua stack dump (%p):\n", (void *) L);
 
   for (i = lua_gettop (L); i >= 1; i--)
     {

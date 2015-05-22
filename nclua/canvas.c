@@ -114,13 +114,13 @@ static const char *const fill_or_frame_mode_list[] = {
 #define cairox_do_fill_or_frame(cr, mode)       \
   STMT_BEGIN                                    \
   {                                             \
-    switch (mode)                               \
+    switch ((mode))                             \
       {                                         \
       case 0:                                   \
-        cairo_fill (cr);                        \
+        cairo_fill ((cr));                      \
         break;                                  \
       case 1:                                   \
-        cairo_stroke (cr);                      \
+        cairo_stroke ((cr));                    \
         break;                                  \
       default:                                  \
         ASSERT_NOT_REACHED;                     \
@@ -145,7 +145,7 @@ static const char *const fill_or_frame_mode_list[] = {
 /* Stores the source color of context CR into *R, *G, *B, *A.
    The macro assumes that R, G, B, and A are double-precision numbers.  */
 #define cairox_get_source_rgba(cr, r, g, b, a)\
-  cairo_pattern_get_rgba (cairo_get_source (cr), (r), (g), (b), (a))
+  cairo_pattern_get_rgba (cairo_get_source ((cr)), (r), (g), (b), (a))
 
 /* Sets the source color of context CR to R, G, B, A.
    The macro assumes that R, G, B, and A are double-precision numbers.
@@ -169,27 +169,27 @@ static const char *const fill_or_frame_mode_list[] = {
 
 /* Returns true if context CR is valid.  */
 #define cairox_is_valid(cr)\
-  (cairo_status (cr) == CAIRO_STATUS_SUCCESS)
+  (cairo_status ((cr)) == CAIRO_STATUS_SUCCESS)
 
 /* Returns a description of the current status of context CR.  */
 #define cairox_status_desc(cr)\
-  cairo_status_to_string (cairo_status (cr))
+  cairo_status_to_string (cairo_status ((cr)))
 
 /* Returns true if pattern PATTERN is valid.  */
 #define cairox_pattern_is_valid(pattern)\
-  (cairo_pattern_status (pattern) == CAIRO_STATUS_SUCCESS)
+  (cairo_pattern_status ((pattern)) == CAIRO_STATUS_SUCCESS)
 
 /* Returns a description of the current status of pattern PATTERN.  */
 #define cairox_pattern_status_desc(pattern)\
-  cairo_status_to_string (cairo_pattern_status (pattern))
+  cairo_status_to_string (cairo_pattern_status ((pattern)))
 
 /* Returns true if region REGION is valid.  */
 #define cairox_region_is_valid(region)\
-  (cairo_region_status (region) == CAIRO_STATUS_SUCCESS)
+  (cairo_region_status ((region)) == CAIRO_STATUS_SUCCESS)
 
 /* Returns a description of the current status of region REGION.  */
 #define cairox_region_status_desc(region)\
-  cairo_status_to_string (cairo_region_status (region))
+  cairo_status_to_string (cairo_region_status ((region)))
 
 /* Returns a new surface compatible with SFC; W is the width of the new
    surface in pixels and H is its height in pixels.  */
@@ -198,18 +198,18 @@ static const char *const fill_or_frame_mode_list[] = {
 
 /* Returns true if surface SFC is valid.  */
 #define cairox_surface_is_valid(sfc)\
-  (cairo_surface_status (sfc) == CAIRO_STATUS_SUCCESS)
+  (cairo_surface_status ((sfc)) == CAIRO_STATUS_SUCCESS)
 
 /* Returns a description of the current status of surface SFC.  */
 #define cairox_surface_status_desc(sfc)\
-  cairo_status_to_string (cairo_surface_status (sfc))
+  cairo_status_to_string (cairo_surface_status ((sfc)))
 
 /* Stores the dimensions of surface SFC into *W and *H.  */
 #define cairox_surface_get_dimensions(sfc, w, h)        \
   STMT_BEGIN                                            \
   {                                                     \
-    *(w) = cairo_image_surface_get_width (sfc);         \
-    *(h) = cairo_image_surface_get_height (sfc);        \
+    *(w) = cairo_image_surface_get_width ((sfc));       \
+    *(h) = cairo_image_surface_get_height ((sfc));      \
   }                                                     \
   STMT_END
 
@@ -321,23 +321,23 @@ cairox_surface_duplicate (cairo_surface_t *src, cairo_surface_t **dup,
 
 /* Throws a run-time error.  */
 #define error_throw(L, msg)\
-  (lua_pushstring (L, msg), lua_error (L))
+  (lua_pushstring ((L), (msg)), lua_error ((L)))
 
 /* Throws an "invalid context" error.  */
 #define error_throw_invalid_cr(L, cr)\
-  error_throw (L, cairox_status_desc (cr))
+  error_throw ((L), cairox_status_desc ((cr)))
 
 /* Throws an "invalid pattern" error.  */
 #define error_throw_invalid_pattern(L, pattern)\
-  error_throw (L, cairox_pattern_status_desc (pattern))
+  error_throw ((L), cairox_pattern_status_desc ((pattern)))
 
 /* Throws an "invalid region" error.  */
 #define error_throw_invalid_region(L, region)\
-  error_throw (L, cairox_region_status_desc (region))
+  error_throw ((L), cairox_region_status_desc ((region)))
 
 /* Throws an "invalid surface" error.  */
 #define error_throw_invalid_surface(L, sfc)\
-  error_throw (L, cairox_surface_status_desc (sfc))
+  error_throw ((L), cairox_surface_status_desc ((sfc)))
 
 /*-
  * canvas.new (path:string, [doublebuf:boolean])
@@ -694,7 +694,7 @@ _l_canvas_resize (lua_State *L)
 static int
 _l_canvas_surface (lua_State *L)
 {
-  lua_pushlightuserdata (L, (void *) (canvas_check (L, 1, NULL))->sfc);
+  lua_pushlightuserdata (L, (void *)(canvas_check (L, 1, NULL))->sfc);
   return 1;
 }
 
@@ -1128,7 +1128,7 @@ l_canvas_attrFont (lua_State *L)
       font = pango_font_description_new ();
       assert (font != NULL);    /* cannot fail */
       pango_font_description_set_family (font, family);
-      pango_font_description_set_size (font, (int) (size * PANGO_SCALE));
+      pango_font_description_set_size (font, (int)(size * PANGO_SCALE));
       pango_font_description_set_weight (font, (PangoWeight) weight);
       pango_font_description_set_style (font, (PangoStyle) slant);
       pango_font_description_free (canvas->font);
@@ -1189,7 +1189,7 @@ l_canvas_attrOpacity (lua_State *L)
     {
       int opacity;
       opacity = luaL_checkint (L, 2);
-      canvas->opacity = (unsigned char) (clamp (opacity, 0, 255));
+      canvas->opacity = (unsigned char)(clamp (opacity, 0, 255));
       return 0;
     }
 }
@@ -1851,22 +1851,22 @@ l_canvas_pixel (lua_State *L)
           stride = cairo_image_surface_get_stride (canvas->sfc);
           assert (stride > 0);
 
-          pixel = *(guint32 *) ((void *) (data + y * stride + 4 * x));
-          a = (unsigned char) (pixel >> 24);
-          r = (unsigned char) (pixel >> 16 & 0xff);
-          g = (unsigned char) (pixel >> 8 & 0xff);
-          b = (unsigned char) (pixel & 0xff);
+          pixel = *((guint32 *)((void *)(data + y * stride + 4 * x)));
+          a = (unsigned char)(pixel >> 24);
+          r = (unsigned char)(pixel >> 16 & 0xff);
+          g = (unsigned char)(pixel >> 8 & 0xff);
+          b = (unsigned char)(pixel & 0xff);
 
           if (a > 0 && a < 255)
             {
               if (r > 0 && r < 255)
-                r = (unsigned char) ((double) r / (double) a * 255);
+                r = (unsigned char)((double) r / (double) a * 255);
 
               if (g > 0 && g < 255)
-                g = (unsigned char) ((double) g / (double) a * 255);
+                g = (unsigned char)((double) g / (double) a * 255);
 
               if (b > 0 && b < 255)
-                b = (unsigned char) ((double) b / (double) a * 255);
+                b = (unsigned char)((double) b / (double) a * 255);
             }
         }
       lua_pushinteger (L, r);

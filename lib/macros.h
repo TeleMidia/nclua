@@ -176,10 +176,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define arg_unused(arg) arg ATTR_UNUSED
 
 #undef likely
-#define likely(cond) BUILTIN_LIKELY (cond)
+#define likely(cond) BUILTIN_LIKELY ((cond))
 
 #undef unlikely
-#define unlikely(cond) BUILTIN_UNLIKELY (cond)
+#define unlikely(cond) BUILTIN_UNLIKELY ((cond))
 
 #ifndef TRUE
 # define TRUE 1
@@ -228,7 +228,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define isodd(n) ((n) & 1)
 
 #undef iseven
-#define iseven(n) (!isodd (n))
+#define iseven(n) (!isodd ((n)))
 
 #undef sign
 #define sign(x) ((x) >= 0.0 ? 1 : -1)

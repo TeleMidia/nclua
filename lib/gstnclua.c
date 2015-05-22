@@ -547,10 +547,10 @@ gst_nclua_send_tick_event (ncluaw_t *nw, guint64 frames,
   lua_State *L = (lua_State *) ncluaw_debug_get_lua_state (nw);
   lua_newtable (L);
   luax_setstringfield (L, -1, "class", "tick");
-  luax_setnumberfield (L, -1, "frame", (lua_Number) (frames));
-  luax_setnumberfield (L, -1, "absolute", (lua_Number) (abs) / 1000);
-  luax_setnumberfield (L, -1, "relative", (lua_Number) (rel) / 1000);
-  luax_setnumberfield (L, -1, "diff", (lua_Number) (diff) / 1000);
+  luax_setnumberfield (L, -1, "frame", (lua_Number)(frames));
+  luax_setnumberfield (L, -1, "absolute", (lua_Number)(abs) / 1000);
+  luax_setnumberfield (L, -1, "relative", (lua_Number)(rel) / 1000);
+  luax_setnumberfield (L, -1, "diff", (lua_Number)(diff) / 1000);
   nclua_send (L);
 }
 
@@ -1062,47 +1062,47 @@ gst_nclua_class_init (GstNCLuaClass *cls)
     (gobject_class, PROPERTY_FILE,
      g_param_spec_string
      ("file", "File", "Path to NCLua script", DEFAULT_FILE,
-      (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+      (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
   g_object_class_install_property
     (gobject_class, PROPERTY_WIDTH,
      g_param_spec_uint
      ("width", "Width", "Main canvas width in pixels",
       0, G_MAXUINT, DEFAULT_WIDTH,
-      (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+      (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
   g_object_class_install_property
     (gobject_class, PROPERTY_HEIGHT,
      g_param_spec_uint
      ("height", "Height", "Main canvas height in pixels",
       0, G_MAXUINT, DEFAULT_HEIGHT,
-      (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+      (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
   g_object_class_install_property
     (gobject_class, PROPERTY_RESIZE,
      g_param_spec_boolean
      ("resize", "Resize", "Resize main canvas", DEFAULT_RESIZE,
-      (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+      (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
   g_object_class_install_property
     (gobject_class, PROPERTY_FPS,
      gst_param_spec_fraction
      ("fps", "Framerate", "Target framerate",
       0, 1, G_MAXINT, 1, DEFAULT_FPS_N, DEFAULT_FPS_D,
-      (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+      (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
   g_object_class_install_property
     (gobject_class, PROPERTY_NAVIGATION,
      g_param_spec_boolean
      ("navigation", "Navigation", "Handle navigation events",
       DEFAULT_NAVIGATION,
-      (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+      (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
   g_object_class_install_property
     (gobject_class, PROPERTY_QOS,
      g_param_spec_boolean
      ("qos", "QoS", "Handle QoS events", DEFAULT_QOS,
-      (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+      (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
   gst_element_class_set_static_metadata
     (gstelement_class,
