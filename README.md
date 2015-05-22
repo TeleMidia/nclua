@@ -8,8 +8,7 @@ libnclua, either through the C API or by requiring the appropriated modules
 `event.stopwatch` for stopwatch timers, `event.tcp_socket` for asynchronous
 TCP sockets, `event.http_soup` for asynchronous HTTP requests, etc.  The
 NCLua library comes with a standalone interpreter, called `nclua`
-(cf. [src/nclua.c](src/nclua.c)), which can be used to run standalone NCLua
-scripts.
+(cf. [src/nclua.c](src/nclua.c)), which can be used to run NCLua scripts.
 
 For stable releases and binaries, cf.
 http://www.telemidia.puc-rio.br/~gflima/software/nclua.
