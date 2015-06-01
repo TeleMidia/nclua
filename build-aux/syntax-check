@@ -1,6 +1,9 @@
-#!/usr/bin/perl -wnl
-my $VERSION = '2015-04-27 20:12'; # UTC
+eval '(exit $?0)' && eval 'exec perl -wnl "$0" ${1+"$@"}'
+  & eval 'exec perl -wnl "$0" $argv:q'
+    if 0;
+# Check the syntax of input files.
 
+my $VERSION = '2015-06-01 20:16'; # UTC
 # Copyright (C) 2014-2015 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -21,7 +24,8 @@ my $VERSION = '2015-04-27 20:12'; # UTC
 use strict;
 (my $ME = $0) =~ s|.*/||;
 
-my ($nfailure) = 0;
+my $nfailure;
+BEGIN { $nfailure = 0; }
 
 sub _fail {
     my ($file, $line, $msg) = @_;
