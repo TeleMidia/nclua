@@ -1,6 +1,8 @@
-#!/usr/bin/perl
+eval '(exit $?0)' && eval 'exec perl "$0" ${1+"$@"}'
+  & eval 'exec perl "$0" $argv:q'
+    if 0;
 # A simple netcat-like TCP server.
-my $VERSION = '2015-06-07 03:51 UTC';
+my $VERSION = '2015-06-07 04:07 UTC';
 
 # Copyright (C) 2014-2015 Free Software Foundation, Inc.
 #
