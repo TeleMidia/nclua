@@ -1,5 +1,5 @@
 #!/usr/bin/perl -wnl
-my $VERSION = '2015-04-27 20:12'; # UTC
+my $VERSION = '2015-06-07 03:50 UTC';
 
 # Copyright (C) 2014-2015 Free Software Foundation, Inc.
 #
@@ -190,9 +190,9 @@ END {
 
 # Local Variables:
 # mode: perl
-# eval: (add-hook 'write-file-hooks 'time-stamp)
+# eval: (add-hook 'write-file-functions 'time-stamp)
 # time-stamp-start: "my $VERSION = '"
-# time-stamp-format: "%:y-%02m-%02d %02H:%02M"
+# time-stamp-format: "%:y-%02m-%02d %02H:%02M UTC"
 # time-stamp-time-zone: "UTC"
-# time-stamp-end: "'; # UTC"
+# time-stamp-end: "';"
 # End:

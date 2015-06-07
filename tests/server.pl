@@ -1,10 +1,6 @@
 #!/usr/bin/perl
 # A simple netcat-like TCP server.
-my $VERSION = '2015-01-07 19:20'; # UTC
-# The definition above must lie within the first 8 lines in order for the
-# Emacs time-stamp write hook (at end) to update it.  If you change this
-# file with Emacs, please let the write hook do its job.  Otherwise, update
-# this string manually.
+my $VERSION = '2015-06-07 03:51 UTC';
 
 # Copyright (C) 2014-2015 Free Software Foundation, Inc.
 #
@@ -182,9 +178,9 @@ EOF
 
 # Local Variables:
 # mode: perl
-# eval: (add-hook 'write-file-hooks 'time-stamp)
+# eval: (add-hook 'write-file-functions 'time-stamp)
 # time-stamp-start: "my $VERSION = '"
-# time-stamp-format: "%:y-%02m-%02d %02H:%02M"
+# time-stamp-format: "%:y-%02m-%02d %02H:%02M UTC"
 # time-stamp-time-zone: "UTC"
-# time-stamp-end: "'; # UTC"
+# time-stamp-end: "';"
 # End:
