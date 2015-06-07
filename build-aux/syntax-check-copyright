@@ -1,4 +1,9 @@
-#!/usr/bin/perl -s -0777 -wnl
+eval '(exit $?0)' && eval 'exec perl -s -0777 -wnl "$0" ${1+"$@"}'
+  & eval 'exec perl -s -0777 -wnl "$0" $argv:q'
+    if 0;
+# Check the syntax of copyright notice of input files.
+my $VERSION = '2015-06-07 04:06 UTC';
+
 # Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
 #
 # This file is part of NCLua.
@@ -45,3 +50,12 @@ BEGIN {
 }
 
 /$regex/m or die "error:$ARGV: bad license text\n";
+
+# Local Variables:
+# mode: perl
+# eval: (add-hook 'write-file-functions 'time-stamp)
+# time-stamp-start: "my $VERSION = '"
+# time-stamp-format: "%:y-%02m-%02d %02H:%02M UTC"
+# time-stamp-time-zone: "UTC"
+# time-stamp-end: "';"
+# End:
