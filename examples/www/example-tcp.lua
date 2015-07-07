@@ -139,9 +139,9 @@ Accept-Encoding: identity
                }
                return true      -- consume
             end
-            if e.key == 'PAGE_UP' or e.key == 'BACKSPACE' then
+            if e.key == 'PAGE_UP' or e.key == 'BACKSPACE' or e.key == 'CURSOR_UP' then
                CURRENT_PAGE = clamp (CURRENT_PAGE - 1, 1, #pages)
-            elseif e.key == 'PAGE_DOWN' or e.key == 'SPACE' then
+            elseif e.key == 'PAGE_DOWN' or e.key == 'SPACE' or e.key == 'CURSOR_DOWN' then
                CURRENT_PAGE = clamp (CURRENT_PAGE + 1, 1, #pages)
             elseif e.key == 'HOME' then
                CURRENT_PAGE = 1
@@ -154,7 +154,7 @@ Accept-Encoding: identity
             canvas:drawText (0, 0, pages[CURRENT_PAGE].text)
 
             -- Print footer.
-            local text = ("Press <SPACE>/<BACKSPACE> to scroll or 'q' to quit -- %d%%")
+            local text = ("Press <CURSOR_UP>/<CURSOR_DOWN> to scroll or 'q' to quit -- %d%%")
                :format (CURRENT_PAGE * 100 / #pages)
             local w, h = canvas:measureText (text)
             canvas:attrColor (FT_COLOR)
