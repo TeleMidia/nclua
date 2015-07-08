@@ -1,46 +1,35 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
 
-<!--
-2008 PUC-RIO/LABORATORIO TELEMIDIA,
-Some Rights Reserved.
+This file is part of NCLua.
 
-This program is free software; you can redistribute it and/or modify it under 
-the terms of the GNU General Public License version 2 as published by
-the Free Software Foundation.
+NCLua is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY 
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
-PARTICULAR PURPOSE.  See the GNU General Public License version 2 for more 
-details.
+NCLua is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+License for more details.
 
-You should have received a copy of the GNU General Public License version 2
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
--->
+You should have received a copy of the GNU General Public License
+along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  -->
 
-<ncl id="teste" xmlns="http://www.ncl.org.br/NCL3.0/EDTVProfile"
-     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-     xsi:schemaLocation="http://www.ncl.org.br/NCL3.0/EDTVProfile
-     http://www.ncl.org.br/NCL3.0/profiles/NCL30EDTV.xsd">
-
-<head>
-
-	<regionBase>
-		<region id="luaRegion" width="100%" height="100%"/>
-	</regionBase>
-
-	<descriptorBase>
-		<descriptor id="luaDesc" region="luaRegion" focusIndex="luaIdx"/>
-	</descriptorBase>  
-</head>
-
-<body>
-	<port id="init" component="lua"/>
-	<media type="application/x-ginga-settings" id="programSettings">
-		<property name="currentKeyMaster" value="luaIdx"/>
-	</media>
-
-	<media id="lua" descriptor="luaDesc" src="example-http.lua"/>
-</body>
-
+<ncl id="example-http">
+  <head>
+    <regionBase>
+      <region id="luaRegion" width="100%" height="100%"/>
+    </regionBase>
+    <descriptorBase>
+      <descriptor id="luaDesc" region="luaRegion" focusIndex="luaIdx"/>
+    </descriptorBase>
+  </head>
+  <body>
+    <port id="init" component="lua"/>
+    <media type="application/x-ginga-settings" id="programSettings">
+      <property name="currentKeyMaster" value="luaIdx"/>
+    </media>
+    <media id="lua" descriptor="luaDesc" src="example-http.lua"/>
+  </body>
 </ncl>
