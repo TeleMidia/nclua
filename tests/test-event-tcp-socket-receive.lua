@@ -62,13 +62,13 @@ local function receive_cb (status, _sock, data)
    count = count + #data
    str = str..data
    if #data > 0 then
-      sock:receive (tests.rand_number (4096, 4 * 4096), receive_cb)
+      sock:receive (tests.rand_integer (4096, 4 * 4096), receive_cb)
    else
       DONE = true               -- eof
    end
 end
 
-sock:receive (tests.rand_number (4096, 4 * 4096), receive_cb)
+sock:receive (tests.rand_integer (4096, 4 * 4096), receive_cb)
 CYCLE_UNTIL (function () return DONE end)
 
 local src = tests.read_file (tmpfile)
