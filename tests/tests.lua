@@ -482,7 +482,7 @@ end
 -- Returns N random integers between [UPPER,LOWER].
 --
 local function rand_integer (f_rand, lower, upper)
-   return f_rand (lower, upper)
+   return f_rand (math.floor (lower or 0), math.floor (upper or 1))
 end
 
 function tests.rand_integer (lower, upper, n)
@@ -497,7 +497,7 @@ end
 -- Returns N random numbers between [UPPER,LOWER].
 --
 local function rand_number (f_rand, lower, upper)
-   local x = f_rand (lower, upper)
+   local x = f_rand (math.floor (lower or 0), math.floor (upper or 1))
    if f_rand (0, 1) == 1 then   -- put fraction?
       local frac = math.abs (f_rand ())
       local y = math.floor (math.log (frac, 10) + 1)
@@ -508,7 +508,7 @@ local function rand_number (f_rand, lower, upper)
          x = x + frac
       end
    end
-   return x
+   return math.floor (x)
 end
 
 function tests.rand_number (lower, upper, n)
@@ -768,6 +768,7 @@ end
 -- Starts the given network server.
 --
 function tests.server.start (server)
+   -- TODO: Kill server if it's running.
    server.pid = nil
    server.pidfile = tests.tmpname ()
    local str = ('sh %s/server.sh %s --verbose --pid="%s" --port=%d %s')
