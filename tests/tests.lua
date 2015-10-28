@@ -508,7 +508,7 @@ local function rand_number (f_rand, lower, upper)
          x = x + frac
       end
    end
-   return math.floor (x)
+   return x
 end
 
 function tests.rand_number (lower, upper, n)
