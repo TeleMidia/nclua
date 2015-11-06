@@ -2,29 +2,27 @@ eval '(exit $?0)' && eval 'exec perl -s -0777 -wnl "$0" ${1+"$@"}'
   & eval 'exec perl -s -0777 -wnl "$0" $argv:q'
     if 0;
 # Check the syntax of copyright notice of input files.
-my $VERSION = '2015-06-07 04:06 UTC';
+my $VERSION = '2015-11-06 13:52 UTC';
 
-# Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
+# Copyright (C) 2014-2015 Free Software Foundation, Inc.
 #
-# This file is part of NCLua.
-#
-# NCLua is free software: you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 2 of the License, or
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# NCLua is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
-# License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with NCLua.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 BEGIN {
     (my $ME = $0) =~ s|.*/||;
     if (!defined $b) {
-        warn "usage: $ME -b=STRING [-e=STRING] FILE...\n";
+        warn "usage: $ME -b=STRING [-e=STRING] [-t=FILE] FILE...\n";
         exit 255;
     }
     if (defined $e) {
@@ -39,7 +37,10 @@ BEGIN {
         $q = "$b";
         $s = '';
     }
-    open my $file, '<', $0;
+    if (!defined $t) {
+        $t = $0;
+    }
+    open my $file, '<', $t;
     $regex = <$file>;
     close $file;
     $regex =~ /^.*?\n\#\s(Copyright.*?)\n\n+/s;

@@ -106,11 +106,14 @@ UPDATE_COPYRIGHT_EXCLUDE=\
 
 SC_RULES+= sc-copyright
 sc-copyright:
-	$(V_at)$(build_aux)/syntax-check-copyright -b='/*' -e='*/'\
+	$(V_at)$(build_aux)/syntax-check-copyright\
+	  -b='/*' -e='*/' -t=cfg.mk\
 	  $(call vc_list_exclude, $(VC_LIST_C), $(SC_COPYRIGHT_EXCLUDE))
-	$(V_at)$(build_aux)/syntax-check-copyright -b='--[[' -e=']]--'\
+	$(V_at)$(build_aux)/syntax-check-copyright\
+	  -b='--[[' -e=']]--' -t=cfg.mk\
 	  $(call vc_list_exclude, $(VC_LIST_LUA), $(SC_COPYRIGHT_EXCLUDE))
-	$(V_at)$(build_aux)/syntax-check-copyright -b='#'\
+	$(V_at)$(build_aux)/syntax-check-copyright\
+	  -b='#' -t=cfg.mk\
 	  $(call vc_list_exclude,\
 	    $(VC_LIST_AC)\
 	    $(VC_LIST_AM)\
