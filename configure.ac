@@ -90,8 +90,8 @@ AC_CHECK_LIBM
 AU_CHECK_MACROS_H
 
 # Check for Lua.
-AU_CHECK_LUA(ua_required_version)
-LUA_LIBS="$LUA_LIBS $LIBM -export-dynamic"
+AU_CHECK_LUA(lua_required_version)
+LUA_LIBS="$LUA_LIBS -export-dynamic"
 AS_IF([test "$au_lua_version" = 5.3],
  [AC_DEFINE([LUA_COMPAT_APIINTCASTS], [1],
    [Define to 1 to enable Lua macros for integer manipulation])])

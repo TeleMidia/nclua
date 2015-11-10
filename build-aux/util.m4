@@ -252,11 +252,11 @@ AC_ARG_WITH([lualibdir],
  [AS_HELP_STRING([--with-lualibdir=DIR],
    [install Lua C modules into DIR])])
 dnl Check the given minimal version.
-AS_CASE("m4_default([$2], [5.1])",
+AS_CASE("m4_default([$1], [5.1])",
  [5.1], [au_lua_min_version_minor=1],
  [5.2], [au_lua_min_version_minor=2],
  [5.3], [au_lua_min_version_minor=3],
-        [AC_MSG_ERROR([invalid Lua version '$2'])])
+        [AC_MSG_ERROR([invalid Lua version '$1'])])
 au_lua_min_version="5.$au_lua_min_version_minor"
 au_lua_min_version_num="50$au_lua_min_version_minor"
 AC_DEFINE_UNQUOTED([LUA_REQUIRED_VERSION],
