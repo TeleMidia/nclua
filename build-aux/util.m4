@@ -704,6 +704,24 @@ AC_DEFUN([AU_VAR_POP],[dnl
 $1="$au_saved_$1"
 AS_UNSET([au_saved_$1])])
 
+# AU_VERSION_BREAK(PREFIX, VERSION-STRING)
+# ----------------------------------------
+# Breaks VERSION-STRING into major, minor, and micro parts.
+#
+# Substitutes the variables:
+# - [PREFIX]_REQUIRED_MAJOR    major version number
+# - [PREFIX]_REQUIRED_MINOR    minor version number
+# - [PREFIX]_REQUIRED_MICRO    micro version number
+#
+m4_define([_AU_VERSION_BREAK],[dnl
+AC_DEFINE(m4_toupper([$1])[_REQUIRED_]m4_toupper([$3]),
+  m4_default(au_version_$3([$2]), [0]),
+ [$1 required $3 version])])
+m4_define([AU_VERSION_BREAK],[dnl
+_AU_VERSION_BREAK([$1], [$2], [major])
+_AU_VERSION_BREAK([$1], [$2], [minor])
+_AU_VERSION_BREAK([$1], [$2], [micro])])
+
 # Local Variables:
 # mode: autoconf
 # End:

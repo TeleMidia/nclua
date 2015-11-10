@@ -98,18 +98,8 @@ AS_IF([test "$au_lua_version" = 5.3],
 AC_SUBST([ncluadatadir], ["${luadatadir}/$PACKAGE"])
 AC_SUBST([nclualibdir], ["${lualibdir}/$PACKAGE"])
 
-# Helper macro: Breaks version into major, minor, and micro.
-m4_define([_my_break_version],[dnl
-AC_DEFINE(m4_toupper([$1])[_REQUIRED_]m4_toupper([$3]),
-  m4_default(au_version_$3([$2]), [0]),
- [$1 required $3 version])])
-m4_define([my_break_version],[dnl
-_my_break_version([$1], [$2], [major])
-_my_break_version([$1], [$2], [minor])
-_my_break_version([$1], [$2], [micro])])
-
 # Check for Cairo.
-my_break_version([cairo], cairo_required_version)
+AU_VERSION_BREAK([cairo], cairo_required_version)
 AU_CHECK_PKG([CAIRO], [cairo >= cairo_required_version],
  [AC_LANG_PROGRAM([[
 #include <cairo.h>
@@ -123,7 +113,7 @@ AU_CHECK_PKG([CAIRO], [cairo >= cairo_required_version],
  [AC_LANG_PROGRAM([[]], [[cairo_create (0);]])])
 
 # Check for GLib.
-my_break_version([glib], glib_required_version)
+AU_VERSION_BREAK([glib], glib_required_version)
 AU_CHECK_PKG([GLIB],
   glib-2.0 >= glib_required_version dnl
   gobject-2.0 >= glib_required_version,
@@ -167,7 +157,7 @@ AH_VERBATIM([G_TYPE_INIT_WRAPPER],
 AC_MSG_RESULT([$must_call_g_type_init])
 
 # Check for Pango.
-my_break_version([pango], pango_required_version)
+AU_VERSION_BREAK([pango], pango_required_version)
 AU_CHECK_PKG([PANGO],
   pango >= pango_required_version dnl
   pangocairo >= pango_required_version,
@@ -198,7 +188,7 @@ AU_CHECK_OPTIONAL_PKG([event-tcp], [build the tcp event class], [],
  [AC_LANG_PROGRAM([[]], [[g_socket_client_new ();]])])
 
 # Check for SOUP (optional).
-my_break_version([soup], soup_required_version)
+AU_VERSION_BREAK([soup], soup_required_version)
 AU_CHECK_OPTIONAL_PKG([event-http], [build the http event class], [],
  [SOUP], libsoup-2.4 >= soup_required_version,
  [AC_LANG_PROGRAM([[
@@ -213,7 +203,7 @@ AU_CHECK_OPTIONAL_PKG([event-http], [build the http event class], [],
  [AC_LANG_PROGRAM([[]], [[soup_session_new_with_options (0, 0, 0);]])])
 
 # Check for GStreamer (optional).
-my_break_version([gstreamer], gstreamer_required_version)
+AU_VERSION_BREAK([gstreamer], gstreamer_required_version)
 AU_CHECK_OPTIONAL_PKG([nclua-gst],
  [build the NCLua plugin for GStreamer], [],
  [GSTREAMER],
@@ -243,7 +233,7 @@ AS_IF([test -z "$with_gstpluginsdir"],
 AC_SUBST([gstpluginsdir], [$with_gstpluginsdir])
 
 # Check for GTK (optional).
-my_break_version([gtk], gtk_required_version)
+AU_VERSION_BREAK([gtk], gtk_required_version)
 AU_CHECK_OPTIONAL_PKG([nclua-gtk], [build the nclua GTK interpreter], [],
  [GTK], gtk+-3.0 >= gtk_required_version,
  [AC_LANG_PROGRAM([[
