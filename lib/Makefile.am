@@ -80,7 +80,7 @@ uninstall-local: uninstall-def-file uninstall-ms-lib
 libnclua_la_DEPENDENCIES= $(include_HEADERS) $(noinst_HEADERS)\
   $(nclua_def_depedency) $(nclua_win32_res)
 libnclua_la_CPPFLAGS= -DNCLUA_BUILDING
-libnclua_la_CFLAGS= $(AM_CFLAGS) $(CFLAGS_VISIBILITY) $(LUA_CFLAGS)
+libnclua_la_CFLAGS= $(AM_CFLAGS) $(CFLAG_VISIBILITY) $(LUA_CFLAGS)
 libnclua_la_LDFLAGS= -version-info $(NCLUA_LIBTOOL_STRING)\
   $(export_symbols) -no-undefined $(nclua_win32_res_ldflag)\
   $(LUA_LIBS)
