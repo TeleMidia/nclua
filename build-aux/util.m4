@@ -574,12 +574,16 @@ AS_CASE([" $CFLAGS "], [*[[\ \	]]-pipe[[\ \	]]*], [:],
 # Defines the pre-processor macro HAVE_VISIBILITY to 1 if compiler supports
 # visibility flags.
 #
+# Defines the conditional HAVE_VISIBILITY.
+#
 # WARNING: Depends on Gnulib's visibility.m4.
 #
 AC_DEFUN_ONCE([AU_PROG_CC_VISIBILITY],[dnl
 AC_REQUIRE([AU_PROG_CC])
 AC_REQUIRE_AUX_FILE([visibility.m4])
-AC_REQUIRE([gl_VISIBILITY])])
+AC_REQUIRE([gl_VISIBILITY])
+AM_CONDITIONAL([HAVE_VISIBILITY],
+ [test "$HAVE_VISIBILITY" = 1])])
 
 # AU_PROG_PKG_CONFIG
 # ------------------
