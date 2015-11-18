@@ -345,10 +345,10 @@ indent_vc_list_c=\
 .PHONY: indent
 indent:
 	$(V_at)for file in $(indent_vc_list_c); do\
-	  $(INDENT) $(INDENT_OPTIONS) $(indent_vc_list_c) || exit 1;\
+	  $(INDENT) $(INDENT_OPTIONS) $$file || exit 1;\
 	done
 	$(V_at)for file in $(indent_vc_list_c); do\
-	  $(INDENT) $(INDENT_OPTIONS) $(indent_vc_list_c) || exit 1;\
+	  $(INDENT) $(INDENT_OPTIONS) $$file || exit 1;\
 	done
 	$(V_at)$(PERL) -i'~' -wple '$(perl_after_indent)'\
 	  $(indent_vc_list_c)
