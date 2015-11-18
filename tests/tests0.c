@@ -124,7 +124,7 @@ xrand0 (int lower, int upper, int reset)
 
   assert (lower < upper && upper <= XRAND0_LIMIT);
   seed = (reset) ? 12345 : seed * 1103515245 + 12345;
-  x = (int)((unsigned int)(seed / XRAND0_LIMIT) % XRAND0_LIMIT);
+  x = (int) ((unsigned int) (seed / XRAND0_LIMIT) % XRAND0_LIMIT);
 
   return x % (upper - lower + 1) + lower;
 }
@@ -294,7 +294,7 @@ l_canvas_surface_equals (lua_State *L)
         }
     }
 
-  maxdiff = (int)(clamp (luaL_optnumber (L, 3, 1), 0, 1) * h1 * st1 / 4);
+  maxdiff = (int) (clamp (luaL_optnumber (L, 3, 1), 0, 1) * h1 * st1 / 4);
   if (ndiff > maxdiff)
     {
       lua_pushfstring (L, "#%d mismatch%s (expected #%d)",

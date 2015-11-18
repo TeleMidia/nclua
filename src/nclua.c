@@ -60,7 +60,7 @@ opt_size (arg_unused (const gchar *opt), const gchar *arg,
   width = g_ascii_strtoull (arg, &end, 10);
   if (width == 0)
     goto syntax_error;
-  opt_width = (gint)(clamp (width, 0, G_MAXINT));
+  opt_width = (gint) (clamp (width, 0, G_MAXINT));
 
   if (*end != 'x')
     goto syntax_error;
@@ -68,7 +68,7 @@ opt_size (arg_unused (const gchar *opt), const gchar *arg,
   height = g_ascii_strtoull (++end, NULL, 10);
   if (height == 0)
     goto syntax_error;
-  opt_height = (gint)(clamp (height, 0, G_MAXINT));
+  opt_height = (gint) (clamp (height, 0, G_MAXINT));
 
   return TRUE;
 
@@ -154,10 +154,10 @@ cycle_callback (arg_unused (GtkWidget *widget))
 
   lua_newtable (L);
   luax_setstringfield (L, -1, "class", "tick");
-  luax_setnumberfield (L, -1, "frame", (lua_Number)(frame));
-  luax_setnumberfield (L, -1, "absolute", (lua_Number)(time));
-  luax_setnumberfield (L, -1, "relative", (lua_Number)(time - first));
-  luax_setnumberfield (L, -1, "diff", (lua_Number)(time - last));
+  luax_setnumberfield (L, -1, "frame", (lua_Number) (frame));
+  luax_setnumberfield (L, -1, "absolute", (lua_Number) (time));
+  luax_setnumberfield (L, -1, "relative", (lua_Number) (time - first));
+  luax_setnumberfield (L, -1, "diff", (lua_Number) (time - last));
   last = time;
   nclua_send (L);
 

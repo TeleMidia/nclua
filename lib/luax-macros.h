@@ -38,13 +38,13 @@ luax_getfield (lua_State *L, int i, const char *k)
       if (*end == '.')
         {
           assert (end - begin > 0);
-          lua_pushlstring (L, begin, (size_t)(end - begin));
+          lua_pushlstring (L, begin, (size_t) (end - begin));
           lua_gettable (L, -2);
           begin = ++end;
         }
     }
   assert (end - begin > 0);
-  lua_pushlstring (L, begin, (size_t)(end - begin));
+  lua_pushlstring (L, begin, (size_t) (end - begin));
   lua_gettable (L, -2);
 
   lua_insert (L, top + 1);

@@ -694,7 +694,7 @@ _l_canvas_resize (lua_State *L)
 static int
 _l_canvas_surface (lua_State *L)
 {
-  lua_pushlightuserdata (L, (void *)(canvas_check (L, 1, NULL))->sfc);
+  lua_pushlightuserdata (L, (void *) (canvas_check (L, 1, NULL))->sfc);
   return 1;
 }
 
@@ -1128,7 +1128,7 @@ l_canvas_attrFont (lua_State *L)
       font = pango_font_description_new ();
       assert (font != NULL);    /* cannot fail */
       pango_font_description_set_family (font, family);
-      pango_font_description_set_size (font, (int)(size * PANGO_SCALE));
+      pango_font_description_set_size (font, (int) (size * PANGO_SCALE));
       pango_font_description_set_weight (font, (PangoWeight) weight);
       pango_font_description_set_style (font, (PangoStyle) slant);
       pango_font_description_free (canvas->font);
@@ -1189,7 +1189,7 @@ l_canvas_attrOpacity (lua_State *L)
     {
       int opacity;
       opacity = luaL_checkint (L, 2);
-      canvas->opacity = (unsigned char)(clamp (opacity, 0, 255));
+      canvas->opacity = (unsigned char) (clamp (opacity, 0, 255));
       return 0;
     }
 }
@@ -1851,22 +1851,22 @@ l_canvas_pixel (lua_State *L)
           stride = cairo_image_surface_get_stride (canvas->sfc);
           assert (stride > 0);
 
-          pixel = *((guint32 *)((void *)(data + y * stride + 4 * x)));
-          a = (unsigned char)(pixel >> 24);
-          r = (unsigned char)(pixel >> 16 & 0xff);
-          g = (unsigned char)(pixel >> 8 & 0xff);
-          b = (unsigned char)(pixel & 0xff);
+          pixel = *((guint32 *) ((void *) (data + y * stride + 4 * x)));
+          a = (unsigned char) (pixel >> 24);
+          r = (unsigned char) (pixel >> 16 & 0xff);
+          g = (unsigned char) (pixel >> 8 & 0xff);
+          b = (unsigned char) (pixel & 0xff);
 
           if (a > 0 && a < 255)
             {
               if (r > 0 && r < 255)
-                r = (unsigned char)((double) r / (double) a * 255);
+                r = (unsigned char) ((double) r / (double) a * 255);
 
               if (g > 0 && g < 255)
-                g = (unsigned char)((double) g / (double) a * 255);
+                g = (unsigned char) ((double) g / (double) a * 255);
 
               if (b > 0 && b < 255)
-                b = (unsigned char)((double) b / (double) a * 255);
+                b = (unsigned char) ((double) b / (double) a * 255);
             }
         }
       lua_pushinteger (L, r);
