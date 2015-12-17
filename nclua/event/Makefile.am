@@ -41,6 +41,12 @@ dist_eventdata_DATA=\
   user.lua\
   $(NULL)
 
+if WITH_EVENT_GEOLOCATION
+dist_eventdata_DATA+= geolocation.lua
+else
+EXTRA_DIST+= geolocation.lua
+endif
+
 if WITH_EVENT_HTTP
 dist_eventdata_DATA+= http.lua
 else

@@ -61,7 +61,7 @@ ASSERT_ERROR_CHECK {class='http', type='request', method='post',
                     uri='http://github.com/', headers={},
                     body=function ()end}
 
--- Check valid request events
+-- Check valid request event.
 local evt = {class='http', type='request', method='post',
              uri='http://www.telemidia.puc-rio.br/',
              headers={['Content-Type']='text/html'},

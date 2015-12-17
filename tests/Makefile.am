@@ -134,6 +134,14 @@ scripts+= test-event-stopwatch-api.lua
 scripts+= test-event-stopwatch-new.lua
 scripts+= test-event-stopwatch-get-time.lua
 
+if WITH_EVENT_GEOLOCATION
+# event.geolocation (handler plugin)
+scripts+= test-event-geolocation-api.lua
+scripts+= test-event-geolocation-check.lua
+scripts+= test-event-geolocation-filter.lua
+scripts+= test-event-geolocation-engine.lua
+endif
+
 if WITH_EVENT_TCP
 # event.tcp_socket
 scripts+= test-event-tcp-socket-api.lua

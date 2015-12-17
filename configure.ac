@@ -187,6 +187,14 @@ AU_CHECK_OPTIONAL_PKG([event-tcp], [build the tcp event class], [],
  ]])],
  [AC_LANG_PROGRAM([[]], [[g_socket_client_new ();]])])
 
+AU_ARG_WITH([event-geolocation],
+ [build the geolocation event class], [check])
+AS_IF([test "$au_check_optional_pkg_GIO" = yes],
+ [AC_DEFINE([WITH_EVENT_GEOLOCATION], [1],
+   [build the geolocation event class])])
+AM_CONDITIONAL([WITH_EVENT_GEOLOCATION],
+ [test "$au_check_optional_pkg_GIO" = yes])
+
 # Check for SOUP (optional).
 AU_VERSION_BREAK([soup], soup_required_version)
 AU_CHECK_OPTIONAL_PKG([event-http], [build the http event class], [],
@@ -270,10 +278,11 @@ m4_case(m4_cmp([$#], [3]),
        [$0([$1], [$2], [$3])m4_newline()$0(m4_shift3($@))])])
 
 my_uncheck(dnl
-[event_tcp],  [GIO],       gio-2.0 >= glib_required_version,
-[event_http], [SOUP],      libsoup-2.4 >= soup_required_version,
-[nclua_gst],  [GSTREAMER], gstreamer-1.0 >= gstreamer_required_version,
-[nclua_gtk],  [GTK],       gtk+-3.0 >= gtk_required_version)
+[event_geolocation], [GIO], gio-2.0 >= glib_required_version,
+[event_tcp],  [GIO],        gio-2.0 >= glib_required_version,
+[event_http], [SOUP],       libsoup-2.4 >= soup_required_version,
+[nclua_gst],  [GSTREAMER],  gstreamer-1.0 >= gstreamer_required_version,
+[nclua_gtk],  [GTK],        gtk+-3.0 >= gtk_required_version)
 
 AC_OUTPUT
 AC_MSG_NOTICE([summary of main build options:
@@ -288,8 +297,10 @@ AC_MSG_NOTICE([summary of main build options:
   Library types:      Shared=${enable_shared}, Static=${enable_static}
   Valgrind:           ${VALGRIND}
 
-  Build tcp:          ${with_event_tcp}
+  Build geolocation:  ${with_event_geolocation}
   Build http:         ${with_event_http}
+  Build tcp:          ${with_event_tcp}
+
   Build gstnclua:     ${with_nclua_gst}
   Build nclua GTK:    ${with_nclua_gtk}
 ])
