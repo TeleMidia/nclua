@@ -189,14 +189,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define FALSE 0
 #endif
 
-#ifndef EXIT_SUCCESS
-# define EXIT_SUCCESS 0
-#endif
-
-#ifndef EXIT_FAILURE
-# define EXIT_FAILURE 1
-#endif
-
 #undef ASSERT_NOT_REACHED
 #define ASSERT_NOT_REACHED assert (0 && "unreachable reached!")
 
