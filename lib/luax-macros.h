@@ -18,9 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef LUAX_MACROS_H
 #define LUAX_MACROS_H
 
-#include <config.h>
-#include <assert.h>
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
+#include <assert.h>
 #include "macros.h"
 
 static void ATTR_UNUSED
