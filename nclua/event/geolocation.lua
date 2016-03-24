@@ -1,5 +1,5 @@
 --[[ nclua.event.geolocation -- The GEOLOCATION event class.
-     Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
+     Copyright (C) 2013-2016 PUC-Rio/Laboratorio TeleMidia
 
 This file is part of NCLua.
 
