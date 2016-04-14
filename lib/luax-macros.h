@@ -23,6 +23,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <assert.h>
+
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
 #include "macros.h"
 
 static void ATTR_UNUSED
