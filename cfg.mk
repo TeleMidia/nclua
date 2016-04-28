@@ -98,6 +98,7 @@ SC_COPYRIGHT_EXCLUDE=\
   lib/luax-macros.h\
   lib/macros.h\
   maint.mk\
+  tests/lua.c\
   $(NULL)
 
 UPDATE_COPYRIGHT_EXCLUDE=\
