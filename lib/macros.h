@@ -243,6 +243,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef streq
 #define streq(a, b) ((*(a) == *(b)) && strcmp ((a), (b)) == 0)
 
+#undef strbool
+#define strbool(x) ((x) ? "true" : "false")
+
 #undef cast
 #define cast(t, x) ((t)(x))
 
