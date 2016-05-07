@@ -195,7 +195,7 @@ _luax_dump_value (lua_State *L, int index)
   switch (lua_type (L, index))
     {
     case LUA_TBOOLEAN:
-      fputs (lua_toboolean (L, index) ? "true" : "false", stderr);
+      fputs (strbool (lua_toboolean (L, index)), stderr);
       break;
 
     case LUA_TNIL:
