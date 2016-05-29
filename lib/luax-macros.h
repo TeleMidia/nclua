@@ -99,6 +99,9 @@ luax_getfield (lua_State *L, int i, const char *k)
 #define luax_pushupvalue(L, i)\
   lua_pushvalue ((L), lua_upvalueindex (i))
 
+#define luax_setbooleanfield(L, i, name, value)\
+  _luax_setxfield (lua_pushboolean, (L), (i), (name), (value))
+
 #define luax_setintegerfield(L, i, name, value)\
   _luax_setxfield (lua_pushinteger, (L), (i), (name), (value))
 
