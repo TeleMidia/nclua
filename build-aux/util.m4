@@ -131,9 +131,9 @@ AS_IF([test "$enable_valgrind" = yes],
   AC_MSG_CHECKING([whether self tests are run under valgrind])
   AC_MSG_RESULT([$enable_valgrind])])])
 
-# AU_ARG_ENABLE_WARNINGS
-# ----------------------
-# Enables compiler error and warning flags.
+# AU_ARG_ENABLE_WARNINGS([EXCLUDE-LIST])
+# --------------------------------------
+# Enables enables all warning flags except for those in EXCLUDE-LIST.
 #
 # Substitutes the variables:
 # - WERROR_CFLAGS    compiler error flags
@@ -150,45 +150,25 @@ AS_IF([test "$enable_warnings" = yes],
   AC_REQUIRE_AUX_FILE([warnings.m4])
   gl_WARN_ADD([-Werror], [WERROR_CFLAGS])
   AC_SUBST([WERROR_CFLAGS])
-dnl Disabled warnings.
-  nw=
-  nw="$nw -Wsystem-headers"     # Suppress system headers warnings
-  nw="$nw -Wpadded"             # Our structs are not packed
   gl_MANYWARN_ALL_GCC([ws])
-  gl_MANYWARN_COMPLEMENT([ws], [$ws], [$nw])
+  ws="$ws -Wc++-compat"
+  ws="$ws -Wcast-qual"
+  ws="$ws -Wconversion"
+  ws="$ws -Wdeclaration-after-statement"
+  ws="$ws -Wfloat-equal"
+  ws="$ws -Wredundant-decls"
+  ws="$ws -Wsign-compare"
+  ws="$ws -Wsign-conversion"
+  ws="$ws -Wundef"
+  gl_MANYWARN_COMPLEMENT([ws], [$ws], [$1])
   for w in $ws; do
     gl_WARN_ADD([$w])
   done
-dnl Extra warnings.
-  gl_WARN_ADD([-Wc++-compat])
-  gl_WARN_ADD([-Wcast-qual])
-  gl_WARN_ADD([-Wconversion])
-  gl_WARN_ADD([-Wdeclaration-after-statement])
-  gl_WARN_ADD([-Wfloat-equal])
-  gl_WARN_ADD([-Wredundant-decls])
-  gl_WARN_ADD([-Wsign-compare])
-  gl_WARN_ADD([-Wsign-conversion])
-  gl_WARN_ADD([-Wundef])
-dnl Clang is unduly picky about some things.
-  AC_CACHE_CHECK([whether the compiler is clang], [au_cv_clang],
-    [AC_COMPILE_IFELSE(
-       [AC_LANG_PROGRAM([[
-#ifndef __clang__
-# error "not clang"
-#endif
-       ]])],
-       [au_cv_clang=yes],
-       [au_cv_clang=no])])
-  AS_IF([test "$au_cv_clang" = yes],
-   [gl_WARN_ADD([-Wno-switch-enum])
-    gl_WARN_ADD([-Wno-tautological-constant-out-of-range-compare])
-    gl_WARN_ADD([-Wno-unused-command-line-argument])])
   gl_WARN_ADD([-fdiagnostics-show-option])
   gl_WARN_ADD([-funit-at-a-time])
   AC_SUBST([WARN_CFLAGS])
   AC_DEFINE([lint], [1], [Define to 1 if compiler is checking for lint.])
-  AH_VERBATIM([FORTIFY_SOURCE],
-   [
+  AH_VERBATIM([FORTIFY_SOURCE],[
 /* Enable compile-time and run-time bounds-checking, and some warnings,
    without upsetting glibc 2.15+.  */
 #if !defined _FORTIFY_SOURCE && defined __OPTIMIZE__ && __OPTIMIZE__

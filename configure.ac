@@ -83,7 +83,13 @@ AU_ARG_ENABLE_ANSI
 AU_ARG_ENABLE_COVERAGE
 AU_ARG_ENABLE_DEBUG
 AU_ARG_ENABLE_VALGRIND
-AU_ARG_ENABLE_WARNINGS
+
+nw=
+nw="$nw -Wsystem-headers"     # Suppress system headers warnings
+nw="$nw -Wpadded"             # Our structs are not packed
+nw="$nw -Wcast-qual"          # Triggered by GLib headers
+nw="$nw -Wc++-compat"         # Idem
+AU_ARG_ENABLE_WARNINGS([$nw])
 
 # Library functions.
 AC_CHECK_LIBM
