@@ -28,6 +28,7 @@ int
 main (int argc, const char **argv)
 {
   lua_State *L;
+  lua_Integer i;
   int status;
 
   if (unlikely (argc != 2))
@@ -39,6 +40,13 @@ main (int argc, const char **argv)
   L = luaL_newstate ();
   assert (L != NULL);           /* out of memory */
   luaL_openlibs (L);
+  lua_newtable (L);
+  for (i = 0; i < argc; i++)
+    {
+      lua_pushstring (L, argv[i]);
+      lua_rawseti (L, -2, i);
+    }
+  lua_setglobal (L, "arg");
 
   status = luaL_loadfile (L, argv[1]) || lua_pcall (L, 0, 0, 0);
   if (unlikely (status != 0))
