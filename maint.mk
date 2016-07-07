@@ -76,9 +76,6 @@ FETCH= $(PERL) -swe '$(perl_FETCH)' --
 perl_usage=\
   BEGIN {\
     $$/ = "";\
-    print "Usage: $(MAKE) -f $(ME) [V=1] TARGET";\
-    print "Maintainer\047s makefile; the following targets are supported:";\
-    print "";\
   }\
   /\#\s([^\n]+)\n(\.PHONY:|SC_RULES\+=)\s([\w-]+)\n/ and do {\
     my $$tgt = $$3;\
@@ -91,7 +88,9 @@ perl_usage=\
 
 .PHONY: usage
 usage:
-	@$(PERL) -wnle '$(perl_usage)' $(MAKEFILE_LIST)
+	@echo "Usage: $(MAKE) -f $(ME) [V=1] TARGET"
+	@echo "Maintainer's makefile; the following targets are supported:"
+	@$(PERL) -wnle '$(perl_usage)' $(MAKEFILE_LIST) | sort
 
 
 perl_bootstrap_utilm4_options=\
