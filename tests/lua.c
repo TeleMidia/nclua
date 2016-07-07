@@ -28,7 +28,7 @@ int
 main (int argc, const char **argv)
 {
   lua_State *L;
-  lua_Integer i;
+  int i;
   int status;
 
   if (unlikely (argc != 2))
