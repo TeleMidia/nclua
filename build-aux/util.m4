@@ -31,7 +31,7 @@ AC_ARG_ENABLE(AS_TR_SH([$1]),
  [AS_CASE([$enableval], [yes|no], [:],
    [AC_MSG_ERROR([bad value '$enableval' for --enable-$1 option])])
   AS_TR_SH([enable_$1])=$enableval],
- [AS_TR_SH([enable_$1])=$3])
+ [AS_TR_SH([enable_$1])=m4_default([$3],[no])])
 AM_CONDITIONAL([ENABLE_]m4_toupper(AS_TR_SH([$1])),
  [test "][$][AS_TR_SH([enable_$1])][" = yes])])
 
