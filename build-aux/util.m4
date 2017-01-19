@@ -109,9 +109,14 @@ AS_IF([test "$enable_debug" = yes],
        [au_cv_prog_compiler_ggdb3],
        [-ggdb3 -c conftest.$ac_ext], [],
        [CFLAGS="$CFLAGS -ggdb3"],
-       [CFLAGS="$CFLAGS -g"])])],
+       [CFLAGS="$CFLAGS -g"])])
+   AS_CASE([" $CXXFLAGS "],
+    [*[[\ \	]]-O*],
+      [CXXFLAGS=`echo $CXXFLAGS | $SED 's/-O[[^ ]]* / /;s/-O[[^ ]]*$//'`])],
    [AS_CASE([" $CFLAGS "], [*[[\ \	]]-g*], [:],
-     [CFLAGS="$CFLAGS -g"])])])])
+     [CFLAGS="$CFLAGS -g"])
+    AS_CASE([" $CXXFLAGS "], [*[[\ \	]]-g*], [:],
+     [CXXFLAGS="$CXXFLAGS -g"])])])])
 
 # AU_ARG_ENABLE_VALGRIND
 # ----------------------
