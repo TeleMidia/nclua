@@ -1,5 +1,5 @@
 # Makefile.am -- Template for generating Makefile via Automake.
-# Copyright (C) 2013-2016 PUC-Rio/Laboratorio TeleMidia
+# Copyright (C) 2013-2017 PUC-Rio/Laboratorio TeleMidia
 #
 # This file is part of NCLua.
 #
