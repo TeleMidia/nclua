@@ -11,7 +11,7 @@ NCLua library comes with a standalone interpreter, called `nclua`
 (cf. [src/nclua.c](src/nclua.c)), which can be used to run NCLua scripts.
 
 For stable releases and binaries, cf.
-http://www.telemidia.puc-rio.br/~gflima/software/nclua.
+http://www.telemidia.puc-rio.br/~gflima/nclua.
 
 For the latest sources, cf.
 https://github.com/gflima/nclua.
