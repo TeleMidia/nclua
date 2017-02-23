@@ -1,4 +1,4 @@
-![NCLua](http://www.ceu-lang.org/chico/nclua.png)
+![NCLua](contrib/nclua.png)
 
 The NCLua library adds event handling and 2D graphics to Lua scripts.
 Programs written in C can use libnclua to run embedded NCLua scripts, i.e.,
@@ -130,7 +130,7 @@ Wrapper functions (cf. [lib/ncluaw.c](lib/ncluaw.c), Lua-free interface):
 * `ncluaw_resize`         resizes top-level canvas
 
 ---
-Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
+Copyright (C) 2013-2017 PUC-Rio/Laboratorio TeleMidia
 
 Permission is granted to copy, distribute and/or modify this document under
 the terms of the GNU Free Documentation License, Version 1.3 or any later

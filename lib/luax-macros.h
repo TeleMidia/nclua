@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2015 Free Software Foundation, Inc.
+/* Copyright (C) 2014-2017 Free Software Foundation, Inc.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,9 +18,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef LUAX_MACROS_H
 #define LUAX_MACROS_H
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include <assert.h>
 
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
 #include "macros.h"
 
 static void ATTR_UNUSED
@@ -92,6 +98,9 @@ luax_getfield (lua_State *L, int i, const char *k)
 
 #define luax_pushupvalue(L, i)\
   lua_pushvalue ((L), lua_upvalueindex (i))
+
+#define luax_setbooleanfield(L, i, name, value)\
+  _luax_setxfield (lua_pushboolean, (L), (i), (name), (value))
 
 #define luax_setintegerfield(L, i, name, value)\
   _luax_setxfield (lua_pushinteger, (L), (i), (name), (value))
@@ -189,7 +198,7 @@ _luax_dump_value (lua_State *L, int index)
   switch (lua_type (L, index))
     {
     case LUA_TBOOLEAN:
-      fputs (lua_toboolean (L, index) ? "true" : "false", stderr);
+      fputs (strbool (lua_toboolean (L, index)), stderr);
       break;
 
     case LUA_TNIL:

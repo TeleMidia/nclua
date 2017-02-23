@@ -1,5 +1,5 @@
 /* nclua.canvas -- The NCLua Canvas module.
-   Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
+   Copyright (C) 2013-2017 PUC-Rio/Laboratorio TeleMidia
 
 This file is part of NCLua.
 
@@ -28,7 +28,7 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <glib-object.h>
 #include <pango/pangocairo.h>
 
-#if defined WITH_NCLUA_GTK && WITH_NCLUA_GTK
+#if defined WITH_GTK && WITH_GTK
 # include <gtk/gtk.h>
 #endif
 
@@ -222,7 +222,7 @@ cairox_surface_create_from_file (const char *path, cairo_surface_t **dup)
 {
   cairo_surface_t *sfc;
 
-#if defined WITH_NCLUA_GTK && WITH_NCLUA_GTK
+#if defined WITH_GTK && WITH_GTK
 
   GdkPixbuf *pixbuf;
   GError *error = NULL;

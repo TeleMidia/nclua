@@ -1,20 +1,18 @@
 /* lua -- A simple Lua interpreter to run the tests.
-   Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
+   Copyright (C) 2013-2017 Free Software Foundation, Inc.
 
-This file is part of NCLua.
-
-NCLua is free software: you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
-NCLua is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
-License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
+along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,6 +28,7 @@ int
 main (int argc, const char **argv)
 {
   lua_State *L;
+  int i;
   int status;
 
   if (unlikely (argc != 2))
@@ -41,6 +40,13 @@ main (int argc, const char **argv)
   L = luaL_newstate ();
   assert (L != NULL);           /* out of memory */
   luaL_openlibs (L);
+  lua_newtable (L);
+  for (i = 0; i < argc; i++)
+    {
+      lua_pushstring (L, argv[i]);
+      lua_rawseti (L, -2, i);
+    }
+  lua_setglobal (L, "arg");
 
   status = luaL_loadfile (L, argv[1]) || lua_pcall (L, 0, 0, 0);
   if (unlikely (status != 0))

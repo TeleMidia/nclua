@@ -1,5 +1,5 @@
 --[[ Copyright (C) 2008 PUC-Rio/Laboratorio Telemidia/LabLua
-     Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
+     Copyright (C) 2013-2017 PUC-Rio/Laboratorio TeleMidia
 
 This file is part of NCLua.
 

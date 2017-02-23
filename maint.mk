@@ -1,5 +1,5 @@
 # maint.mk -- Maintainer's makefile.
-# Copyright (C) 2014-2015 Free Software Foundation, Inc.
+# Copyright (C) 2014-2017 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -76,9 +76,6 @@ FETCH= $(PERL) -swe '$(perl_FETCH)' --
 perl_usage=\
   BEGIN {\
     $$/ = "";\
-    print "Usage: $(MAKE) -f $(ME) [V=1] TARGET";\
-    print "Maintainer\047s makefile; the following targets are supported:";\
-    print "";\
   }\
   /\#\s([^\n]+)\n(\.PHONY:|SC_RULES\+=)\s([\w-]+)\n/ and do {\
     my $$tgt = $$3;\
@@ -91,7 +88,9 @@ perl_usage=\
 
 .PHONY: usage
 usage:
-	@$(PERL) -wnle '$(perl_usage)' $(MAKEFILE_LIST)
+	@echo "Usage: $(MAKE) -f $(ME) [V=1] TARGET"
+	@echo "Maintainer's makefile; the following targets are supported:"
+	@$(PERL) -wnle '$(perl_usage)' $(MAKEFILE_LIST) | sort
 
 
 perl_bootstrap_utilm4_options=\

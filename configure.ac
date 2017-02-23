@@ -1,5 +1,5 @@
 # configure.ac -- Configure template for NCLua.
-# Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
+# Copyright (C) 2013-2017 PUC-Rio/Laboratorio TeleMidia
 #
 # This file is part of NCLua.
 #
@@ -79,11 +79,16 @@ AU_SYSTEM
 AU_SYSTEM_MINGW
 
 # Configure options.
-AU_ARG_ENABLE_ANSI
 AU_ARG_ENABLE_COVERAGE
 AU_ARG_ENABLE_DEBUG
 AU_ARG_ENABLE_VALGRIND
-AU_ARG_ENABLE_WARNINGS
+
+nw=
+nw="$nw -Wsystem-headers"     # suppress system headers warnings
+nw="$nw -Wpadded"             # our structs are not packed
+nw="$nw -Wcast-qual"          # triggered by GLib headers
+nw="$nw -Wc++-compat"         # ditto
+AU_ARG_ENABLE_WARNINGS([$nw])
 
 # Library functions.
 AC_CHECK_LIBM
@@ -267,23 +272,6 @@ src/Makefile
 tests/Makefile
 ])
 
-# Helper macro: Removes 'check' value from with_... variables.
-m4_define([my_uncheck],[dnl
-m4_case(m4_cmp([$#], [3]),
- [-1], [m4_fatal([$0: wrong number of arguments])],
- [0],  [AS_IF([test "$with_$1" = check],
-         [AS_IF([test "$au_check_optional_pkg_$2" = yes],
-           [with_$1="yes"],
-           [with_$1="no	(requires $3)"])])],
-       [$0([$1], [$2], [$3])m4_newline()$0(m4_shift3($@))])])
-
-my_uncheck(dnl
-[event_geolocation], [GIO], gio-2.0 >= glib_required_version,
-[event_tcp],  [GIO],        gio-2.0 >= glib_required_version,
-[event_http], [SOUP],       libsoup-2.4 >= soup_required_version,
-[nclua_gst],  [GSTREAMER],  gstreamer-1.0 >= gstreamer_required_version,
-[nclua_gtk],  [GTK],        gtk+-3.0 >= gtk_required_version)
-
 AC_OUTPUT
 AC_MSG_NOTICE([summary of main build options:
 
@@ -297,10 +285,8 @@ AC_MSG_NOTICE([summary of main build options:
   Library types:      Shared=${enable_shared}, Static=${enable_static}
   Valgrind:           ${VALGRIND}
 
-  Build geolocation:  ${with_event_geolocation}
-  Build http:         ${with_event_http}
-  Build tcp:          ${with_event_tcp}
-
-  Build gstnclua:     ${with_nclua_gst}
-  Build nclua GTK:    ${with_nclua_gtk}
+  Build http:         ${with_event_http_result}
+  Build tcp:          ${with_event_tcp_result}
+  Build gstnclua:     ${with_nclua_gst_result}
+  Build nclua GTK:    ${with_nclua_gtk_result}
 ])

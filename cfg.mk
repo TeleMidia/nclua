@@ -1,5 +1,5 @@
 # cfg.mk -- Setup maintainer's makefile.
-# Copyright (C) 2013-2015 PUC-Rio/Laboratorio TeleMidia
+# Copyright (C) 2013-2017 PUC-Rio/Laboratorio TeleMidia
 #
 # This file is part of NCLua.
 #
@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with NCLua.  If not, see <http://www.gnu.org/licenses/>.
 
-COPYRIGHT_YEAR= 2015
+COPYRIGHT_YEAR= 2017
 COPYRIGHT_HOLDER= PUC-Rio/Laboratorio TeleMidia
 
 INDENT_EXCLUDE=\
@@ -98,6 +98,7 @@ SC_COPYRIGHT_EXCLUDE=\
   lib/luax-macros.h\
   lib/macros.h\
   maint.mk\
+  tests/lua.c\
   $(NULL)
 
 UPDATE_COPYRIGHT_EXCLUDE=\

@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2015 Free Software Foundation, Inc.
+/* Copyright (C) 2014-2017 Free Software Foundation, Inc.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -189,14 +189,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 # define FALSE 0
 #endif
 
-#ifndef EXIT_SUCCESS
-# define EXIT_SUCCESS 0
-#endif
-
-#ifndef EXIT_FAILURE
-# define EXIT_FAILURE 1
-#endif
-
 #undef ASSERT_NOT_REACHED
 #define ASSERT_NOT_REACHED assert (0 && "unreachable reached!")
 
@@ -250,6 +242,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #undef streq
 #define streq(a, b) ((*(a) == *(b)) && strcmp ((a), (b)) == 0)
+
+#undef strbool
+#define strbool(x) ((x) ? "true" : "false")
 
 #undef cast
 #define cast(t, x) ((t)(x))
