@@ -231,7 +231,7 @@ perl_fetch_remote_utilm4=\
 # Fetches remote files.
 .PHONY: fetch-remote
 fetch-remote:
-	@case "$(REMOTE_FILES)" in \
+	@case " $(REMOTE_FILES) " in \
 	*\ $(ME)\ *)\
 	  $(V_P) && echo "chmod +w $(ME)";\
 	  chmod +w $(ME);\
