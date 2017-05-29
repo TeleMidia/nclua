@@ -36,7 +36,7 @@ dist-hook:
 	@echo $(VERSION) > $(distdir)/.tarball-version
 	@cp -r $(srcdir)/contrib $(srcdir)/examples $(distdir)
 
-EXTRA_DIST=\
+EXTRA_DIST+=\
   .version\
   README.md\
   bootstrap\

@@ -21,7 +21,7 @@ include $(top_srcdir)/build-aux/Makefile.am.link
 
 AM_CFLAGS= $(WERROR_CFLAGS) $(WARN_CFLAGS)
 
-EXTRA_DIST= nclua.pc.in nclua.rc.in ncluaconf.h.in
+EXTRA_DIST+= nclua.pc.in nclua.rc.in ncluaconf.h.in
 DISTCLEANFILES+= nclua.pc nclua.rc ncluaconf.h
 
 pkgconfigdir= $(libdir)/pkgconfig

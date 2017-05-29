@@ -239,7 +239,7 @@ XFAIL_TESTS=\
   test-libncluaw-event-free-x\
   $(NULL)
 
-EXTRA_DIST=\
+EXTRA_DIST+=\
   $(check_SCRIPTS)\
   libnclua-echo.lua\
   ref-cairo-1-14/test-canvas-drawEllipse-2-ref.png\
