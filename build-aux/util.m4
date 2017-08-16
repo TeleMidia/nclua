@@ -257,7 +257,7 @@ AS_IF([test -n "$au_lua_pc"],
 AS_IF([test -z "$au_lua_pc"],
  [PKG_CHECK_EXISTS([lua >= $au_lua_min_version], [au_lua_pc=lua], [:])
   AS_IF([test -z "$au_lua_pc"],
-   [for au_lua_min in `seq $au_lua_min_version_minor 3`; do
+   [for au_lua_min in `seq 3 $au_lua_min_version_minor`; do
       for au_lua_prefix in lua5 lua5. lua-5 lua-5.; do
         PKG_CHECK_EXISTS(
          [${au_lua_prefix}${au_lua_min} >= $au_lua_min_version],
