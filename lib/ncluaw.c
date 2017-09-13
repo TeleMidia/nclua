@@ -47,13 +47,13 @@ static const int _ncluaw_magic = 0;
 
 /* List of NCLua Event plugins to be loaded by ncluaw_open().  */
 static const char *plugin_list[] = {
-#if defined WITH_EVENT_HTTP && WITH_EVENT_HTTP
+#if defined WITH_SOUP && WITH_SOUP
   "http",
 #endif
   "key",
   "ncl",
   "pointer",
-#if defined WITH_EVENT_TCP && WITH_EVENT_TCP
+#if defined WITH_GIO && WITH_GIO
   "tcp",
 #endif
   "user",

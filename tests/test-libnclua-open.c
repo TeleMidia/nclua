@@ -96,13 +96,13 @@ main (void)
   TEST_BEGIN
   {
     const char *list[] = {
-#if defined WITH_EVENT_HTTP && WITH_EVENT_HTTP
+#if defined WITH_SOUP && WITH_SOUP
       "http",
 #endif
       "key",
       "ncl",
       "pointer",
-#if defined WITH_EVENT_TCP && WITH_EVENT_TCP
+#if defined WITH_GIO && WITH_GIO
       "tcp",
 #endif
       "user",
