@@ -20,6 +20,7 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  ]]--
 local assert = assert
 local coroutine = coroutine
 local ipairs = ipairs
+local math = math
 local os = os
 local pairs = pairs
 local print = print
@@ -129,7 +130,8 @@ http.execute (
             canvas:attrColor (FT_COLOR)
             canvas:attrFont (family, size, 'bold')
             canvas:drawText (0, 0, header)
-            local perc = (' -- %d%%'):format (CURRENT_PAGE * 100 / #pages)
+            local perc = (' -- %d%%')
+	       :format (math.floor (CURRENT_PAGE * 100 / #pages))
             canvas:drawText (0, HEIGHT - STRUT, footer..perc)
             canvas:attrFont (family, size, style)
             canvas:attrColor (FG_COLOR)
