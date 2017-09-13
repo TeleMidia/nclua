@@ -102,6 +102,11 @@ nclua_open (lua_State *L, int width, int height,
   lua_pop (L, 1);
   lua_setfield (L, -2, "canvas");
 
+  err = require (L, "nclua.dir");
+  if (unlikely (err != LUA_OK))
+    goto fail;
+  lua_setfield (L, -2, "dir");
+
   err = require (L, "nclua.event");
   if (unlikely (err != LUA_OK))
     goto fail;
@@ -127,6 +132,8 @@ nclua_open (lua_State *L, int width, int height,
   nclua_registry_create (L);
   nclua_registry_get_field (L, "canvas");
   lua_setglobal (L, "canvas");
+  nclua_registry_get_field (L, "dir");
+  lua_setglobal (L, "dir");
   nclua_registry_get_field (L, "event");
   lua_setglobal (L, "event");
 

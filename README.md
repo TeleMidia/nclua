@@ -75,6 +75,15 @@ Internal functions (for debugging):
 * `canvas:_resize`          resizes canvas content
 * `canvas:_surface`         returns a pointer to canvas content
 
+Dir API
+-------
+
+For a complete reference, cf. [nclua/dir.c](nclua/dir.c).
+
+Functions:
+* `dir.dir`  gets an iterator for path
+* `dir.test` tests whether path satisfies a given query
+
 Event API
 ---------
 
