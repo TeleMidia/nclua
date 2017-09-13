@@ -64,9 +64,9 @@ __l_dir_gc (lua_State *L)
 /*-
  * dir.dir (path:string) -> iter:function
  *
- * Returns an iterator function that each time is called returns a directory
- * entry's name as a string.  If PATH is not a directory or if it cannot be
- * read, raises an error.
+ * Returns an iterator function that each time it is called returns a
+ * directory entry's name as a string.  If PATH is not a directory or if it
+ * cannot be read, raises an error.
  */
 static int
 l_dir_dir_it_closure (lua_State *L)
@@ -128,7 +128,7 @@ l_dir_dir (lua_State *L)
  * Returns true if path satisfies the given query.
  *
  * The following query strings are supported:
- *   dir        - path is a directory;
+ *   directory  - path is a directory;
  *   executable - path is an executable file;
  *   exists     - path can be read;
  *   regular    - path is a regular file.
@@ -140,7 +140,7 @@ static int
 l_dir_test (lua_State *L)
 {
   static const char *query_list[] = {
-    "dir",
+    "directory",
     "executable",
     "exists",
     "regular",
