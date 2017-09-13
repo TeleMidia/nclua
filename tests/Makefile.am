@@ -31,8 +31,9 @@ LDADD= $(top_builddir)/lib/libnclua.la
 noinst_LTLIBRARIES= tests0.la
 
 if OS_WIN32
-tests0_export_symbols= -export-symbols tests0.def
 tests0_def_dependency= tests0.def
+tests0_export_symbols= -export-symbols $(tests0_def_dependency)\
+  -no-undefined $(LUA_LIBS)
 endif
 
 CLEANFILES+= tests0.def

@@ -14,9 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+LINK_SO=
+
 .PHONY: link-so
-link-so: $(LTLIBRARIES)
-	@for soname in $(LTLIBRARIES:.la=$(SOEXT)); do\
+link-so: 
+	@for soname in $(LINK_SO); do\
 	  if ! test -f $$soname; then\
 	    rm -f $$soname;\
 	    $(LN_S) .libs/$$soname $$soname;\
@@ -25,7 +27,7 @@ link-so: $(LTLIBRARIES)
 
 .PHONY: unlink-so
 unlink-so:
-	-for soname in $(LTLIBRARIES:.la=$(SOEXT)); do\
+	-for soname in $(LINK_SO); do\
 	  rm -f $$soname;\
 	done
 

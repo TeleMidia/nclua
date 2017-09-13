@@ -32,6 +32,12 @@ noinst_HEADERS= macros.h luax-macros.h
 lib_LTLIBRARIES= libnclua.la
 
 if OS_WIN32
+LINK_SO+= libnclua-$(NCLUA_LIBTOOL_CURRENT_MINUS_AGE)$(SOEXT)
+else
+LINK_SO+= libnclua$(SOEXT)
+endif
+
+if OS_WIN32
 export_symbols= -export-symbols $(builddir)/nclua.def
 nclua_def_depedency= $(builddir)/nclua.def
 nclua_win32_res= nclua-win32-res.o
@@ -100,11 +106,22 @@ gstplugins_LTLIBRARIES= gstnclua.la
 noinst_HEADERS+= gstx-macros.h
 endif
 
-gstnclua_la_DEPENDENCIES= $(lib_LTLIBRARIES) $(noinst_HEADERS)
+if OS_WIN32
+gstnclua_def_dependency= gstnclua.def
+gstnclua_export_symbols= -export-symbols $(gstnclua_def_dependency)\
+  -no-undefined
+endif
+
+CLEANFILES+= gstnclua.def
+gstnclua.def:
+	$(AM_V_GEN) (echo EXPORTS; echo gst_nclua_get_type) >$@
+
+gstnclua_la_DEPENDENCIES= $(lib_LTLIBRARIES) $(noinst_HEADERS)\
+  $(gstnclua_def_dependency)
 gstnclua_la_CFLAGS= $(AM_CFLAGS) $(GLIB_CFLAGS)\
   $(GSTREAMER_CFLAGS) $(LUA_CFLAGS)
 gstnclua_la_LDFLAGS= $(AM_LDFLAGS) -module $(LT_MODULE_LDFLAGS)\
-  $(GLIB_LIBS) $(GSTREAMER_LIBS)
+  $(GLIB_LIBS) $(GSTREAMER_LIBS) $(gstnclua_export_symbols)
 gstnclua_la_LIBADD= $(top_builddir)/lib/libnclua.la
 gstnclua_la_SOURCES=\
   gstnclua.c\

@@ -18,6 +18,7 @@
 
 include $(top_srcdir)/build-aux/Makefile.am.common
 include $(top_srcdir)/build-aux/Makefile.am.link
+LINK_SO+= $(LTLIBRARIES:.la=$(SOEXT))
 
 SUBDIRS= event
 
@@ -31,15 +32,16 @@ nclualib_LTLIBRARIES=\
   $(NULL)
 
 if OS_WIN32
-canvas_export_symbols= -export-symbols canvas.def
-canvas_def_depedency= canvas.def
+canvas_def_dependency= canvas.def
+canvas_export_symbols= -export-symbols $(canvas_def_dependency)\
+  -no-undefined $(LUA_LIBS)
 endif
 
 CLEANFILES+= canvas.def
 canvas.def:
 	$(AM_V_GEN) (echo EXPORTS; echo luaopen_nclua_canvas) >$@
 
-canvas_la_DEPENDENCIES= $(canvas_def_depedency)
+canvas_la_DEPENDENCIES= $(canvas_def_dependency)
 canvas_la_CFLAGS= $(AM_CFLAGS) $(CAIRO_CFLAGS)\
   $(GLIB_CFLAGS) $(PANGO_CFLAGS)
 canvas_la_LDFLAGS= $(AM_LDFLAGS) $(CAIRO_LIBS)\
@@ -52,15 +54,16 @@ canvas_la_LDFLAGS+= $(GTK_LIBS)
 endif
 
 if OS_WIN32
-dir_export_symbols= -export-symbols dir.def
 dir_def_dependency= dir.def
+dir_export_symbols= -export-symbols $(dir_def_dependency)\
+  -no-undefined $(LUA_LIBS)
 endif
 
 CLEANFILES+= dir.def
 dir.def:
 	$(AM_V_GEN) (echo EXPORTS; echo luaopen_nclua_dir) >$@
 
-dir_la_DEPENDENCIES= $(dir_def_depedency)
+dir_la_DEPENDENCIES= $(dir_def_dependency)
 dir_la_CFLAGS= $(AM_CFLAGS) $(GLIB_CFLAGS)
 dir_la_LDFLAGS= $(AM_LDFLAGS) $(GLIB_LIBS) $(dir_export_symbols)
 dir_la_SOURCES= dir.c

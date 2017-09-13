@@ -665,9 +665,9 @@ AC_MSG_RESULT([$au_os_win32])
 AM_CONDITIONAL([OS_WIN32], [test "$au_os_win32" = yes])
 dnl Find MinGW root.
 AS_IF([test "$au_os_win32" = yes && test -z "$MINGW_ROOT"],
- [MINGW_ROOT=`$SED -n 's,^\(.*\)[[ 	][ 	]]*/mingw$,\1,p' /etc/fstab`;
+ [MINGW_ROOT="$HOMEDRIVE$MINGW_PREFIX"
   AS_IF([test -z "$MINGW_ROOT"],
-   [MINGW_ROOT='C:/MinGW'])])
+   [MINGW_ROOT='C:/msys64'])])
 AC_SUBST([MINGW_ROOT])
 dnl Check if system is 64bit.
 AS_IF([test "$au_os_win32" = yes],
