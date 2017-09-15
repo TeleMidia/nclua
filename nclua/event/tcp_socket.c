@@ -43,8 +43,8 @@ socket_check (lua_State *L, int index, GSocketClient ** client,
 {
   socket_t *sock;
   sock = (socket_t *) luaL_checkudata (L, index, SOCKET);
-  derefandset (client, sock->client);
-  derefandset (conn, sock->conn);
+  tryset (client, sock->client);
+  tryset (conn, sock->conn);
   return sock;
 }
 

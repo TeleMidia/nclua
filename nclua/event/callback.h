@@ -86,8 +86,8 @@ static G_GNUC_UNUSED void
 luax_callback_data_get_data (luax_callback_data_t *cb_data,
                              lua_State **L, void **data)
 {
-  derefandset (L, cb_data->L);
-  derefandset (data, cb_data->data);
+  tryset (L, cb_data->L);
+  tryset (data, cb_data->data);
 }
 
 /* Pushes onto stack the object associated with callback-data object

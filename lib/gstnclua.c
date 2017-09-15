@@ -210,8 +210,8 @@ static void
 gst_nclua_get_property_fps (GstNCLua *nclua, gint *fps_n, gint *fps_d)
 {
   GST_OBJECT_LOCK (nclua);
-  derefandset (fps_n, nclua->property.fps_n);
-  derefandset (fps_d, nclua->property.fps_d);
+  tryset (fps_n, nclua->property.fps_n);
+  tryset (fps_d, nclua->property.fps_d);
   GST_OBJECT_UNLOCK (nclua);
 }
 
@@ -271,10 +271,10 @@ gst_nclua_get_counters (GstNCLua *nclua,
                         GstClockTime *accum_time, guint64 *accum_frames)
 {
   GST_OBJECT_LOCK (nclua);
-  derefandset (time, nclua->counter.time);
-  derefandset (frames, nclua->counter.frames);
-  derefandset (accum_time, nclua->counter.accum_time);
-  derefandset (accum_frames, nclua->counter.accum_frames);
+  tryset (time, nclua->counter.time);
+  tryset (frames, nclua->counter.frames);
+  tryset (accum_time, nclua->counter.accum_time);
+  tryset (accum_frames, nclua->counter.accum_frames);
   GST_OBJECT_UNLOCK (nclua);
 }
 
@@ -307,10 +307,10 @@ gst_nclua_get_format (GstNCLua *nclua, const gchar **format,
 {
   gboolean result;
   GST_OBJECT_LOCK (nclua);
-  derefandset (format, nclua->format.format);
-  derefandset (width, nclua->format.width);
-  derefandset (height, nclua->format.height);
-  derefandset (stride, nclua->format.stride);
+  tryset (format, nclua->format.format);
+  tryset (width, nclua->format.width);
+  tryset (height, nclua->format.height);
+  tryset (stride, nclua->format.stride);
   result = nclua->format.updated;
   if (reset_updated)
     nclua->format.updated = FALSE;
@@ -341,8 +341,8 @@ static void
 gst_nclua_get_fps (GstNCLua *nclua, gint *n, gint *d)
 {
   GST_OBJECT_LOCK (nclua);
-  derefandset (n, nclua->fps.n);
-  derefandset (d, nclua->fps.d);
+  tryset (n, nclua->fps.n);
+  tryset (d, nclua->fps.d);
   GST_OBJECT_UNLOCK (nclua);
 }
 
@@ -385,7 +385,7 @@ gst_nclua_dequeue_event (GstNCLua *nclua, GstEvent **evt)
   if (tmp == NULL)
     return FALSE;
 
-  derefandset (evt, tmp);
+  tryset (evt, tmp);
   return TRUE;
 }
 
@@ -510,7 +510,7 @@ gst_nclua_navigation_convert (GstEvent *from, ncluaw_event_t **to)
       return FALSE;             /* unknown type */
     }
 
-  derefandset (to, ncluaw_event_clone (&evt));
+  tryset (to, ncluaw_event_clone (&evt));
   return TRUE;
 }
 

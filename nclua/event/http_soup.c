@@ -49,8 +49,8 @@ soup_check (lua_State *L, int index, SoupSession **session,
 {
   soup_t *soup;
   soup = (soup_t *) luaL_checkudata (L, index, SOUP);
-  derefandset (session, soup->session);
-  derefandset (request, soup->request);
+  tryset (session, soup->session);
+  tryset (request, soup->request);
   return soup;
 }
 

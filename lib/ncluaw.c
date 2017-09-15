@@ -309,7 +309,7 @@ ncluaw_open (const char *path, int width, int height, char **errmsg)
   return (ncluaw_t *) L;
 
  fail:
-  derefandset (errmsg, xstrdup (luaL_checkstring (L, -1)));
+  tryset (errmsg, xstrdup (luaL_checkstring (L, -1)));
   lua_close (L);
   return NULL;
 }
@@ -537,7 +537,7 @@ ncluaw_debug_dump_surface (ncluaw_t *nw, const char *path, char **errmsg)
   err = nclua_debug_dump_surface (L, path);
   if (unlikely (err != LUA_OK))
     {
-      derefandset (errmsg, xstrdup (luaL_checkstring (L, -1)));
+      tryset (errmsg, xstrdup (luaL_checkstring (L, -1)));
       return FALSE;
     }
   return TRUE;

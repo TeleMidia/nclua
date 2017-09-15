@@ -21,13 +21,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define cast(t, x)        ((t)(x))
 #define deconst(t, x)     ((t)(ptrdiff_t)(const void *)(x))
-#define derefandset(p, x) ((p) ? *(p) = (x) : (x))
 #define devolatile(t, x)  ((t)(ptrdiff_t)(volatile void *)(x))
 #define integralof(x)     (((char *)(x)) - ((char *) 0))
 #define likely            G_LIKELY
 #define nelementsof(x)    G_N_ELEMENTS ((x))
 #define pointerof(x)      ((void *)((char *) 0 + ((size_t)(x))))
 #define strbool(x)        ((x) ? "true" : "false")
+#define tryset(p, x)      ((p) ? *(p) = (x) : (x))
 #define unlikely          G_UNLIKELY
 #define unused(arg)       arg G_GNUC_UNUSED
 
