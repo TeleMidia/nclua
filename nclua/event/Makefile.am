@@ -24,7 +24,7 @@ AM_CPPFLAGS= -I$(top_srcdir)/lib -I$(top_builddir)/lib
 AM_CFLAGS= $(WERROR_CFLAGS) $(WARN_CFLAGS) $(LUA_CFLAGS)
 AM_LDFLAGS= -module $(LT_MODULE_LDFLAGS)
 
-noinst_HEADERS= luax-callback.h
+noinst_HEADERS= callback.h
 
 eventlib_LTLIBRARIES=
 eventlibdir= $(nclualibdir)/event

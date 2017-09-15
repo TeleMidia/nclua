@@ -28,7 +28,7 @@ pkgconfigdir= $(libdir)/pkgconfig
 pkgconfig_DATA= nclua.pc
 
 include_HEADERS= nclua.h ncluaconf.h ncluaw.h
-noinst_HEADERS= macros.h luax-macros.h
+noinst_HEADERS= aux-glib.h aux-lua.h
 lib_LTLIBRARIES= libnclua.la
 
 if OS_WIN32
@@ -86,14 +86,15 @@ uninstall-local: uninstall-def-file uninstall-ms-lib
 libnclua_la_DEPENDENCIES= $(include_HEADERS) $(noinst_HEADERS)\
   $(nclua_def_depedency) $(nclua_win32_res)
 libnclua_la_CPPFLAGS= -DNCLUA_BUILDING
-libnclua_la_CFLAGS= $(AM_CFLAGS) $(CFLAG_VISIBILITY) $(LUA_CFLAGS)
+libnclua_la_CFLAGS= $(AM_CFLAGS) $(CFLAG_VISIBILITY)\
+  $(GLIB_CFLAGS) $(LUA_CFLAGS)
 libnclua_la_LDFLAGS= -version-info $(NCLUA_LIBTOOL_STRING)\
   $(export_symbols) -no-undefined $(nclua_win32_res_ldflag)\
-  $(LUA_LIBS)
+  $(GLIB_LIBS) $(LUA_LIBS)
 
 libnclua_la_SOURCES=\
-  luax-macros.h\
-  macros.h\
+  aux-glib.h\
+  aux-lua.h\
   nclua.c\
   nclua.h\
   ncluaconf.h\
@@ -103,7 +104,7 @@ libnclua_la_SOURCES=\
 
 if WITH_NCLUA_GST
 gstplugins_LTLIBRARIES= gstnclua.la
-noinst_HEADERS+= gstx-macros.h
+noinst_HEADERS+= aux-gst.h
 endif
 
 if OS_WIN32

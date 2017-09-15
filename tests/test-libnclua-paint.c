@@ -49,7 +49,7 @@ main (void)
     s = cairo_image_surface_get_stride (src);
 
     dest = cairo_surface_create_similar (src, content, w, h);
-    assert (dest != NULL);      /* cannot fail */
+    g_assert_nonnull (dest);
     data = cairo_image_surface_get_data (dest);
     nclua_paint (L, data, "ARGB32", w, h, s);
 

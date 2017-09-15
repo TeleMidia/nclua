@@ -22,14 +22,9 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-
-#include <lua.h>
-#include <lauxlib.h>
+#include "aux-glib.h"
+#include "aux-lua.h"
 #include <cairo.h>
-#include <glib.h>
-#include <glib-object.h>
-
-#include "macros.h"
 
 /*-
  * tests0.dir_exists (path:string) -> status:boolean
@@ -122,7 +117,7 @@ xrand0 (int lower, int upper, int reset)
   static int seed = 0;
   int x;
 
-  assert (lower < upper && upper <= XRAND0_LIMIT);
+  g_assert (lower < upper && upper <= XRAND0_LIMIT);
   seed = (reset) ? 12345 : seed * 1103515245 + 12345;
   x = (int) ((unsigned int) (seed / XRAND0_LIMIT) % XRAND0_LIMIT);
 
@@ -211,7 +206,7 @@ l_canvas_intersect (lua_State *L)
   r1.height = luaL_checkint (L, 8);
 
   region = cairo_region_create_rectangle (&r0);
-  assert (region != NULL);      /* cannot fail */
+  g_assert_nonnull (region);
   err = cairo_region_status (region);
   if (unlikely (err != CAIRO_STATUS_SUCCESS))
     {
@@ -256,7 +251,8 @@ l_canvas_surface_equals (lua_State *L)
 
   s1 = (cairo_surface_t *) lua_touserdata (L, 1);
   s2 = (cairo_surface_t *) lua_touserdata (L, 2);
-  assert (s1 != NULL && s2 != NULL);
+  g_assert_nonnull (s1);
+  g_assert_nonnull (s2);
   if (s1 == s2)
     goto success;
 
@@ -265,11 +261,12 @@ l_canvas_surface_equals (lua_State *L)
 
   p1 = cairo_image_surface_get_data (s1);
   p2 = cairo_image_surface_get_data (s2);
-  assert (p1 != NULL && p2 != NULL);
+  g_assert_nonnull (p1);
+  g_assert_nonnull (p2);
 
   h1 = cairo_image_surface_get_height (s1);
   h2 = cairo_image_surface_get_height (s2);
-  assert (h1 >= 0 && h2 >= 0);
+  g_assert (h1 >= 0 && h2 >= 0);
   if (h1 != h2)
     {
       lua_pushfstring (L, "height mismatch (%d!=%d)", h1, h2);
@@ -278,7 +275,7 @@ l_canvas_surface_equals (lua_State *L)
 
   st1 = cairo_image_surface_get_stride (s1);
   st2 = cairo_image_surface_get_stride (s2);
-  assert (st1 > 0 && st2 > 0);
+  g_assert (st1 > 0 && st2 > 0);
   if (st1 != st2)
     {
       lua_pushfstring (L, "stride mismatch (%d!=%d)", st1, st2);
@@ -294,7 +291,7 @@ l_canvas_surface_equals (lua_State *L)
         }
     }
 
-  maxdiff = (int) (clamp (luaL_optnumber (L, 3, 1), 0, 1) * h1 * st1 / 4);
+  maxdiff = (int) (CLAMP (luaL_optnumber (L, 3, 1), 0, 1) * h1 * st1 / 4);
   if (ndiff > maxdiff)
     {
       lua_pushfstring (L, "#%d mismatch%s (expected #%d)",

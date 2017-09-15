@@ -20,9 +20,8 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #define CANVAS_COLOR_TABLE_H
 
 #include <config.h>
-#include <glib.h>
-
-#include "macros.h"
+#include <stdlib.h>
+#include "aux-glib.h"
 
 typedef struct _canvas_color_table_t
 {
@@ -176,7 +175,7 @@ static const canvas_color_table_t canvas_color_table[] = {
   {"YellowGreen", 154, 205, 50},
 };
 
-static ATTR_PURE int
+static G_GNUC_PURE int
 canvas_color_table_compar (const void *e1, const void *e2)
 {
   const canvas_color_table_t *c1;

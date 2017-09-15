@@ -17,24 +17,21 @@ You should have received a copy of the GNU General Public License
 along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <assert.h>
 #include <math.h>
-
-#include <lua.h>
-#include <lauxlib.h>
+#include "aux-glib.h"
+#include "aux-lua.h"
 
 #include <cairo.h>
-#include <glib.h>
-#include <glib-object.h>
 #include <pango/pangocairo.h>
 
 #if defined WITH_GTK && WITH_GTK
 # include <gtk/gtk.h>
 #endif
 
-#include "macros.h"
-#include "luax-macros.h"
 #include "canvas-color-table.h"
+
+#define radians(x) ((x) * G_PI / 180)
+#define degrees(x) ((x) * 180 / G_PI)
 
 /* Registry key for the canvas metatable.  */
 #define CANVAS "nclua.canvas"
@@ -72,7 +69,7 @@ canvas_check (lua_State *L, int index, cairo_t **cr)
 {
   canvas_t *canvas;
   canvas = (canvas_t *) luaL_checkudata (L, index, CANVAS);
-  set_if_nonnull (cr, canvas->cr);
+  derefandset (cr, canvas->cr);
   return canvas;
 }
 
@@ -112,7 +109,7 @@ static const char *const fill_or_frame_mode_list[] = {
 
 /* Uses MODE to call the appropriate function over cairo context CR.  */
 #define cairox_do_fill_or_frame(cr, mode)       \
-  STMT_BEGIN                                    \
+  G_STMT_START                                  \
   {                                             \
     switch ((mode))                             \
       {                                         \
@@ -123,10 +120,10 @@ static const char *const fill_or_frame_mode_list[] = {
         cairo_stroke ((cr));                    \
         break;                                  \
       default:                                  \
-        ASSERT_NOT_REACHED;                     \
+        g_assert_not_reached ();                \
       }                                         \
   }                                             \
-  STMT_END
+  G_STMT_END
 
 /* Stores the clip region of context CR into *X, *Y, *W, *H.  */
 #define cairox_get_clip(cr, x, y, w, h)\
@@ -134,13 +131,13 @@ static const char *const fill_or_frame_mode_list[] = {
 
 /* Sets the clip region of context CR to X, Y, W, H.  */
 #define cairox_set_clip(cr, x, y, w, h)         \
-  STMT_BEGIN                                    \
+  G_STMT_START                                  \
   {                                             \
     cairo_reset_clip ((cr));                    \
     cairo_rectangle ((cr), (x), (y), (w), (h)); \
     cairo_clip ((cr));                          \
   }                                             \
-  STMT_END
+  G_STMT_END
 
 /* Stores the source color of context CR into *R, *G, *B, *A.
    The macro assumes that R, G, B, and A are double-precision numbers.  */
@@ -160,12 +157,12 @@ static const char *const fill_or_frame_mode_list[] = {
    canvas:attrColor () -> 255, 0, 0, 0    *** wrong ***
 */
 #define cairox_set_source_rgba(cr, r, g, b, a)          \
-  STMT_BEGIN                                            \
+  G_STMT_START                                          \
   {                                                     \
     cairo_set_source_rgb ((cr), 0, 0, 0);               \
     cairo_set_source_rgba ((cr), (r), (g), (b), (a));   \
   }                                                     \
-  STMT_END
+  G_STMT_END
 
 /* Returns true if context CR is valid.  */
 #define cairox_is_valid(cr)\
@@ -206,12 +203,12 @@ static const char *const fill_or_frame_mode_list[] = {
 
 /* Stores the dimensions of surface SFC into *W and *H.  */
 #define cairox_surface_get_dimensions(sfc, w, h)        \
-  STMT_BEGIN                                            \
+  G_STMT_START                                          \
   {                                                     \
     *(w) = cairo_image_surface_get_width ((sfc));       \
     *(h) = cairo_image_surface_get_height ((sfc));      \
   }                                                     \
-  STMT_END
+  G_STMT_END
 
 /* Creates a new surface by loading the image file at path PATH.
    Stores the resulting surface into *DUP and return CAIRO_STATUS_SUCCESS if
@@ -229,7 +226,7 @@ cairox_surface_create_from_file (const char *path, cairo_surface_t **dup)
   cairo_t *cr;
   int w, h;
 
-  assert (dup != NULL);
+  g_assert_nonnull (dup);
   pixbuf = gdk_pixbuf_new_from_file (path, &error);
   if (unlikely (pixbuf == NULL))
     {
@@ -242,12 +239,12 @@ cairox_surface_create_from_file (const char *path, cairo_surface_t **dup)
   w = gdk_pixbuf_get_width (pixbuf);
   h = gdk_pixbuf_get_height (pixbuf);
   sfc = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w, h);
-  assert (sfc != NULL);         /* cannot fail */
+  g_assert_nonnull (sfc);
   if (unlikely (!cairox_surface_is_valid (sfc)))
     return cairo_surface_status (sfc);
 
   cr = cairo_create (sfc);
-  assert (cr != NULL);          /* cannot fail */
+  g_assert_nonnull (cr);
   if (!cairox_is_valid (cr))
     return cairo_status (cr);
 
@@ -261,7 +258,7 @@ cairox_surface_create_from_file (const char *path, cairo_surface_t **dup)
 #else
 
   sfc = cairo_image_surface_create_from_png (path);
-  assert (sfc != NULL);         /* cannot fail */
+  g_assert_nonnull (sfc);
   if (unlikely (!cairox_surface_is_valid (sfc)))
     return cairo_surface_status (sfc);
 
@@ -297,12 +294,12 @@ cairox_surface_duplicate (cairo_surface_t *src, cairo_surface_t **dup,
     }
 
   sfc = cairox_surface_create_similar (src, crop->width, crop->height);
-  assert (sfc != NULL);         /* cannot fail */
+  g_assert_nonnull (sfc);
   if (unlikely (!cairox_surface_is_valid (sfc)))
     return cairo_surface_status (sfc);
 
   cr = cairo_create (sfc);
-  assert (cr != NULL);          /* cannot fail */
+  g_assert_nonnull (cr);
   if (unlikely (!cairox_is_valid (cr)))
     {
       cairo_surface_destroy (sfc);
@@ -383,14 +380,14 @@ l_canvas_new (lua_State *L)
           lua_pushstring (L, cairo_status_to_string (status));
           return 2;
         }
-      assert (sfc != NULL);
+      g_assert_nonnull (sfc);
     }
   else
     {
       int w = luaL_checkint (L, 2);
       int h = luaL_checkint (L, 3);
       sfc = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w, h);
-      assert (sfc != NULL);     /* cannot fail */
+      g_assert_nonnull (sfc);
       if (unlikely (!cairox_surface_is_valid (sfc)))
         {
           lua_pushnil (L);
@@ -400,7 +397,7 @@ l_canvas_new (lua_State *L)
     }
 
   cr = cairo_create (sfc);
-  assert (cr != NULL);          /* cannot fail */
+  g_assert_nonnull (cr);
   if (unlikely (!cairox_is_valid (cr)))
     return error_throw_invalid_cr (L, cr);
 
@@ -416,7 +413,7 @@ l_canvas_new (lua_State *L)
           cairo_destroy (cr);
           return error_throw (L, cairo_status_to_string (err));
         }
-      assert (dup != NULL);
+      g_assert_nonnull (dup);
       back_sfc = sfc;
       sfc = dup;
     }
@@ -426,7 +423,7 @@ l_canvas_new (lua_State *L)
     }
 
   canvas = (canvas_t *) lua_newuserdata (L, sizeof (*canvas));
-  assert (canvas != NULL);      /* cannot fail */
+  g_assert_nonnull (canvas);
   canvas->sfc = sfc;
   canvas->back_sfc = back_sfc;
   canvas->cr = cr;
@@ -537,12 +534,12 @@ _l_canvas_dump_to_memory (lua_State *L)
 
   aux_sfc = cairo_image_surface_create_for_data (buf, (cairo_format_t) fmt,
                                                  w, h, s);
-  assert (aux_sfc != NULL);     /* cannot fail */
+  g_assert_nonnull (aux_sfc);
   if (unlikely (!cairox_surface_is_valid (aux_sfc)))
     return error_throw_invalid_surface (L, aux_sfc);
 
   aux_cr = cairo_create (aux_sfc);
-  assert (aux_cr != NULL);      /* cannot fail */
+  g_assert_nonnull (aux_cr);
   if (unlikely (!cairox_is_valid (aux_cr)))
     {
       cairo_surface_destroy (aux_sfc);
@@ -589,12 +586,12 @@ _l_canvas_resize (lua_State *L)
     }
 
   sfc = cairox_surface_create_similar (canvas->sfc, w, h);
-  assert (sfc != NULL);         /* cannot fail */
+  g_assert_nonnull (sfc);
   if (unlikely (!cairox_surface_is_valid (sfc)))
     return error_throw_invalid_surface (L, sfc);
 
   cr = cairo_create (sfc);
-  assert (cr != NULL);          /* cannot fail */
+  g_assert_nonnull (cr);
   if (unlikely (!cairox_is_valid (cr)))
     return error_throw_invalid_cr (L, cr);
 
@@ -615,7 +612,7 @@ _l_canvas_resize (lua_State *L)
           cairo_destroy (cr);
           return error_throw (L, cairo_status_to_string (err));
         }
-      assert (dup != NULL);
+      g_assert_nonnull (dup);
       back_sfc = sfc;
       sfc = dup;
     }
@@ -739,7 +736,7 @@ l_canvas_attrAntiAlias (lua_State *L)
     {
       cairo_antialias_t mode;
       mode = cairo_get_antialias (cr);
-      assert (mode < nelementsof (mode_list) - 1);
+      g_assert (mode < nelementsof (mode_list) - 1);
       lua_pushstring (L, mode_list[mode]);
       return 1;
     }
@@ -892,7 +889,7 @@ l_canvas_attrCrop (lua_State *L)
       rect.width = canvas->width;
       rect.height = canvas->height;
       region = cairo_region_create_rectangle (&rect);
-      assert (region != NULL);  /* cannot fail */
+      g_assert_nonnull (region);
       if (unlikely (!cairox_region_is_valid (region)))
         return error_throw_invalid_region (L, region);
 
@@ -949,7 +946,7 @@ l_canvas_attrFilter (lua_State *L)
     {
       cairo_filter_t mode;
       mode = canvas->filter;
-      assert (mode < nelementsof (mode_list) - 1);
+      g_assert (mode < nelementsof (mode_list) - 1);
       lua_pushstring (L, mode_list[mode]);
       return 1;
     }
@@ -1071,10 +1068,10 @@ l_canvas_attrFont (lua_State *L)
               break;
             }
         }
-      assert (found);
+      g_assert (found);
 
       slant = pango_font_description_get_style (canvas->font);
-      assert (slant < nelementsof (slant_list) - 1);
+      g_assert (slant < nelementsof (slant_list) - 1);
 
       lua_pushstring (L, family);
       lua_pushnumber (L, ((double) size / PANGO_SCALE));
@@ -1116,8 +1113,8 @@ l_canvas_attrFont (lua_State *L)
             }
           lua_settop (L, 5);
           weight = luaL_checkoption (L, 4, "normal", weight_list);
-          assert (weight >= 0);
-          assert ((PangoWeight) weight < nelementsof (weight_list) - 1);
+          g_assert (weight >= 0);
+          g_assert ((PangoWeight) weight < nelementsof (weight_list) - 1);
           weight = weight_map[weight];
 
           lua_insert (L, 4);
@@ -1126,7 +1123,7 @@ l_canvas_attrFont (lua_State *L)
         }
 
       font = pango_font_description_new ();
-      assert (font != NULL);    /* cannot fail */
+      g_assert_nonnull (font);
       pango_font_description_set_family (font, family);
       pango_font_description_set_size (font, (int) (size * PANGO_SCALE));
       pango_font_description_set_weight (font, (PangoWeight) weight);
@@ -1189,7 +1186,7 @@ l_canvas_attrOpacity (lua_State *L)
     {
       int opacity;
       opacity = luaL_checkint (L, 2);
-      canvas->opacity = (unsigned char) (clamp (opacity, 0, 255));
+      canvas->opacity = (unsigned char) (CLAMP (opacity, 0, 255));
       return 0;
     }
 }
@@ -1250,8 +1247,8 @@ l_canvas_attrScale (lua_State *L)
     }
   else
     {
-      canvas->scale.x = max (luaL_checknumber (L, 2), 0);
-      canvas->scale.y = max (luaL_checknumber (L, 3), 0);
+      canvas->scale.x = MAX (luaL_checknumber (L, 2), 0);
+      canvas->scale.y = MAX (luaL_checknumber (L, 3), 0);
       return 0;
     }
 }
@@ -1347,10 +1344,10 @@ l_canvas_compose (lua_State *L)
   y = luaL_optnumber (L, 3, 0);
 
   src = canvas_check (L, 4, NULL);
-  crop.x = clamp (luaL_optint (L, 5, src->crop.x), 0, src->width);
-  crop.y = clamp (luaL_optint (L, 6, src->crop.y), 0, src->height);
-  crop.width = clamp (luaL_optint (L, 7, src->crop.width), 0, src->width);
-  crop.height = clamp (luaL_optint (L, 8, src->crop.height), 0,
+  crop.x = CLAMP (luaL_optint (L, 5, src->crop.x), 0, src->width);
+  crop.y = CLAMP (luaL_optint (L, 6, src->crop.y), 0, src->height);
+  crop.width = CLAMP (luaL_optint (L, 7, src->crop.width), 0, src->width);
+  crop.height = CLAMP (luaL_optint (L, 8, src->crop.height), 0,
                        src->height);
 
   rect.x = 0;
@@ -1358,7 +1355,7 @@ l_canvas_compose (lua_State *L)
   rect.width = src->width;
   rect.height = src->height;
   region = cairo_region_create_rectangle (&rect);
-  assert (region != NULL);      /* cannot fail */
+  g_assert_nonnull (region);
   if (unlikely (!cairox_region_is_valid (region)))
     return error_throw_invalid_region (L, region);
 
@@ -1394,7 +1391,7 @@ l_canvas_compose (lua_State *L)
       err = cairox_surface_duplicate (src->sfc, &sfc, &crop);
       if (unlikely (err != CAIRO_STATUS_SUCCESS))
         return error_throw (L, cairo_status_to_string (err));
-      assert (sfc != NULL);
+      g_assert_nonnull (sfc);
     }
   else
     {
@@ -1403,7 +1400,7 @@ l_canvas_compose (lua_State *L)
 
   /* Create source pattern.  */
   pattern = cairo_pattern_create_for_surface (sfc);
-  assert (pattern != NULL);     /* cannot fail */
+  g_assert_nonnull (pattern);
   if (unlikely (!cairox_pattern_is_valid (pattern)))
     return error_throw_invalid_pattern (L, pattern);
 
@@ -1424,7 +1421,7 @@ l_canvas_compose (lua_State *L)
   if (src->rotation < 0 || src->rotation > 0)
     {
       cairo_matrix_translate (&matrix, w / 2, h / 2);
-      cairo_matrix_rotate (&matrix, 2 * M_PI - src->rotation);
+      cairo_matrix_rotate (&matrix, 2 * G_PI - src->rotation);
       cairo_matrix_translate (&matrix, -bw / 2, -bh / 2);
     }
 
@@ -1573,7 +1570,7 @@ l_canvas_drawPolygon_drawer (lua_State *L)
           cairo_stroke (cr);
           break;
         default:
-          ASSERT_NOT_REACHED;
+          g_assert_not_reached ();
         }
       cairo_restore (cr);
       return 0;
@@ -1669,13 +1666,13 @@ l_canvas_drawRoundRect (lua_State *L)
   y = luaL_checknumber (L, 4);
   w = luaL_checknumber (L, 5);
   h = luaL_checknumber (L, 6);
-  r = clamp (luaL_checknumber (L, 7), 0, min (w, h) / 2);
+  r = CLAMP (luaL_checknumber (L, 7), 0, MIN (w, h) / 2);
 
   cairo_save (cr);
-  cairo_arc (cr, x + r, y + r, r, M_PI, 1.5 * M_PI);
-  cairo_arc (cr, x + w - r, y + r, r, 1.5 * M_PI, 2 * M_PI);
-  cairo_arc (cr, x + w - r, y + h - r, r, 0, M_PI / 2);
-  cairo_arc (cr, x + r, y + h - r, r, M_PI / 2, M_PI);
+  cairo_arc (cr, x + r, y + r, r, G_PI, 1.5 * G_PI);
+  cairo_arc (cr, x + w - r, y + r, r, 1.5 * G_PI, 2 * G_PI);
+  cairo_arc (cr, x + w - r, y + h - r, r, 0, G_PI / 2);
+  cairo_arc (cr, x + r, y + h - r, r, G_PI / 2, G_PI);
   cairo_close_path (cr);
   cairox_do_fill_or_frame (cr, mode);
   cairo_restore (cr);
@@ -1715,7 +1712,7 @@ l_canvas_drawText (lua_State *L)
   text = luaL_checkstring (L, 5);
 
   layout = pango_cairo_create_layout (cr);
-  assert (layout != NULL);      /* cannot fail */
+  g_assert_nonnull (layout);
   pango_layout_set_text (layout, text, -1);
   pango_layout_set_font_description (layout, canvas->font);
 
@@ -1746,7 +1743,7 @@ l_canvas_flush (lua_State *L)
     return 0;                   /* nothing to do */
 
   aux_cr = cairo_create (canvas->sfc);
-  assert (aux_cr != NULL);      /* cannot fail */
+  g_assert_nonnull (aux_cr);
   if (unlikely (!cairox_is_valid (aux_cr)))
     return error_throw_invalid_cr (L, aux_cr);
 
@@ -1777,7 +1774,7 @@ l_canvas_measureText (lua_State *L)
   text = luaL_checkstring (L, 2);
 
   layout = pango_cairo_create_layout (cr);
-  assert (layout != NULL);      /* cannot fail */
+  g_assert_nonnull (layout);
   pango_layout_set_text (layout, text, -1);
   pango_layout_set_font_description (layout, canvas->font);
   pango_layout_get_size (layout, &w, &h);
@@ -1843,13 +1840,13 @@ l_canvas_pixel (lua_State *L)
 
           cairo_surface_flush (canvas->sfc);
           data = cairo_image_surface_get_data (canvas->sfc);
-          assert (data != NULL);
+          g_assert_nonnull (data);
 
           format = cairo_image_surface_get_format (canvas->sfc);
-          assert (format == CAIRO_FORMAT_ARGB32);
+          g_assert (format == CAIRO_FORMAT_ARGB32);
 
           stride = cairo_image_surface_get_stride (canvas->sfc);
-          assert (stride > 0);
+          g_assert (stride > 0);
 
           pixel = *((guint32 *) ((void *) (data + y * stride + 4 * x)));
           a = (unsigned char) (pixel >> 24);
@@ -1886,7 +1883,7 @@ l_canvas_pixel (lua_State *L)
       a = luaL_optnumber (L, 7, 255);
 
       aux_cr = cairo_create (canvas->sfc);
-      assert (aux_cr != NULL);  /* cannot fail */
+      g_assert_nonnull (aux_cr);
       if (unlikely (!cairox_is_valid (aux_cr)))
         return error_throw_invalid_cr (L, aux_cr);
 

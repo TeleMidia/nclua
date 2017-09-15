@@ -17,16 +17,8 @@ You should have received a copy of the GNU General Public License
 along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <assert.h>
-
-#include <lua.h>
-#include <lauxlib.h>
-
-#include <glib.h>
-#include <glib/gstdio.h>
-
-#include "macros.h"
-#include "luax-macros.h"
+#include "aux-glib.h"
+#include "aux-lua.h"
 
 /* Registry key for the dir metatable.  */
 #define DIR "nclua.event.dir"
@@ -108,14 +100,14 @@ l_dir_dir (lua_State *L)
   gdir = g_dir_open (path, 0, &error);
   if (unlikely (gdir == NULL))
     {
-      assert (error != NULL);
+      g_assert_nonnull (error);
       lua_pushfstring (L, "%s", error->message);
       g_error_free (error);
       return lua_error (L);
     }
 
   dir = (dir_t *) lua_newuserdata (L, sizeof (*dir));
-  assert (dir != NULL);         /* cannot fail */
+  g_assert_nonnull (dir);
   dir->gdir = gdir;
 
   lua_pushcclosure (L, l_dir_dir_it_closure, 1);
@@ -169,7 +161,7 @@ l_dir_test (lua_State *L)
       test = G_FILE_TEST_IS_SYMLINK;
       break;
     default:
-      ASSERT_NOT_REACHED;
+      g_assert_not_reached ();
     }
 
   lua_pushboolean (L, g_file_test (path, test));

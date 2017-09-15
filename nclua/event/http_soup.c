@@ -17,17 +17,12 @@ You should have received a copy of the GNU General Public License
 along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <assert.h>
-#include <strings.h>
-
-#include <lua.h>
-#include <lauxlib.h>
-
+#include <string.h>
+#include "aux-glib.h"
+#include "aux-lua.h"
 #include <libsoup/soup.h>
 
-#include "macros.h"
-#include "luax-macros.h"
-#include "luax-callback.h"
+#include "callback.h"
 
 /* Registry key for the soup metatable.  */
 #define SOUP "nclua.event.http_soup"
@@ -54,8 +49,8 @@ soup_check (lua_State *L, int index, SoupSession **session,
 {
   soup_t *soup;
   soup = (soup_t *) luaL_checkudata (L, index, SOUP);
-  set_if_nonnull (session, soup->session);
-  set_if_nonnull (request, soup->request);
+  derefandset (session, soup->session);
+  derefandset (request, soup->request);
   return soup;
 }
 
@@ -78,12 +73,12 @@ l_soup_new (lua_State *L)
 
   luax_optudata (L, 1, SOUP);
   soup = (soup_t *) lua_newuserdata (L, sizeof (*soup));
-  assert (soup != NULL);        /* cannot fail */
+  g_assert_nonnull (soup);
   memset (soup, 0, sizeof (*soup));
   soup->session = soup_session_new ();
-  assert (soup->session != NULL);       /* cannot fail */
+  g_assert_nonnull (soup->session);
   soup->cancel = g_cancellable_new ();
-  assert (soup->cancel != NULL);        /* cannot fail */
+  g_assert_nonnull (soup->cancel);
   luaL_setmetatable (L, SOUP);
 
   return 1;
@@ -128,8 +123,8 @@ l_soup_cancel (lua_State *L)
   soup_t *soup;
 
   soup = soup_check (L, 1, NULL, NULL);
-  assert (soup->session != NULL);
-  assert (soup->cancel != NULL);
+  g_assert_nonnull (soup->session);
+  g_assert_nonnull (soup->cancel);
   if (soup->request == NULL)
     {
       lua_pushboolean (L, FALSE);
@@ -139,7 +134,7 @@ l_soup_cancel (lua_State *L)
   g_cancellable_cancel (soup->cancel);
   g_object_unref (soup->cancel);
   soup->cancel = g_cancellable_new ();
-  assert (soup->cancel != NULL);        /* cannot fail */
+  g_assert_nonnull (soup->cancel);
   g_object_unref (soup->request);
   soup->request = NULL;
 
@@ -154,7 +149,7 @@ l_soup_cancel (lua_State *L)
  * sessions, triggering the appropriate callbacks.
  */
 static int
-l_soup_cycle (arg_unused (lua_State *L))
+l_soup_cycle (unused (lua_State *L))
 {
   return (g_main_context_iteration (NULL, FALSE), 0);
 }
@@ -241,12 +236,12 @@ request_finished (GObject *source, GAsyncResult *result, gpointer data)
       if (unlikely (n_received < 0))
         goto fail;
 
-      assert (error == NULL);
+      g_assert_null (error);
       soup->serial++;
 
       luaL_pushresultsize (&soup->buffer, (size_t) n_received);
       luax_callback_data_push (cb_data);
-      assert (lua_type (L, -1) == LUA_TFUNCTION);
+      g_assert (lua_type (L, -1) == LUA_TFUNCTION);
       lua_pushboolean (L, TRUE);
       lua_pushvalue (L, -3);
       lua_call (L, 2, 0);
@@ -261,10 +256,10 @@ request_finished (GObject *source, GAsyncResult *result, gpointer data)
     }
   else
     {
-      ASSERT_NOT_REACHED;       /* bad source */
+      g_assert_not_reached ();  /* bad source */
     }
 
-  assert (input != NULL);
+  g_assert_nonnull (input);
   buf = luaL_buffinitsize (L, &soup->buffer, soup->buffer_size);
   g_input_stream_read_async (input, buf, soup->buffer_size,
                              G_PRIORITY_DEFAULT, soup->cancel,
@@ -273,7 +268,7 @@ request_finished (GObject *source, GAsyncResult *result, gpointer data)
 
  fail:
   luax_callback_data_push_and_unref (cb_data);
-  assert (lua_type (L, -1) == LUA_TFUNCTION);
+  g_assert (lua_type (L, -1) == LUA_TFUNCTION);
   lua_pushboolean (L, FALSE);
   lua_pushstring (L, error->message);
   g_error_free (error);
@@ -292,23 +287,23 @@ l_soup_request_callback_closure (lua_State *L)
 
       luax_pushupvalue (L, 1);
       soup = soup_check (L, -1, NULL, NULL);
-      assert (soup->request != NULL);
+      g_assert_nonnull (soup->request);
       lua_pop (L, 1);
 
       message = soup_request_http_get_message (soup->request);
-      assert (message != NULL);
+      g_assert_nonnull (message);
       code = message->status_code;
       g_object_unref (message);
 
-      assert (lua_type (L, 1) == LUA_TBOOLEAN);
-      assert (lua_type (L, 2) == LUA_TSTRING);
+      g_assert (lua_type (L, 1) == LUA_TBOOLEAN);
+      g_assert (lua_type (L, 2) == LUA_TSTRING);
 
-      lua_pushvalue (L, 1);     /* true */
-      luax_pushupvalue (L, 1);  /* soup */
-      luax_pushupvalue (L, 2);  /* method */
-      luax_pushupvalue (L, 3);  /* uri */
-      lua_pushinteger (L, code);        /* code */
-      if (soup->serial == 1)    /* headers */
+      lua_pushvalue (L, 1);      /* true */
+      luax_pushupvalue (L, 1);   /* soup */
+      luax_pushupvalue (L, 2);   /* method */
+      luax_pushupvalue (L, 3);   /* uri */
+      lua_pushinteger (L, code); /* code */
+      if (soup->serial == 1)     /* headers */
         {
           SoupMessageHeadersIter it;
           const char *name;
@@ -329,8 +324,8 @@ l_soup_request_callback_closure (lua_State *L)
     }
   else
     {
-      assert (lua_type (L, 1) == LUA_TBOOLEAN);
-      assert (lua_type (L, 2) == LUA_TSTRING);
+      g_assert (lua_type (L, 1) == LUA_TBOOLEAN);
+      g_assert (lua_type (L, 2) == LUA_TSTRING);
 
       lua_pushvalue (L, 1);     /* false */
       luax_pushupvalue (L, 1);  /* soup */
@@ -365,8 +360,8 @@ l_soup_request (lua_State *L)
   guint buffer_size;
 
   soup = soup_check (L, 1, &session, &request);
-  assert (soup->session != NULL);
-  assert (soup->cancel != NULL);
+  g_assert_nonnull (soup->session);
+  g_assert_nonnull (soup->cancel);
 
   if (unlikely (soup->request != NULL)) /* cancel pending request */
     {
@@ -380,8 +375,8 @@ l_soup_request (lua_State *L)
   luaL_checktype (L, 4, LUA_TTABLE);
   body = luaL_checklstring (L, 5, &n);
   luaL_checktype (L, 6, LUA_TFUNCTION);
-  timeout = (guint) clamp (luaL_optint (L, 7, 0), 0, INT_MAX);
-  buffer_size = (guint) clamp (luaL_optint (L, 8, 4096), 1, INT_MAX);
+  timeout = (guint) CLAMP (luaL_optint (L, 7, 0), 0, INT_MAX);
+  buffer_size = (guint) CLAMP (luaL_optint (L, 8, 4096), 1, INT_MAX);
 
   error = NULL;
   soup->request = soup_session_request_http (session, method, uri, &error);
@@ -400,7 +395,7 @@ l_soup_request (lua_State *L)
     g_object_set (session, "timeout", timeout, NULL);
 
   message = soup_request_http_get_message (soup->request);
-  assert (message != NULL);
+  g_assert_nonnull (message);
   soup_message_body_append (message->request_body,
                             SOUP_MEMORY_COPY, body, n);
   lua_pushnil (L);

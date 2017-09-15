@@ -13,12 +13,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Written by Guilherme F. Lima */
+#ifndef AUX_GST_H
+#define AUX_GST_H
 
-#ifndef GSTX_MACROS_H
-#define GSTX_MACROS_H
-
-#include "macros.h"
+#include "aux-glib.h"
 
 #define GSTX_INCLUDE_PROLOGUE                   \
   PRAGMA_DIAG_IGNORE (-Wbad-function-cast)      \
@@ -33,10 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define GSTX_INCLUDE_EPILOGUE\
   PRAGMA_DIAG_POP ()
 
-/* *INDENT-OFF* */
 GSTX_INCLUDE_PROLOGUE
 #include <gst/gst.h>
 GSTX_INCLUDE_EPILOGUE
-/* *INDENT-ON* */
 
-#endif /* GSTX_MACROS_H */
+#endif /* AUX_GST_H */

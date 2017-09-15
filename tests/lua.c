@@ -14,6 +14,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,8 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <lauxlib.h>
 #include <lualib.h>
 
-#include "macros.h"
-
 int
 main (int argc, const char **argv)
 {
@@ -31,7 +33,7 @@ main (int argc, const char **argv)
   int i;
   int status;
 
-  if (unlikely (argc != 2))
+  if (argc != 2)
     {
       fprintf (stderr, "usage: lua FILE\n");
       exit (1);
@@ -49,7 +51,7 @@ main (int argc, const char **argv)
   lua_setglobal (L, "arg");
 
   status = luaL_loadfile (L, argv[1]) || lua_pcall (L, 0, 0, 0);
-  if (unlikely (status != 0))
+  if (status != 0)
     {
       fprintf (stderr, "error: %s\n", lua_tostring (L, -1));
     }

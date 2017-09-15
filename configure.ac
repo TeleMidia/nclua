@@ -92,7 +92,6 @@ AU_ARG_ENABLE_WARNINGS([$nw])
 
 # Library functions.
 AC_CHECK_LIBM
-AU_CHECK_MACROS_H
 
 # Check for Lua.
 AU_CHECK_LUA(lua_required_version)

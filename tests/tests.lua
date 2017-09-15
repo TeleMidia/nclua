@@ -736,7 +736,7 @@ end
 -- Creates a new network server.
 --
 function tests.server.new (port, args)
-   port = port or 1986
+   port = port or tests.rand_integer (1986, 9999)
    return setmetatable ({port=port, args=args}, tests.server),
    'localhost', port
 end

@@ -17,16 +17,9 @@ You should have received a copy of the GNU General Public License
 along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <assert.h>
 #include <math.h>
-
-#include <lua.h>
-#include <lauxlib.h>
-#include <glib.h>
-#include <glib-object.h>
-
-#include "macros.h"
-#include "luax-macros.h"
+#include "aux-glib.h"
+#include "aux-lua.h"
 
 /* Registry key for the stopwatch metatable.  */
 #define STOPWATCH "nclua.event.stopwatch"
@@ -73,7 +66,7 @@ l_stopwatch_new (lua_State *L)
 
   luax_optudata (L, 1, STOPWATCH);
   clock = (stopwatch_t *) lua_newuserdata (L, sizeof (*clock));
-  assert (clock != NULL);       /* cannot fail */
+  g_assert_nonnull (clock);
   clock->t0 = 0;
   clock->state = STOPPED;
   luaL_setmetatable (L, STOPWATCH);
@@ -101,7 +94,7 @@ l_stopwatch_get_state (lua_State *L)
       lua_pushliteral (L, "stopped");
       break;
     default:
-      ASSERT_NOT_REACHED;
+      g_assert_not_reached ();
     }
 
   return 1;

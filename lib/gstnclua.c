@@ -17,16 +17,14 @@ You should have received a copy of the GNU General Public License
 along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include <stdlib.h>
+#include <math.h>
 
-#include <glib.h>
-#include <glib/gstdio.h>
-
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
+#include "aux-glib.h"
+#include "aux-lua.h"
 
 /* *INDENT-OFF* */
-#include "gstx-macros.h"
+#include "aux-gst.h"
 GSTX_INCLUDE_PROLOGUE
 #include <gst/base/gstpushsrc.h>
 #include <gst/video/gstvideometa.h>
@@ -35,9 +33,6 @@ GSTX_INCLUDE_EPILOGUE
 
 #include "nclua.h"
 #include "ncluaw.h"
-
-#include "macros.h"
-#include "luax-macros.h"
 
 /* Class data.  */
 typedef struct _GstNCLuaClass
@@ -153,7 +148,7 @@ GST_DEBUG_CATEGORY_STATIC (nclua_debug);
 /**************************** Property access *****************************/
 
 #define gst_nclua_property_init(nclua)                  \
-  STMT_BEGIN                                            \
+  G_STMT_START                                          \
   {                                                     \
     (nclua)->property.file = DEFAULT_FILE;              \
     (nclua)->property.width = DEFAULT_WIDTH;            \
@@ -164,12 +159,12 @@ GST_DEBUG_CATEGORY_STATIC (nclua_debug);
     (nclua)->property.navigation = DEFAULT_NAVIGATION;  \
     (nclua)->property.qos = DEFAULT_QOS;                \
   }                                                     \
-  STMT_END
+  G_STMT_END
 
 /* *INDENT-OFF* */
 #define GST_NCLUA_DEFUN_SCALAR_ACCESS(Name, Type)                       \
   static Type                                                           \
-  CONCAT (gst_nclua_get_property_, Name) (GstNCLua *nclua)              \
+  G_PASTE (gst_nclua_get_property_, Name) (GstNCLua *nclua)             \
   {                                                                     \
     Type Name;                                                          \
     GST_OBJECT_LOCK (nclua);                                            \
@@ -178,7 +173,7 @@ GST_DEBUG_CATEGORY_STATIC (nclua_debug);
     return Name;                                                        \
   }                                                                     \
   static void                                                           \
-  CONCAT (gst_nclua_set_property_, Name) (GstNCLua *nclua, Type Name)   \
+  G_PASTE (gst_nclua_set_property_, Name) (GstNCLua *nclua, Type Name)  \
   {                                                                     \
     GST_OBJECT_LOCK (nclua);                                            \
     nclua->property.Name = Name;                                        \
@@ -215,8 +210,8 @@ static void
 gst_nclua_get_property_fps (GstNCLua *nclua, gint *fps_n, gint *fps_d)
 {
   GST_OBJECT_LOCK (nclua);
-  set_if_nonnull (fps_n, nclua->property.fps_n);
-  set_if_nonnull (fps_d, nclua->property.fps_d);
+  derefandset (fps_n, nclua->property.fps_n);
+  derefandset (fps_d, nclua->property.fps_d);
   GST_OBJECT_UNLOCK (nclua);
 }
 
@@ -276,10 +271,10 @@ gst_nclua_get_counters (GstNCLua *nclua,
                         GstClockTime *accum_time, guint64 *accum_frames)
 {
   GST_OBJECT_LOCK (nclua);
-  set_if_nonnull (time, nclua->counter.time);
-  set_if_nonnull (frames, nclua->counter.frames);
-  set_if_nonnull (accum_time, nclua->counter.accum_time);
-  set_if_nonnull (accum_frames, nclua->counter.accum_frames);
+  derefandset (time, nclua->counter.time);
+  derefandset (frames, nclua->counter.frames);
+  derefandset (accum_time, nclua->counter.accum_time);
+  derefandset (accum_frames, nclua->counter.accum_frames);
   GST_OBJECT_UNLOCK (nclua);
 }
 
@@ -312,10 +307,10 @@ gst_nclua_get_format (GstNCLua *nclua, const gchar **format,
 {
   gboolean result;
   GST_OBJECT_LOCK (nclua);
-  set_if_nonnull (format, nclua->format.format);
-  set_if_nonnull (width, nclua->format.width);
-  set_if_nonnull (height, nclua->format.height);
-  set_if_nonnull (stride, nclua->format.stride);
+  derefandset (format, nclua->format.format);
+  derefandset (width, nclua->format.width);
+  derefandset (height, nclua->format.height);
+  derefandset (stride, nclua->format.stride);
   result = nclua->format.updated;
   if (reset_updated)
     nclua->format.updated = FALSE;
@@ -346,8 +341,8 @@ static void
 gst_nclua_get_fps (GstNCLua *nclua, gint *n, gint *d)
 {
   GST_OBJECT_LOCK (nclua);
-  set_if_nonnull (n, nclua->fps.n);
-  set_if_nonnull (d, nclua->fps.d);
+  derefandset (n, nclua->fps.n);
+  derefandset (d, nclua->fps.d);
   GST_OBJECT_UNLOCK (nclua);
 }
 
@@ -390,7 +385,7 @@ gst_nclua_dequeue_event (GstNCLua *nclua, GstEvent **evt)
   if (tmp == NULL)
     return FALSE;
 
-  set_if_nonnull (evt, tmp);
+  derefandset (evt, tmp);
   return TRUE;
 }
 
@@ -412,12 +407,12 @@ static const GstNCLuaKeyMap gst_nclua_keymap[] = {
   {"Up", "CURSOR_UP"},
 };
 
-static ATTR_PURE int
+static G_GNUC_PURE int
 gst_nclua_keymap_compar (const void *p1, const void *p2)
 {
   const GstNCLuaKeyMap *k1 = (const GstNCLuaKeyMap *) p1;
   const GstNCLuaKeyMap *k2 = (const GstNCLuaKeyMap *) p2;
-  return strcmp (k1->from, k2->from);
+  return g_str_equal (k1->from, k2->from);
 }
 
 /* Returns the internal mapping of key FROM. */
@@ -442,7 +437,7 @@ gst_nclua_keymap_index (const gchar *from)
 
 /* Converts navigation event type TYPE to NCLua type.  */
 
-static ATTR_PURE const gchar *
+static G_GNUC_PURE const gchar *
 gst_nclua_navigation_convert_type (GstNavigationEventType type)
 {
   switch (type)
@@ -456,9 +451,9 @@ gst_nclua_navigation_convert_type (GstNavigationEventType type)
     case GST_NAVIGATION_EVENT_MOUSE_MOVE:
       return "move";
     default:
-      ASSERT_NOT_REACHED;
+      g_assert_not_reached ();
     }
-  ASSERT_NOT_REACHED;
+  g_assert_not_reached ();
   return NULL;
 }
 
@@ -515,7 +510,7 @@ gst_nclua_navigation_convert (GstEvent *from, ncluaw_event_t **to)
       return FALSE;             /* unknown type */
     }
 
-  set_if_nonnull (to, ncluaw_event_clone (&evt));
+  derefandset (to, ncluaw_event_clone (&evt));
   return TRUE;
 }
 
@@ -723,7 +718,7 @@ gst_nclua_event_func (GstBaseSrc *basesrc, GstEvent *evt)
         gst_nclua_get_fps (nclua, &fps_n, &fps_d);
         gst_nclua_get_property_fps (nclua, &tgt_n, NULL);
 
-        new_n = (gint) clamp (ceil (fps_n / prop), 1, tgt_n);
+        new_n = (gint) CLAMP (ceil (fps_n / prop), 1, tgt_n);
         if (new_n == fps_n)
           break;
 
@@ -932,14 +927,14 @@ gst_nclua_get_property_func (GObject *obj, guint id, GValue *value,
       }
     case PROPERTY_WIDTH:
       {
-        guint width = (guint) clamp (gst_nclua_get_property_width (nclua),
+        guint width = (guint) CLAMP (gst_nclua_get_property_width (nclua),
                                      0, G_MAXINT);
         g_value_set_uint (value, width);
         break;
       }
     case PROPERTY_HEIGHT:
       {
-        guint height = (guint) clamp (gst_nclua_get_property_height (nclua),
+        guint height = (guint) CLAMP (gst_nclua_get_property_height (nclua),
                                       0, G_MAXINT);
         g_value_set_uint (value, height);
         break;
@@ -994,13 +989,13 @@ gst_nclua_set_property_func (GObject *obj, guint id, const GValue *value,
       }
     case PROPERTY_WIDTH:
       {
-        gint width = (gint) clamp (g_value_get_uint (value), 0, G_MAXINT);
+        gint width = (gint) CLAMP ((int) g_value_get_uint (value), 0, G_MAXINT);
         gst_nclua_set_property_width (nclua, width);
         break;
       }
     case PROPERTY_HEIGHT:
       {
-        gint height = (gint) clamp (g_value_get_uint (value), 0, G_MAXINT);
+        gint height = (gint) CLAMP ((int) g_value_get_uint (value), 0, G_MAXINT);
         gst_nclua_set_property_height (nclua, height);
         break;
       }

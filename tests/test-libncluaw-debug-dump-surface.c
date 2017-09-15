@@ -39,8 +39,8 @@ main (void)
             ((ncluaw_t *) L, INVALID_PATH, &msg));
     TRACE ("%s", msg);
 
-    ASSERT (streq (luaL_checkstring (L, -1), msg));
-    free (msg);
+    ASSERT (g_str_equal (luaL_checkstring (L, -1), msg));
+    g_free (msg);
 
     nclua_close (L);
     lua_close (L);

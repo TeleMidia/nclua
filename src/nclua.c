@@ -17,21 +17,16 @@ You should have received a copy of the GNU General Public License
 along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <stdlib.h>
+#include <math.h>
 #include <setjmp.h>
-
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
-
-#include <glib.h>
-#include <glib/gstdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "aux-glib.h"
+#include "aux-lua.h"
 #include <gtk/gtk.h>
 
 #include "nclua.h"
 #include "ncluaw.h"
-#include "macros.h"
-#include "luax-macros.h"
 
 /* Globals: */
 static GtkWidget *app;
@@ -50,8 +45,8 @@ static gint opt_width = 800;    /* initial window width */
 static gint opt_height = 600;   /* initial window height */
 
 static gboolean
-opt_size (arg_unused (const gchar *opt), const gchar *arg,
-          arg_unused (gpointer data), GError **err)
+opt_size (unused (const gchar *opt), const gchar *arg,
+          unused (gpointer data), GError **err)
 {
   guint64 width;
   guint64 height;
@@ -60,7 +55,7 @@ opt_size (arg_unused (const gchar *opt), const gchar *arg,
   width = g_ascii_strtoull (arg, &end, 10);
   if (width == 0)
     goto syntax_error;
-  opt_width = (gint) (clamp (width, 0, G_MAXINT));
+  opt_width = (gint) (CLAMP ((int) width, 0, G_MAXINT));
 
   if (*end != 'x')
     goto syntax_error;
@@ -68,7 +63,7 @@ opt_size (arg_unused (const gchar *opt), const gchar *arg,
   height = g_ascii_strtoull (++end, NULL, 10);
   if (height == 0)
     goto syntax_error;
-  opt_height = (gint) (clamp (height, 0, G_MAXINT));
+  opt_height = (gint) (CLAMP ((int) height, 0, G_MAXINT));
 
   return TRUE;
 
@@ -112,7 +107,7 @@ _error (gboolean try_help, const gchar *message)
 }
 
 static void
-panic (arg_unused (ncluaw_t *nw), const char *message)
+panic (unused (ncluaw_t *nw), const char *message)
 {
   luax_dump_stack (cast (lua_State *, ncluaw_debug_get_lua_state (nw)));
   print_error (message);
@@ -122,8 +117,8 @@ panic (arg_unused (ncluaw_t *nw), const char *message)
 /* Callbacks: */
 #if GTK_CHECK_VERSION(3,8,0)
 static gboolean
-cycle_callback (arg_unused (GtkWidget *widget),
-                GdkFrameClock *frame_clock, arg_unused (gpointer data))
+cycle_callback (unused (GtkWidget *widget), GdkFrameClock *frame_clock,
+                unused (gpointer data))
 #else
 static gboolean
 cycle_callback (arg_unused (GtkWidget *widget))
@@ -166,8 +161,9 @@ cycle_callback (arg_unused (GtkWidget *widget))
   evt = ncluaw_receive (ncluaw_state);
   if (evt != NULL
       && evt->cls == NCLUAW_EVENT_NCL
-      && streq (evt->u.ncl.type, "presentation")
-      && streq (evt->u.ncl.action, "stop") && streq (evt->u.ncl.name, ""))
+      && g_str_equal (evt->u.ncl.type, "presentation")
+      && g_str_equal (evt->u.ncl.action, "stop")
+      && g_str_equal (evt->u.ncl.name, ""))
     {
       ncluaw_event_free (evt);
       gtk_widget_destroy (app);
@@ -180,8 +176,8 @@ cycle_callback (arg_unused (GtkWidget *widget))
 }
 
 static gboolean
-draw_callback (arg_unused (GtkWidget *widget), cairo_t *cr,
-               arg_unused (gpointer data))
+draw_callback (unused (GtkWidget *widget), cairo_t *cr,
+               unused (gpointer data))
 {
   cairo_surface_t *sfc;
 
@@ -223,7 +219,7 @@ draw_callback (arg_unused (GtkWidget *widget), cairo_t *cr,
 }
 
 static gboolean
-keyboard_callback (arg_unused (GtkWidget *widget), GdkEventKey *e,
+keyboard_callback (unused (GtkWidget *widget), GdkEventKey *e,
                    gpointer type)
 {
   const char *key;
@@ -235,7 +231,7 @@ keyboard_callback (arg_unused (GtkWidget *widget), GdkEventKey *e,
       gtk_widget_destroy (app);
       return TRUE;
     case GDK_KEY_F11:          /* toggle full-screen */
-      if (streq ((const char *) type, "release"))
+      if (g_str_equal ((const char *) type, "release"))
         return TRUE;
       opt_fullscreen = !opt_fullscreen;
       if (opt_fullscreen)
@@ -313,14 +309,14 @@ pointer_get_position (int x, int y, int *rx, int *ry)
       sfc_w = cairo_image_surface_get_width (sfc);
       sfc_h = cairo_image_surface_get_height (sfc);
 
-      *rx = (int) clamp (lround ((x) * sfc_w / app_w), 0, sfc_w);
-      *ry = (int) clamp (lround ((y) * sfc_h / app_h), 0, sfc_h);
+      *rx = (int) CLAMP (lround ((x) * sfc_w / app_w), 0, sfc_w);
+      *ry = (int) CLAMP (lround ((y) * sfc_h / app_h), 0, sfc_h);
     }
 }
 
 static gboolean
-pointer_motion_callback (arg_unused (GtkWidget *widget),
-                         GdkEventMotion *e, arg_unused (const char *type))
+pointer_motion_callback (unused (GtkWidget *widget),
+                         GdkEventMotion *e, unused (const char *type))
 {
   int x, y;
 
@@ -331,8 +327,8 @@ pointer_motion_callback (arg_unused (GtkWidget *widget),
 }
 
 static gboolean
-pointer_click_callback (arg_unused (GtkWidget *widget), GdkEventButton *e,
-                        arg_unused (gpointer data))
+pointer_click_callback (unused (GtkWidget *widget), GdkEventButton *e,
+                        unused (gpointer data))
 {
   const char *type;
   int x, y;
@@ -356,8 +352,8 @@ pointer_click_callback (arg_unused (GtkWidget *widget), GdkEventButton *e,
 }
 
 static gboolean
-resize_callback (arg_unused (GtkWidget *widget), GdkEventConfigure *e,
-                 arg_unused (gpointer data))
+resize_callback (unused (GtkWidget *widget), GdkEventConfigure *e,
+                 unused (gpointer data))
 {
   gchar *width;
   gchar *height;
@@ -439,7 +435,7 @@ main (int argc, char **argv)
   if (unlikely (ncluaw_state == NULL))
     {
       print_error (errmsg);
-      free (errmsg);
+      g_free (errmsg);
       ncluaw_close (ncluaw_state);
       exit (EXIT_FAILURE);
     }

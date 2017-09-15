@@ -17,8 +17,9 @@ You should have received a copy of the GNU General Public License
 along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include <stdlib.h>
 #include <stdio.h>
-#include "gstx-macros.h"
+#include "aux-gst.h"
 
 /* Globals: */
 static GstElement *pipeline;
@@ -49,16 +50,16 @@ dump_message (const gchar *prefix, GstMessage *msg)
 }
 
 static GstBusSyncReply
-bus_sync_callback (arg_unused (GstBus *bus), GstMessage *msg,
-                   arg_unused (gpointer data))
+bus_sync_callback (unused (GstBus *bus), GstMessage *msg,
+                   unused (gpointer data))
 {
   dump_message ("SYNC", msg);
   return GST_BUS_PASS;
 }
 
 static gboolean
-bus_async_callback (arg_unused (GstBus *bus), GstMessage *msg,
-                    arg_unused (gpointer data))
+bus_async_callback (unused (GstBus *bus), GstMessage *msg,
+                    unused (gpointer data))
 {
   dump_message ("ASYNC", msg);
   switch (GST_MESSAGE_TYPE (msg))

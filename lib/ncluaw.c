@@ -18,13 +18,8 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <string.h>
-
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
-
-#include "macros.h"
-#include "luax-macros.h"
+#include "aux-glib.h"
+#include "aux-lua.h"
 
 #include "nclua.h"
 #include "ncluaw.h"
@@ -65,8 +60,8 @@ static void *
 xmalloc (size_t n)
 {
   void *p;
-  p = malloc (n);
-  assert (p != NULL);           /* out of memory */
+  p = g_malloc (n);
+  g_assert_nonnull (p);         /* out of memory */
   return p;
 }
 
@@ -76,7 +71,7 @@ xstrdup (const char *s)
 {
   size_t n;
   char *dup;
-  assert (s != NULL);
+  g_assert_nonnull (s);
   n = strlen (s) + 1;
   dup = (char *) xmalloc (sizeof (*dup) * n);
   return (char *) memcpy (dup, s, n);
@@ -107,7 +102,7 @@ get_event_class (lua_State *L, int index)
   result = NCLUAW_EVENT_UNKNOWN;
   for (i = 0; i < nelementsof (known_class_list); i++)
     {
-      if (streq (name, known_class_list[i]))
+      if (g_str_equal (name, known_class_list[i]))
         {
           result = (ncluaw_event_class_t) i;
           break;
@@ -133,7 +128,7 @@ ncluaw_panic_wrapper (lua_State *L)
   ncluaw_panic_function_t panic;
   lua_CFunction lua_panic;
 
-  assert (lua_checkstack (L, 1));
+  g_assert (lua_checkstack (L, 1));
   ncluaw_registry_get_field (L, "panic");
   panic = (ncluaw_panic_function_t) integralof (lua_touserdata (L, -1));
   lua_pop (L, 1);
@@ -143,10 +138,10 @@ ncluaw_panic_wrapper (lua_State *L)
     }
   else
     {
-      assert (lua_checkstack (L, 1));
+      g_assert (lua_checkstack (L, 1));
       ncluaw_registry_get_field (L, "lua_panic");
       lua_panic = (lua_CFunction) integralof (lua_touserdata (L, -1));
-      assert (lua_panic != NULL);
+      g_assert_nonnull (lua_panic);
       lua_insert (L, -2);
       return lua_panic (L);
     }
@@ -194,7 +189,7 @@ ncluaw_event_clone (const ncluaw_event_t *evt)
 
     case NCLUAW_EVENT_UNKNOWN:
     default:
-      ASSERT_NOT_REACHED;
+      g_assert_not_reached ();
     }
   return dup;
 }
@@ -208,33 +203,33 @@ ncluaw_event_free (ncluaw_event_t *evt)
   switch (evt->cls)
     {
     case NCLUAW_EVENT_KEY:
-      free (deconst (char *, evt->u.key.type));
-      free (deconst (char *, evt->u.key.key));
+      g_free (deconst (char *, evt->u.key.type));
+      g_free (deconst (char *, evt->u.key.key));
       break;
 
     case NCLUAW_EVENT_NCL:
-      free (deconst (char *, evt->u.ncl.type));
-      free (deconst (char *, evt->u.ncl.action));
-      free (deconst (char *, evt->u.ncl.name));
-      free (deconst (char *, evt->u.ncl.value));
+      g_free (deconst (char *, evt->u.ncl.type));
+      g_free (deconst (char *, evt->u.ncl.action));
+      g_free (deconst (char *, evt->u.ncl.name));
+      g_free (deconst (char *, evt->u.ncl.value));
       break;
 
     case NCLUAW_EVENT_POINTER:
-      free (deconst (char *, evt->u.pointer.type));
+      g_free (deconst (char *, evt->u.pointer.type));
       break;
 
     case NCLUAW_EVENT_UNKNOWN:
     default:
-      ASSERT_NOT_REACHED;
+      g_assert_not_reached ();
     }
-  free (evt);
+  g_free (evt);
 }
 
 /*-
  * Returns true if events E1 and E2 are equal (have the same content),
  * otherwise returns false.
  */
-ATTR_PURE int
+G_GNUC_PURE int
 ncluaw_event_equals (const ncluaw_event_t *e1, const ncluaw_event_t *e2)
 {
   int result;
@@ -246,28 +241,28 @@ ncluaw_event_equals (const ncluaw_event_t *e1, const ncluaw_event_t *e2)
   switch (e1->cls)
     {
     case NCLUAW_EVENT_KEY:
-      result = streq (e1->u.key.type, e2->u.key.type)
-        && streq (e1->u.key.key, e2->u.key.key);
+      result = g_str_equal (e1->u.key.type, e2->u.key.type)
+        && g_str_equal (e1->u.key.key, e2->u.key.key);
       break;
 
     case NCLUAW_EVENT_NCL:
-      result = streq (e1->u.ncl.type, e2->u.ncl.type)
-        && streq (e1->u.ncl.action, e2->u.ncl.action)
-        && streq (e1->u.ncl.name, e2->u.ncl.name)
+      result = g_str_equal (e1->u.ncl.type, e2->u.ncl.type)
+        && g_str_equal (e1->u.ncl.action, e2->u.ncl.action)
+        && g_str_equal (e1->u.ncl.name, e2->u.ncl.name)
         && ((e1->u.ncl.value == NULL && e2->u.ncl.value == NULL)
             || (e1->u.ncl.value && e2->u.ncl.value
-                && streq (e1->u.ncl.value, e2->u.ncl.value)));
+                && g_str_equal (e1->u.ncl.value, e2->u.ncl.value)));
       break;
 
     case NCLUAW_EVENT_POINTER:
-      result = streq (e1->u.pointer.type, e2->u.pointer.type)
+      result = g_str_equal (e1->u.pointer.type, e2->u.pointer.type)
         && e1->u.pointer.x == e2->u.pointer.x
         && e1->u.pointer.y == e2->u.pointer.y;
       break;
 
     case NCLUAW_EVENT_UNKNOWN:
     default:
-      ASSERT_NOT_REACHED;
+      g_assert_not_reached ();
     }
 
   return result;
@@ -293,7 +288,7 @@ ncluaw_open (const char *path, int width, int height, char **errmsg)
   int err;
 
   L = luaL_newstate ();
-  assert (L != NULL);           /* out of memory */
+  g_assert_nonnull (L);         /* out of memory */
   luaL_openlibs (L);
   err = nclua_open (L, width, height, plugin_list);
   if (unlikely (err != LUA_OK))
@@ -307,14 +302,14 @@ ncluaw_open (const char *path, int width, int height, char **errmsg)
   ncluaw_registry_create (L);
 
   lua_panic = lua_atpanic (L, ncluaw_panic_wrapper);
-  assert (lua_panic != NULL);
+  g_assert_nonnull (lua_panic);
   lua_pushlightuserdata (L, pointerof (lua_panic));
   ncluaw_registry_set_field (L, "lua_panic");
 
   return (ncluaw_t *) L;
 
  fail:
-  set_if_nonnull (errmsg, xstrdup (luaL_checkstring (L, -1)));
+  derefandset (errmsg, xstrdup (luaL_checkstring (L, -1)));
   lua_close (L);
   return NULL;
 }
@@ -445,7 +440,7 @@ ncluaw_receive (ncluaw_t *nw)
       break;
 
     default:
-      ASSERT_NOT_REACHED;
+      g_assert_not_reached ();
     }
 
  done:
@@ -497,7 +492,7 @@ ncluaw_send (ncluaw_t *nw, const ncluaw_event_t *evt)
 
     case NCLUAW_EVENT_UNKNOWN:
     default:
-      ASSERT_NOT_REACHED;
+      g_assert_not_reached ();
     }
 
   nclua_send (L);
@@ -542,7 +537,7 @@ ncluaw_debug_dump_surface (ncluaw_t *nw, const char *path, char **errmsg)
   err = nclua_debug_dump_surface (L, path);
   if (unlikely (err != LUA_OK))
     {
-      set_if_nonnull (errmsg, xstrdup (luaL_checkstring (L, -1)));
+      derefandset (errmsg, xstrdup (luaL_checkstring (L, -1)));
       return FALSE;
     }
   return TRUE;
@@ -551,7 +546,7 @@ ncluaw_debug_dump_surface (ncluaw_t *nw, const char *path, char **errmsg)
 /*-
  * Returns a pointer to the Lua state associated with NCLua state NW.
  */
-ATTR_CONST void *
+G_GNUC_CONST void *
 ncluaw_debug_get_lua_state (ncluaw_t *nw)
 {
   return (void *) ncluaw_get_lua_state (nw);

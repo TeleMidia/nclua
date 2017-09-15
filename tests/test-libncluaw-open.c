@@ -27,7 +27,7 @@ main (void)
     ASSERT (ncluaw_open (INVALID_PATH, 800, 600, NULL) == NULL);
     ASSERT (ncluaw_open (INVALID_PATH, 800, 600, &errmsg) == NULL);
     TRACE ("%s", errmsg);
-    free (errmsg);
+    g_free (errmsg);
   }
   TEST_END;
 
@@ -38,7 +38,7 @@ main (void)
     ASSERT (ncluaw_open (TOP_SRCDIR "/tests/libnclua-echo.lua", -1, 0,
                          &errmsg) == NULL);
     TRACE ("%s", errmsg);
-    free (errmsg);
+    g_free (errmsg);
   }
   TEST_END;
 

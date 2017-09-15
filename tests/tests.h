@@ -32,21 +32,10 @@ along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <string.h>
 #include <time.h>
 
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
-
-#include <cairo.h>
-#include <glib.h>
-
-#include "macros.h"
-
-/* Ignore warnings about big strings in tests.  */
-/* *INDENT-OFF* */
+#include "aux-glib.h"
 PRAGMA_DIAG_IGNORE (-Woverlength-strings)
-/* *INDENT-ON* */
-
-#include "luax-macros.h"
+#include "aux-lua.h"
+#include <cairo.h>
 
 #include "nclua.h"
 #include "ncluaw.h"
@@ -57,20 +46,20 @@ PRAGMA_DIAG_IGNORE (-Woverlength-strings)
 # define INVALID_PATH "/invalid/invalid"
 #endif
 
-#define TEST_BEGIN TRACE_SEP (); STMT_BEGIN
-#define TEST_END   STMT_END
+#define TEST_BEGIN TRACE_SEP (); G_STMT_START
+#define TEST_END   G_STMT_END
 
 #define ASSERT(cond)                                            \
-  STMT_BEGIN                                                    \
+  G_STMT_START                                                  \
   {                                                             \
    if (unlikely (!(cond)))                                      \
      {                                                          \
       fprintf (stderr, "%s:%d: ASSERTION FAILED!\n--> %s\n",    \
-               __FILE__, __LINE__, STRINGIFY (cond));           \
+               __FILE__, __LINE__, G_STRINGIFY (cond));         \
       abort ();                                                 \
      }                                                          \
   }                                                             \
-  STMT_END
+  G_STMT_END
 
 #define ASSERT_LUA_DOSTRING(L, s) ASSERT (luaL_dostring (L, s) == 0)
 #define ASSERT_LUA_GETTOP(L, i)   ASSERT (lua_gettop (L) == i)
@@ -78,7 +67,7 @@ PRAGMA_DIAG_IGNORE (-Woverlength-strings)
 /*-
  * Creates and returns a new Lua state with standard libraries opened.
  */
-static ATTR_UNUSED inline lua_State *
+static G_GNUC_UNUSED inline lua_State *
 LUA_NEWSTATE (void)
 {
   lua_State *L;
@@ -90,8 +79,8 @@ LUA_NEWSTATE (void)
 /*-
  * Outputs arguments to stdout prefixed with a time-stamp.
  */
-static ATTR_UNUSED
-ATTR_PRINTF_FORMAT (1, 2)
+static G_GNUC_UNUSED
+G_GNUC_PRINTF (1, 2)
      void TRACE (const char *format, ...)
 {
   static gint64 t0 = -1;
@@ -115,7 +104,7 @@ ATTR_PRINTF_FORMAT (1, 2)
 /*-
  * Outputs a numbered entry separator.
  */
-static ATTR_UNUSED void
+static G_GNUC_UNUSED void
 TRACE_SEP (void)
 {
   static int n = 1;

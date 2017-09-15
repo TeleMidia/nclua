@@ -17,18 +17,11 @@ You should have received a copy of the GNU General Public License
 along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <assert.h>
-
-#include <lua.h>
-#include <lauxlib.h>
-
-#include <glib.h>
-#include <glib-object.h>
+#include "aux-glib.h"
+#include "aux-lua.h"
 #include <gio/gio.h>
 
-#include "macros.h"
-#include "luax-macros.h"
-#include "luax-callback.h"
+#include "callback.h"
 
 /* Registry key for the socket metatable.  */
 #define SOCKET "nclua.event.tcp_socket"
@@ -50,8 +43,8 @@ socket_check (lua_State *L, int index, GSocketClient ** client,
 {
   socket_t *sock;
   sock = (socket_t *) luaL_checkudata (L, index, SOCKET);
-  set_if_nonnull (client, sock->client);
-  set_if_nonnull (conn, sock->conn);
+  derefandset (client, sock->client);
+  derefandset (conn, sock->conn);
   return sock;
 }
 
@@ -86,11 +79,11 @@ l_socket_new (lua_State *L)
   guint timeout;
 
   luax_optudata (L, 1, SOCKET);
-  timeout = (guint) clamp (luaL_optint (L, 2, 0), 0, INT_MAX);
+  timeout = (guint) CLAMP (luaL_optint (L, 2, 0), 0, INT_MAX);
   sock = (socket_t *) lua_newuserdata (L, sizeof (*sock));
-  assert (sock != NULL);        /* cannot fail */
+  g_assert_nonnull (sock);
   sock->client = g_socket_client_new ();
-  assert (sock->client != NULL);        /* cannot fail */
+  g_assert_nonnull (sock->client);
   sock->conn = NULL;
   g_socket_client_set_timeout (sock->client, timeout);
   luaL_setmetatable (L, SOCKET);
@@ -144,16 +137,16 @@ connect_finished (GObject *source, GAsyncResult *result, gpointer data)
 
   cb_data = (luax_callback_data_t *) data;
   luax_callback_data_get_data (cb_data, &L, (void **) &sock);
-  assert (sock->client == G_SOCKET_CLIENT (source));
+  g_assert (sock->client == G_SOCKET_CLIENT (source));
 
   luax_callback_data_push_and_unref (cb_data);
-  assert (lua_type (L, -1) == LUA_TFUNCTION);
+  g_assert (lua_type (L, -1) == LUA_TFUNCTION);
 
   error = NULL;
   conn = g_socket_client_connect_finish (sock->client, result, &error);
   if (conn != NULL)
     {
-      assert (error == NULL);
+      g_assert_null (error);
       sock->conn = conn;
       lua_pushboolean (L, TRUE);
       lua_call (L, 1, 0);
@@ -172,7 +165,7 @@ l_socket_connect_callback_closure (lua_State *L)
 {
   if (lua_toboolean (L, 1))
     {
-      assert (lua_type (L, 1) == LUA_TBOOLEAN);
+      g_assert (lua_type (L, 1) == LUA_TBOOLEAN);
 
       lua_pushvalue (L, 1);     /* true */
       luax_pushupvalue (L, 1);  /* socket */
@@ -184,8 +177,8 @@ l_socket_connect_callback_closure (lua_State *L)
     }
   else
     {
-      assert (lua_type (L, 1) == LUA_TBOOLEAN);
-      assert (lua_type (L, 2) == LUA_TSTRING);
+      g_assert (lua_type (L, 1) == LUA_TBOOLEAN);
+      g_assert (lua_type (L, 2) == LUA_TSTRING);
 
       lua_pushvalue (L, 1);     /* false */
       luax_pushupvalue (L, 1);  /* socket */
@@ -213,7 +206,7 @@ l_socket_connect (lua_State *L)
     return error_throw_socket_already_connected (L, sock);
 
   host = luaL_checkstring (L, 2);
-  port = clamp (luaL_checkint (L, 3), 0, G_MAXUINT16);
+  port = CLAMP (luaL_checkint (L, 3), 0, G_MAXUINT16);
   luaL_checktype (L, 4, LUA_TFUNCTION);
 
   lua_pushcclosure (L, l_socket_connect_callback_closure, 4);
@@ -231,7 +224,7 @@ l_socket_connect (lua_State *L)
  * all sockets, triggering the appropriated callbacks.
  */
 static int
-l_socket_cycle (arg_unused (lua_State *L))
+l_socket_cycle (unused (lua_State *L))
 {
   return (g_main_context_iteration (NULL, FALSE), 0);
 }
@@ -263,16 +256,16 @@ disconnect_finished (GObject *source, GAsyncResult *result, gpointer data)
   luax_callback_data_get_data (cb_data, &L, (void **) &sock);
 
   stream = G_IO_STREAM (sock->conn);
-  assert (stream == G_IO_STREAM (source));
+  g_assert (stream == G_IO_STREAM (source));
 
   luax_callback_data_push_and_unref (cb_data);
-  assert (lua_type (L, -1) == LUA_TFUNCTION);
+  g_assert (lua_type (L, -1) == LUA_TFUNCTION);
 
   error = NULL;
   status = g_io_stream_close_finish (stream, result, &error);
   if (status)
     {
-      assert (error == NULL);
+      g_assert_null (error);
       lua_pushboolean (L, TRUE);
       lua_call (L, 1, 0);
       g_object_unref (sock->conn);
@@ -292,7 +285,7 @@ l_socket_disconnect_callback_closure (lua_State *L)
 {
   if (lua_toboolean (L, 1))
     {
-      assert (lua_type (L, 1) == LUA_TBOOLEAN);
+      g_assert (lua_type (L, 1) == LUA_TBOOLEAN);
 
       lua_pushvalue (L, 1);     /* true */
       luax_pushupvalue (L, 1);  /* socket */
@@ -302,8 +295,8 @@ l_socket_disconnect_callback_closure (lua_State *L)
     }
   else
     {
-      assert (lua_type (L, 1) == LUA_TBOOLEAN);
-      assert (lua_type (L, 2) == LUA_TSTRING);
+      g_assert (lua_type (L, 1) == LUA_TBOOLEAN);
+      g_assert (lua_type (L, 2) == LUA_TSTRING);
 
       lua_pushvalue (L, 1);     /* false */
       luax_pushupvalue (L, 1);  /* socket */
@@ -390,16 +383,16 @@ receive_finished (GObject *source, GAsyncResult *result, gpointer data)
   luax_callback_data_get_data (cb_data, &L, (void **) &sock);
 
   in = g_io_stream_get_input_stream (G_IO_STREAM (sock->conn));
-  assert (in == G_INPUT_STREAM (source));
+  g_assert (in == G_INPUT_STREAM (source));
 
   luax_callback_data_push_and_unref (cb_data);
-  assert (lua_type (L, -1) == LUA_TFUNCTION);
+  g_assert (lua_type (L, -1) == LUA_TFUNCTION);
 
   error = NULL;
   n_received = g_input_stream_read_finish (in, result, &error);
   if (n_received >= 0)
     {
-      assert (error == NULL);
+      g_assert_null (error);
       lua_pushboolean (L, TRUE);
       lua_pushinteger (L, n_received);
       lua_call (L, 2, 0);
@@ -421,8 +414,8 @@ l_socket_receive_callback_closure (lua_State *L)
       char *buf;
       lua_Unsigned n_received;
 
-      assert (lua_type (L, 1) == LUA_TBOOLEAN);
-      assert (lua_type (L, 2) == LUA_TNUMBER);
+      g_assert (lua_type (L, 1) == LUA_TBOOLEAN);
+      g_assert (lua_type (L, 2) == LUA_TNUMBER);
 
       lua_pushvalue (L, 1);     /* true */
       luax_pushupvalue (L, 1);  /* socket */
@@ -437,8 +430,8 @@ l_socket_receive_callback_closure (lua_State *L)
     }
   else
     {
-      assert (lua_type (L, 1) == LUA_TBOOLEAN);
-      assert (lua_type (L, 2) == LUA_TSTRING);
+      g_assert (lua_type (L, 1) == LUA_TBOOLEAN);
+      g_assert (lua_type (L, 2) == LUA_TSTRING);
 
       lua_pushvalue (L, 1);     /* false */
       luax_pushupvalue (L, 1);  /* socket */
@@ -467,7 +460,7 @@ l_socket_receive (lua_State *L)
   luaL_argcheck (L, n > 0, 2, "cannot receive zero bytes");
   luaL_checktype (L, 3, LUA_TFUNCTION);
   buf = (char *) lua_newuserdata (L, sizeof (*buf) * n);
-  assert (buf != NULL);         /* cannot fail */
+  g_assert_nonnull (buf);
 
   lua_pushcclosure (L, l_socket_receive_callback_closure, 4);
   cb_data = luax_callback_data_ref (L, sock);
@@ -505,16 +498,16 @@ send_finished (GObject *source, GAsyncResult *result, gpointer data)
   luax_callback_data_get_data (cb_data, &L, (void **) &sock);
 
   out = g_io_stream_get_output_stream (G_IO_STREAM (sock->conn));
-  assert (out == G_OUTPUT_STREAM (source));
+  g_assert (out == G_OUTPUT_STREAM (source));
 
   luax_callback_data_push_and_unref (cb_data);
-  assert (lua_type (L, -1) == LUA_TFUNCTION);
+  g_assert (lua_type (L, -1) == LUA_TFUNCTION);
 
   error = NULL;
   n_sent = g_output_stream_write_finish (out, result, &error);
   if (error == NULL)
     {
-      assert (n_sent >= 0);
+      g_assert (n_sent >= 0);
       lua_pushboolean (L, TRUE);
       lua_pushinteger (L, n_sent);
       lua_call (L, 2, 0);
@@ -537,15 +530,15 @@ l_socket_send_callback_closure (lua_State *L)
       const char *data;
       size_t n;
 
-      assert (lua_type (L, 1) == LUA_TBOOLEAN);
-      assert (lua_type (L, 2) == LUA_TNUMBER);
+      g_assert (lua_type (L, 1) == LUA_TBOOLEAN);
+      g_assert (lua_type (L, 2) == LUA_TNUMBER);
 
       lua_pushvalue (L, 1);     /* true */
       luax_pushupvalue (L, 1);  /* socket */
 
       n_sent = luaL_checkunsigned (L, 2);
       data = luaL_checklstring (L, lua_upvalueindex (2), &n);
-      assert (n_sent <= n);
+      g_assert (n_sent <= n);
       lua_pushlstring (L, data + n_sent, n - n_sent);   /* data */
 
       luax_pushupvalue (L, 3);  /* callback */
@@ -554,8 +547,8 @@ l_socket_send_callback_closure (lua_State *L)
     }
   else
     {
-      assert (lua_type (L, 1) == LUA_TBOOLEAN);
-      assert (lua_type (L, 2) == LUA_TSTRING);
+      g_assert (lua_type (L, 1) == LUA_TBOOLEAN);
+      g_assert (lua_type (L, 2) == LUA_TSTRING);
 
       lua_pushvalue (L, 1);     /* false */
       luax_pushupvalue (L, 1);  /* socket */

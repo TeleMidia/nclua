@@ -33,9 +33,9 @@ main (void)
     ASSERT (dup != NULL);
     ASSERT (dup->cls == evt.cls);
     ASSERT (dup->u.key.type != evt.u.key.type);
-    ASSERT (streq (dup->u.key.type, evt.u.key.type));
+    ASSERT (g_str_equal (dup->u.key.type, evt.u.key.type));
     ASSERT (dup->u.key.key != evt.u.key.key);
-    ASSERT (streq (dup->u.key.key, evt.u.key.key));
+    ASSERT (g_str_equal (dup->u.key.key, evt.u.key.key));
     ncluaw_event_free (dup);
 
     evt.cls = NCLUAW_EVENT_NCL;
@@ -47,13 +47,13 @@ main (void)
     ASSERT (dup != NULL);
     ASSERT (dup->cls == evt.cls);
     ASSERT (dup->u.ncl.type != evt.u.ncl.type);
-    ASSERT (streq (dup->u.ncl.type, evt.u.ncl.type));
+    ASSERT (g_str_equal (dup->u.ncl.type, evt.u.ncl.type));
     ASSERT (dup->u.ncl.action != evt.u.ncl.action);
-    ASSERT (streq (dup->u.ncl.action, evt.u.ncl.action));
+    ASSERT (g_str_equal (dup->u.ncl.action, evt.u.ncl.action));
     ASSERT (dup->u.ncl.name != evt.u.ncl.name);
-    ASSERT (streq (dup->u.ncl.name, evt.u.ncl.name));
+    ASSERT (g_str_equal (dup->u.ncl.name, evt.u.ncl.name));
     ASSERT (dup->u.ncl.value != evt.u.ncl.value);
-    ASSERT (streq (dup->u.ncl.value, evt.u.ncl.value));
+    ASSERT (g_str_equal (dup->u.ncl.value, evt.u.ncl.value));
     ncluaw_event_free (dup);
 
     evt.cls = NCLUAW_EVENT_POINTER;
@@ -64,7 +64,7 @@ main (void)
     ASSERT (dup != NULL);
     ASSERT (dup->cls == evt.cls);
     ASSERT (dup->u.pointer.type != evt.u.pointer.type);
-    ASSERT (streq (dup->u.pointer.type, evt.u.pointer.type));
+    ASSERT (g_str_equal (dup->u.pointer.type, evt.u.pointer.type));
     ASSERT (dup->u.pointer.x == evt.u.pointer.x);
     ASSERT (dup->u.pointer.y == evt.u.pointer.y);
     ncluaw_event_free (dup);

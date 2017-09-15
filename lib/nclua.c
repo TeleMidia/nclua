@@ -17,16 +17,8 @@ You should have received a copy of the GNU General Public License
 along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <assert.h>
-#include <stddef.h>
-#include <string.h>
-
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
-
-#include "macros.h"
-#include "luax-macros.h"
+#include "aux-glib.h"
+#include "aux-lua.h"
 
 #include "nclua.h"
 
@@ -49,7 +41,7 @@ static int
 require (lua_State *L, const char *name)
 {
   lua_getglobal (L, "require");
-  assert (!lua_isnil (L, -1));
+  g_assert (!lua_isnil (L, -1));
   lua_pushstring (L, name);
   return lua_pcall (L, 1, 1, 0);
 }
@@ -274,7 +266,7 @@ nclua_debug_dump_surface (lua_State *L, const char *path)
 /*-
  * Returns the registry index of the NCLua table.
  */
-ATTR_CONST void *
+G_GNUC_CONST void *
 nclua_debug_get_registry_index (void)
 {
   return NCLUA_REGISTRY_INDEX;
@@ -293,7 +285,7 @@ nclua_debug_get_surface (lua_State *L)
   nclua_registry_get_field (L, "canvas._surface");
   nclua_registry_get_field (L, "canvas");
   lua_call (L, 1, 1);
-  assert (lua_type (L, -1) == LUA_TLIGHTUSERDATA);
+  g_assert (lua_type (L, -1) == LUA_TLIGHTUSERDATA);
   sfc = lua_touserdata (L, -1);
   lua_pop (L, 1);
 
