@@ -22,7 +22,7 @@ LINK_SO+= $(LTLIBRARIES:.la=$(SOEXT))
 
 AM_CPPFLAGS= -I$(top_srcdir)/lib -I$(top_builddir)/lib
 AM_CFLAGS= $(WERROR_CFLAGS) $(WARN_CFLAGS) $(LUA_CFLAGS)
-AM_LDFLAGS= -module $(LT_MODULE_LDFLAGS)
+AM_LDFLAGS= -module $(LT_MODULE_LDFLAGS) $(LUA_LIBS)
 
 noinst_HEADERS= callback.h
 
@@ -70,7 +70,7 @@ if OS_WIN32
 http_soup_def_dependency= http_soup.def
 def_dependency+= $(http_soup_def_dependency)
 http_soup_export_symbols= -export-symbols $(http_soup_def_dependency)\
-  -no-undefined $(LUA_LIBS)
+  -no-undefined
 endif
 
 http_soup_la_DEPENDENCIES= $(http_soup_def_dependency)
@@ -89,7 +89,7 @@ if OS_WIN32
 stopwatch_def_dependency= stopwatch.def
 def_dependency+= $(stopwatch_def_dependency)
 stopwatch_export_symbols= -export-symbols $(stopwatch_def_dependency)\
-  -no-undefined $(LUA_LIBS)
+  -no-undefined
 endif
 stopwatch_la_DEPENDENCIES= $(stopwatch_def_dependency)
 stopwatch_la_CFLAGS= $(AM_CFLAGS) $(GLIB_CFLAGS)
@@ -106,7 +106,7 @@ if OS_WIN32
 tcp_socket_def_dependency= tcp_socket.def
 def_dependency+= $(tcp_socket_def_dependency)
 tcp_socket_export_symbols= -export-symbols $(tcp_socket_def_dependency)\
-  -no-undefined $(LUA_LIBS)
+  -no-undefined
 endif
 tcp_socket_la_DEPENDENCIES= $(tcp_socket_def_dependency)
 tcp_socket_la_CFLAGS= $(AM_CFLAGS) $(GLIB_CFLAGS) $(GIO_CFLAGS)

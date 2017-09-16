@@ -122,7 +122,7 @@ gstnclua_la_DEPENDENCIES= $(lib_LTLIBRARIES) $(noinst_HEADERS)\
 gstnclua_la_CFLAGS= $(AM_CFLAGS) $(GLIB_CFLAGS)\
   $(GSTREAMER_CFLAGS) $(LUA_CFLAGS)
 gstnclua_la_LDFLAGS= $(AM_LDFLAGS) -module $(LT_MODULE_LDFLAGS)\
-  $(GLIB_LIBS) $(GSTREAMER_LIBS) $(gstnclua_export_symbols)
+  $(GLIB_LIBS) $(GSTREAMER_LIBS) $(LUA_LIBS) $(gstnclua_export_symbols)
 gstnclua_la_LIBADD= $(top_builddir)/lib/libnclua.la
 gstnclua_la_SOURCES=\
   gstnclua.c\

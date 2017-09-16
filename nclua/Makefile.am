@@ -24,7 +24,7 @@ SUBDIRS= event
 
 AM_CPPFLAGS= -I$(top_srcdir)/lib -I$(top_builddir)/lib
 AM_CFLAGS= $(WERROR_CFLAGS) $(WARN_CFLAGS) $(LUA_CFLAGS)
-AM_LDFLAGS= -module $(LT_MODULE_LDFLAGS)
+AM_LDFLAGS= -module $(LT_MODULE_LDFLAGS) $(LUA_LIBS)
 
 nclualib_LTLIBRARIES=\
   canvas.la\
@@ -34,7 +34,7 @@ nclualib_LTLIBRARIES=\
 if OS_WIN32
 canvas_def_dependency= canvas.def
 canvas_export_symbols= -export-symbols $(canvas_def_dependency)\
-  -no-undefined $(LUA_LIBS)
+  -no-undefined
 endif
 
 CLEANFILES+= canvas.def
@@ -56,7 +56,7 @@ endif
 if OS_WIN32
 dir_def_dependency= dir.def
 dir_export_symbols= -export-symbols $(dir_def_dependency)\
-  -no-undefined $(LUA_LIBS)
+  -no-undefined
 endif
 
 CLEANFILES+= dir.def
