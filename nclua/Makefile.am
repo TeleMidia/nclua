@@ -24,7 +24,7 @@ SUBDIRS= event
 
 AM_CPPFLAGS= -I$(top_srcdir)/lib -I$(top_builddir)/lib
 AM_CFLAGS= $(WERROR_CFLAGS) $(WARN_CFLAGS) $(LUA_CFLAGS)
-AM_LDFLAGS= -module $(LT_MODULE_LDFLAGS) $(LUA_LIBS)
+AM_LDFLAGS= $(LIBM) -module $(LT_MODULE_LDFLAGS) $(LUA_LIBS)
 
 nclualib_LTLIBRARIES=\
   canvas.la\

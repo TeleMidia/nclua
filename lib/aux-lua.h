@@ -231,7 +231,7 @@ _luax_dump_value (lua_State *L, int index)
       break;
 
     default:
-      g_assert (!"reached");
+      g_assert_not_reached ();
     }
 }
 

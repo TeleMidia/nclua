@@ -20,6 +20,7 @@ include $(top_srcdir)/build-aux/Makefile.am.common
 
 AM_CPPFLAGS= -I$(top_srcdir)/lib -I$(top_builddir)/lib
 AM_CFLAGS= $(WERROR_CFLAGS) $(WARN_CFLAGS)
+AM_LDFLAGS= $(LIBM)
 
 bin_PROGRAMS=
 
@@ -39,7 +40,7 @@ if WITH_NCLUA_GST
 bin_PROGRAMS+= nclua-gst
 endif
 nclua_gst_CFLAGS= $(AM_CFLAGS) $(GSTREAMER_CFLAGS)
-nclua_gst_LDFLAGS= $(GSTREAMER_LIBS)
+nclua_gst_LDFLAGS= $(AM_LDFLAGS) $(GSTREAMER_LIBS)
 nclua_gst_SOURCES=\
   nclua-gst.c\
   $(NULL)

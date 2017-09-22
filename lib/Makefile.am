@@ -20,6 +20,7 @@ include $(top_srcdir)/build-aux/Makefile.am.common
 include $(top_srcdir)/build-aux/Makefile.am.link
 
 AM_CFLAGS= $(WERROR_CFLAGS) $(WARN_CFLAGS)
+AM_LDFLAGS=
 
 EXTRA_DIST+= nclua.pc.in nclua.rc.in ncluaconf.h.in
 DISTCLEANFILES+= nclua.pc nclua.rc ncluaconf.h
@@ -88,7 +89,7 @@ libnclua_la_DEPENDENCIES= $(include_HEADERS) $(noinst_HEADERS)\
 libnclua_la_CPPFLAGS= -DNCLUA_BUILDING
 libnclua_la_CFLAGS= $(AM_CFLAGS) $(CFLAG_VISIBILITY)\
   $(GLIB_CFLAGS) $(LUA_CFLAGS)
-libnclua_la_LDFLAGS= -version-info $(NCLUA_LIBTOOL_STRING)\
+libnclua_la_LDFLAGS= $(AM_LDFLAGS) -version-info $(NCLUA_LIBTOOL_STRING)\
   $(export_symbols) -no-undefined $(nclua_win32_res_ldflag)\
   $(GLIB_LIBS) $(LUA_LIBS)
 

@@ -274,18 +274,19 @@ tests/Makefile
 AC_OUTPUT
 AC_MSG_NOTICE([summary of main build options:
 
-  Version:            ${VERSION}
-  Host type:          ${host}
-  Install prefix:     ${prefix}
-  Compiler:           ${CC}
-  Cflags:             ${CFLAGS}
-  Cppflags:           ${CPPFLAGS}
-  Warning flags:      ${WERROR_CFLAGS} ${WARN_CFLAGS}
-  Library types:      Shared=${enable_shared}, Static=${enable_static}
-  Valgrind:           ${VALGRIND}
+  version:            ${VERSION}
+  host type:          ${host}
+  install prefix:     ${prefix}
+  compiler:           ${CC}
+  cppflags:           ${CPPFLAGS}
+  cflags:             ${CFLAGS}
+  ldflags:            ${LDFLAGS}
+  warning flags:      ${WERROR_CFLAGS} ${WARN_CFLAGS}
+  library types:      Shared=${enable_shared}, Static=${enable_static}
+  valgrind:           ${VALGRIND}
 
-  Build http:         ${with_event_http_result}
-  Build tcp:          ${with_event_tcp_result}
-  Build gstnclua:     ${with_nclua_gst_result}
-  Build nclua GTK:    ${with_nclua_gtk_result}
+  build http:         ${with_event_http_result}
+  build tcp:          ${with_event_tcp_result}
+  build gstnclua:     ${with_nclua_gst_result}
+  build nclua binary: ${with_nclua_gtk_result}
 ])
