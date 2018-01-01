@@ -13,7 +13,7 @@ or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 License for more details.
 
 You should have received a copy of the GNU General Public License
-along with NCLua.  If not, see <http://www.gnu.org/licenses/>.  ]]--
+along with NCLua.  If not, see <https://www.gnu.org/licenses/>.  ]]--
 
 -- Make HTTP requests using the HTTP API and print the responses.
 
@@ -131,7 +131,7 @@ http.execute (
             canvas:attrFont (family, size, 'bold')
             canvas:drawText (0, 0, header)
             local perc = (' -- %d%%')
-	       :format (math.floor (CURRENT_PAGE * 100 / #pages))
+               :format (math.floor (CURRENT_PAGE * 100 / #pages))
             canvas:drawText (0, HEIGHT - STRUT, footer..perc)
             canvas:attrFont (family, size, style)
             canvas:attrColor (FG_COLOR)

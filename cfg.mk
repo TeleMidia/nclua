@@ -14,7 +14,7 @@
 # License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with NCLua.  If not, see <http://www.gnu.org/licenses/>.
+# along with NCLua.  If not, see <https://www.gnu.org/licenses/>.
 
 COPYRIGHT_YEAR= 2018
 COPYRIGHT_HOLDER= PUC-Rio/Laboratorio TeleMidia
@@ -94,9 +94,9 @@ SC_COPYRIGHT_EXCLUDE=\
   examples/luarocks/%\
   examples/pacman/%\
   examples/www/tcp.lua\
-  lib/gstx-macros.h\
-  lib/luax-macros.h\
-  lib/macros.h\
+  lib/aux-glib.h\
+  lib/aux-gst.h\
+  lib/aux-lua.h\
   maint.mk\
   tests/lua.c\
   $(NULL)
