@@ -2,9 +2,9 @@ eval '(exit $?0)' && eval 'exec perl "$0" ${1+"$@"}'
   & eval 'exec perl "$0" $argv:q'
     if 0;
 # A simple netcat-like TCP server.
-my $VERSION = '2017-02-13 13:59 UTC';
+my $VERSION = '2018-01-01 13:25 UTC';
 
-# Copyright (C) 2014-2017 Free Software Foundation, Inc.
+# Copyright (C) 2014-2018 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

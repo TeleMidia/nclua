@@ -1,5 +1,5 @@
 --[[ nclua.event.init -- The NCLua Event module.
-     Copyright (C) 2013-2017 PUC-Rio/Laboratorio TeleMidia
+     Copyright (C) 2013-2018 PUC-Rio/Laboratorio TeleMidia
 
 This file is part of NCLua.
 

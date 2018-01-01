@@ -1,5 +1,5 @@
 /* tests0.c -- Native functions used by Lua tests.lua.
-   Copyright (C) 2013-2017 PUC-Rio/Laboratorio TeleMidia
+   Copyright (C) 2013-2018 PUC-Rio/Laboratorio TeleMidia
 
 This file is part of NCLua.
 
