@@ -28,6 +28,8 @@ along with NCLua.  If not, see <https://www.gnu.org/licenses/>.  */
 # include <gtk/gtk.h>
 #endif
 
+PRAGMA_DIAG_IGNORE (-Wimplicit-fallthrough)
+
 #include "canvas-color-table.h"
 
 #define radians(x) ((x) * G_PI / 180)
