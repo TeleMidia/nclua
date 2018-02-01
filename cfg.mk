@@ -122,3 +122,24 @@ sc-copyright:
 	    $(VC_LIST_PL)\
 	    $(VC_LIST_SH),\
 	    $(SC_COPYRIGHT_EXCLUDE))
+
+# Copy utility stuff from gflima/autoutils project.
+util:= https://github.com/gflima/autoutils/raw/master
+UTIL_FILES+= build-aux/Makefile.am.common
+UTIL_FILES+= build-aux/Makefile.am.coverage
+UTIL_FILES+= build-aux/Makefile.am.env
+UTIL_FILES+= build-aux/Makefile.am.gitlog
+UTIL_FILES+= build-aux/Makefile.am.valgrind
+UTIL_FILES+= build-aux/util.m4
+UTIL_FILES+= maint.mk
+UTIL_SCRIPTS+= bootstrap
+UTIL_SCRIPTS+= build-aux/syntax-check
+UTIL_SCRIPTS+= build-aux/syntax-check-copyright
+REMOTE_FILES+= $(UTIL_FILES)
+REMOTE_SCRIPTS+= $(UTIL_SCRIPTS)
+
+fetch-remote-local:
+	$(V_at)for path in $(UTIL_FILES) $(UTIL_SCRIPTS); do\
+	  dir=`dirname "$$path"`;\
+	  $(FETCH) -dir="$$dir" "$(util)/$$path" || exit 1;\
+	done
