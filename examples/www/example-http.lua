@@ -33,9 +33,9 @@ _ENV = nil
 
 -- List of URIs to be displayed.
 local URIs = {
-   'https://github.com/gflima/nclua/raw/master/NEWS',
-   'https://github.com/gflima/nclua/raw/master/TODO',
-   'https://github.com/gflima/nclua/raw/master/AUTHORS',
+   'https://github.com/telemidia/nclua/raw/master/NEWS',
+   'https://github.com/telemidia/nclua/raw/master/TODO',
+   'https://github.com/telemidia/nclua/raw/master/AUTHORS',
    'http://laws.deinf.ufma.br/404', -- expect a 404
 }
 

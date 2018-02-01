@@ -39,7 +39,7 @@ local function AWAIT ()
 end
 
 -- Fetch project's NEWS from remote site and compare it to local NEWS.
-local URI = 'https://github.com/gflima/nclua/raw/master/NEWS'
+local URI = 'https://github.com/telemidia/nclua/raw/master/NEWS'
 http:send {
    class='http',
    type='request',

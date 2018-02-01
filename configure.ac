@@ -21,9 +21,9 @@ AC_PREREQ([2.62])
 AU_GIT_VERSION_GEN([nclua])
 AC_INIT([NCLua],
   nclua_version_string,
- [gflima@telemidia.puc-rio.br],
+ [alan@telemidia.puc-rio.br],
  [nclua],
- [http://github.com/gflima/nclua])
+ [http://github.com/telemidia/nclua])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux])

@@ -30,7 +30,7 @@ local function CYCLE_UNTIL (func)
 end
 
 -- A valid URI.
-local URI = 'https://github.com/gflima/nclua/raw/master/AUTHORS'
+local URI = 'https://github.com/telemidia/nclua/raw/master/AUTHORS'
 
 -- Sanity checks.
 local session = soup.new ()

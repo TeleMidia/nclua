@@ -14,7 +14,7 @@ For stable releases and binaries, cf.
 http://www.telemidia.puc-rio.br/~gflima/nclua.
 
 For the latest sources, cf.
-https://github.com/gflima/nclua.
+https://github.com/telemidia/nclua.
 
 NCLua is the Lua dialect used by the Brazilian digital TV middleware, called
 Ginga (cf. http://www.ginga.org.br).  The reference implementation of
