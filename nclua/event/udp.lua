@@ -1,4 +1,4 @@
---[[ nclua.event.user -- The USER event class.
+--[[ nclua.event.udp -- The TCP event class.
      Copyright (C) 2013-2018 PUC-Rio/Laboratorio TeleMidia
 
 This file is part of NCLua.
@@ -19,14 +19,15 @@ along with NCLua.  If not, see <https://www.gnu.org/licenses/>.  ]]--
 local udp
 
 local assert = assert
+local print = print
 local type = type
 
 local check = require ('nclua.event.check')
 local engine = require ('nclua.event.engine')
---_ENV = nil
+_ENV = nil
 
 do
-   print("CREATE LUA UDP CLASS EVENT") 
+   print ("CREATE LUA UDP CLASS EVENT")
    udp = engine:new ()
    udp.class = 'udp'
 end
@@ -47,9 +48,9 @@ end
 -- Returns a new filter if successful, otherwise throws an error.
 --
 function udp:filter (class)
-    print("UDP FILTER") 
+    print("UDP FILTER")
     assert (class == udp.class)
-    print("UDP FILTER END") 
+    print("UDP FILTER END")
     return {class=class}
 end
 
@@ -57,11 +58,12 @@ end
 -- Cycles the UDP engine once.
 --
 function udp:cycle ()
-    while not udp.INQ:is_empty () do
-        print("UDP CYCLE STACK") 
-        local evt = udp.INQ:dequeue ()
-        assert (evt.class == udp.class)
-    end    
+   while not udp.INQ:is_empty () do
+      local evt = udp.INQ:dequeue ()
+      assert (evt.class == udp.class)
+      print ('cycling...', evt)
+      udp.OUTQ:enqueue (evt)    -- echo back
+   end
 end
 
 return udp
