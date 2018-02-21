@@ -65,7 +65,10 @@ function tcp:check (evt)
       check.event.string ('host', evt.host)
       check.event.number ('port', evt.port)
       check.event.number ('timeout', evt.timeout, 0)
-
+   elseif evt.type == 'listen' then
+      check.event.string ('host', evt.host)
+      check.event.number ('port', evt.port)
+      check.event.number ('timeout', evt.timeout, 0)  
    elseif evt.type == 'data' then
       check_event_socket ('connection', evt.connection, true)
       check.event.string ('value', evt.value)

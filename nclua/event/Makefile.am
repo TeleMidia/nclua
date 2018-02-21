@@ -55,8 +55,10 @@ endif
 
 if WITH_EVENT_TCP
 dist_eventdata_DATA+= tcp.lua
+dist_eventdata_DATA+= udp.lua
 else
 EXTRA_DIST+= tcp.lua
+EXTRA_DIST+= udp.lua
 endif
 
 if OS_WIN32

@@ -50,6 +50,7 @@ static const char *plugin_list[] = {
   "pointer",
 #if defined WITH_GIO && WITH_GIO
   "tcp",
+  "udp",
 #endif
   "user",
   NULL
