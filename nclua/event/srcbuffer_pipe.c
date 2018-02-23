@@ -32,9 +32,11 @@ GByteArray *byte_array;
 GThread *thread;
 G_LOCK_DEFINE (buffer_lock);
 
-#define MAX_BYTE_ARRAY_SIZE 2^16
+#define MY_PIPE_SIZE 1048576
 
-static int
+#define MAX_BYTE_ARRAY_SIZE 3 * MY_PIPE_SIZE
+
+  static int
 thread_update_pipe (gpointer data)
 {
   // try to write pedding data to pipe.
@@ -43,17 +45,29 @@ thread_update_pipe (gpointer data)
       G_LOCK (buffer_lock);
       if (byte_array->len)
         {
-          int chunk_size = byte_array->len;
+          int chunk_size = MY_PIPE_SIZE;
+          if (chunk_size > byte_array->len)
+            chunk_size = byte_array->len;
 
           if ( fd < 0 && (fd = open("/tmp/b0.mp4", O_WRONLY | O_NONBLOCK, 0644)) < 0)
             {
-              printf ("Error on open.\n");
+              // printf ("Error on open.\n");
+            }
+          else
+            {
+              int ret = fcntl(fd, F_SETPIPE_SZ, MY_PIPE_SIZE);
+              if (ret < 0)
+                {
+                  perror("set pipe size failed.");
+                }
             }
 
           // Try to write the entire buffer
           int written = write (fd, byte_array->data, chunk_size);
           if (written > 0)
             {
+              fdatasync (fd);
+              printf ("%d bytes written to pipe. chunk_size=%d, buffer=%d\n", written, chunk_size, byte_array->len);
               g_byte_array_remove_range (byte_array, 0, written);
             }
           else
@@ -65,8 +79,8 @@ thread_update_pipe (gpointer data)
       else
         {
           G_UNLOCK (buffer_lock);
-          usleep (10);
         }
+      usleep (100000);
     }
   return 1;
 }
@@ -83,10 +97,10 @@ l_srcbuffer_pipe_write (lua_State *L)
   buff = luaL_checkstring (L, 1);
   size = luaL_checkint (L, 2);
   data = luaL_checkstring (L, 3);
-  printf ("srcbuffer_pipe_write %s size='%lu'.\n", buff, size);
+  // printf ("srcbuffer_pipe_write %s size='%lu'.\n", buff, size);
 
   G_LOCK (buffer_lock);
-  if (byte_array->len < MAX_BYTE_ARRAY_SIZE)
+  if (byte_array->len + size < MAX_BYTE_ARRAY_SIZE)
     {
       byte_array = g_byte_array_append (byte_array, data, size);
       printf ("buffer size = %lu.\n", byte_array->len);
@@ -99,8 +113,9 @@ l_srcbuffer_pipe_write (lua_State *L)
   G_UNLOCK (buffer_lock);
 
   lua_pushnumber (L, ret);
+  lua_pushnumber (L, MAX_BYTE_ARRAY_SIZE - byte_array->len);
 
-  return 1;
+  return 2;
 } 
 
 static const struct luaL_Reg srcbuffer_pipe_funcs[] = {

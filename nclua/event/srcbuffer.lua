@@ -63,10 +63,9 @@ local buffs = {}
 function srcbuffer:cycle ()
    while not srcbuffer.INQ:is_empty () do
       local evt = srcbuffer.INQ:dequeue ()
-      print (evt)
 
       if (evt.action == 'write') then
-        print ("Received a write srcbuffer evt on '" .. evt.buff .. "'.")
+        -- print ("Received a write srcbuffer evt on '" .. evt.buff .. "'.")
 
         if (buffs[evt.buff] == nil) then
           os.execute ("mkfifo /tmp/" .. evt.buff)
@@ -74,7 +73,10 @@ function srcbuffer:cycle ()
         end
 
         if (evt.data) then
-          local ret = srcbuffer_pipe.write (evt.buff, #evt.data, evt.data)
+          local ret, avail = srcbuffer_pipe.write (evt.buff, #evt.data,
+                                                   evt.data)
+          evt.available = avail
+
           if (ret == 0) then
             evt.error = 'Could not write.  Buffer is full!'
           end

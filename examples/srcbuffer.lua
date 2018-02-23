@@ -21,27 +21,59 @@ local print = print
 local io = io
 _ENV = nil
 
-local bufsize = 2^13 -- 8KB buffer
+canvas:attrFont ('tiresias', 20, 'bold')
 
-local inp = io.open('/tmp/1080i_4ChAud.ts', "rb")
+-- local inp = io.open('/tmp/1080i_4ChAud.ts', "rb")
+-- local inp = io.open('/tmp/bun33s.ts', "rb")
+-- local inp = io.open('/tmp/TextInMotion-Sample-720p.mp4', "rb")
+
+local buffer_id = 'b0'
+local inp = io.open('/tmp/big_buck_bunny_480p_surround-fix.avi', "rb")
 local chunk = nil
+local chunk_size = 2^16
+local waiting = false
 
 local function handler (e)
+  print (e.class, event.uptime (), waiting)
+  if (e.class ~= 'user' and e.class ~= 'srcbuffer') then
+    return
+  end
   if (e.class == 'user' and e.type == 'first') then
-    chunk = inp:read (bufsize)
+    chunk = inp:read (chunk_size)
   elseif (e.class == 'srcbuffer') then
-    -- last attempt
-    if (e.error) then
-      print (e.error)
+    if (e.available ~= nil) then
+      canvas:attrColor (0, 0, 0, 0)
+      canvas:clear ()
+      local text =
+        ('SrcBuffer b0 available size: %d bytes.'):format (e.available)
+      canvas:attrColor ('red')
+      canvas:drawText (0, 0, text)
+      canvas:flush ()
+    end
+    if (e.error ~= nil) then
+      print ('Error: ', e.error)
+      if (waiting) then
+        return
+      else
+        waiting = true
+        event.timer (500,
+          function ()
+            waiting = false
+            event.post({ class='user' })
+          end)
+        return
+      end
     else
-      chunk = inp:read (bufsize)
+      chunk = inp:read (chunk_size)
     end
   end
 
   if (chunk) then
-    event.post ({class='srcbuffer', action='write', buff='b0.mp4', data=chunk})
+    event.post ({ class='srcbuffer', 
+                  action='write', 
+                  buff=buffer_id, 
+                  data=chunk })
   end
-
 end
 
 event.register (handler)
