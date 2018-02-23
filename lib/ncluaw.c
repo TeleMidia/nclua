@@ -53,6 +53,7 @@ static const char *plugin_list[] = {
   "udp",
 #endif
   "user",
+  "srcbuffer",
   NULL
 };
 
