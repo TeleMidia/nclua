@@ -38,7 +38,6 @@ G_LOCK_DEFINE (buffer_lock);
 int
 create_src_buffer (const gchar *buffer_id)
 {
-  GByteArray *byte_array;
   gchar *pipe_name = g_strdup_printf ("/tmp/%s.mp4", buffer_id);
   printf ("create_src_buffer %s.\n", pipe_name);
   int fd = open (pipe_name, O_WRONLY | O_NONBLOCK, 0644);
@@ -68,13 +67,10 @@ update_srcbuffer_pipe (gpointer key, gpointer value, gpointer user_data)
 
   if (fd < 0)
     fd = create_src_buffer (key);
-      
-  printf ("%d.\n", fd);
+
   if (fd < 0)
     {
-      // Pipe buffer is still not created.
-      G_UNLOCK (buffer_lock);
-      return;
+      goto done; // Pipe buffer is still not created.
     }
 
   if (byte_array->len)
@@ -96,13 +92,10 @@ update_srcbuffer_pipe (gpointer key, gpointer value, gpointer user_data)
         {
           // printf ("Error on write. %d %d\n", written, chunk_size);
         }
-
-      G_UNLOCK (buffer_lock);
     }
-  else
-    {
-      G_UNLOCK (buffer_lock);
-  }
+
+done:
+  G_UNLOCK (buffer_lock);
 
   return;
 }
@@ -175,9 +168,8 @@ int luaopen_nclua_event_srcbuffer_pipe (lua_State *L);
 int
 luaopen_nclua_event_srcbuffer_pipe (lua_State *L)
 {
-  GError *error;
-
   G_TYPE_INIT_WRAPPER ();
+
   lua_newtable (L);
   luax_newmetatable (L, SRCBUFFER_PIPE);
   luaL_setfuncs (L, srcbuffer_pipe_funcs, 0);
