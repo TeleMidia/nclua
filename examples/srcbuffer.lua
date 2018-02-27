@@ -28,7 +28,7 @@ canvas:attrFont ('tiresias', 20, 'bold')
 -- local inp = io.open('/tmp/TextInMotion-Sample-720p.mp4', "rb")
 
 local buffer_id = 'b0'
-local inp = io.open('/tmp/big_buck_bunny_480p_surround-fix.avi', "rb")
+local inp = io.open('/tmp/big_buck_bunny_720p_h264.mov', "rb")
 local chunk = nil
 local chunk_size = 2^16
 local waiting = false
@@ -45,7 +45,8 @@ local function handler (e)
       canvas:attrColor (0, 0, 0, 0)
       canvas:clear ()
       local text =
-        ('SrcBuffer b0 available size: %d bytes.'):format (e.available)
+        ('SrcBuffer ' .. buffer_id .. ' available size: %d bytes.')
+              :format (e.available)
       canvas:attrColor ('red')
       canvas:drawText (0, 0, text)
       canvas:flush ()

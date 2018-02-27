@@ -68,7 +68,7 @@ function srcbuffer:cycle ()
         -- print ("Received a write srcbuffer evt on '" .. evt.buff .. "'.")
 
         if (buffs[evt.buff] == nil) then
-          os.execute ("mkfifo /tmp/" .. evt.buff)
+          os.execute ("mkfifo /tmp/" .. evt.buff .. ".mp4")
           buffs[evt.buff] = 1;
         end
 
