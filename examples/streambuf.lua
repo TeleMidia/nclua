@@ -23,29 +23,25 @@ _ENV = nil
 
 canvas:attrFont ('tiresias', 20, 'bold')
 
--- local inp = io.open('/tmp/1080i_4ChAud.ts', "rb")
--- local inp = io.open('/tmp/bun33s.ts', "rb")
--- local inp = io.open('/tmp/TextInMotion-Sample-720p.mp4', "rb")
-
 local buffer_id = 'b0'
-local inp = io.open('/tmp/big_buck_bunny_720p_h264.mov', "rb")
+local inp = io.open ('/tmp/fs0.ts', "rb")
 local chunk = nil
 local chunk_size = 2^16
 local waiting = false
 
 local function handler (e)
   print (e.class, event.uptime (), waiting)
-  if (e.class ~= 'user' and e.class ~= 'srcbuffer') then
+  if (e.class ~= 'user' and e.class ~= 'streambuf') then
     return
   end
   if (e.class == 'user' and e.type == 'first') then
     chunk = inp:read (chunk_size)
-  elseif (e.class == 'srcbuffer') then
+  elseif (e.class == 'streambuf') then
     if (e.available ~= nil) then
       canvas:attrColor (0, 0, 0, 0)
       canvas:clear ()
       local text =
-        ('SrcBuffer ' .. buffer_id .. ' available size: %d bytes.')
+        ('StreamBuffer ' .. buffer_id .. ' available size: %d bytes.')
               :format (e.available)
       canvas:attrColor ('red')
       canvas:drawText (0, 0, text)
@@ -70,7 +66,7 @@ local function handler (e)
   end
 
   if (chunk) then
-    event.post ({ class='srcbuffer', 
+    event.post ({ class='streambuf', 
                   action='write', 
                   buff=buffer_id, 
                   data=chunk })

@@ -1,4 +1,4 @@
-/* nclua.event.srcbuffer_pipe -- Non-blocking Src Buffer requests.
+/* nclua.event.streambuf_pipe -- Non-blocking Src Buffer requests.
    Copyright (C) 2013-2018 PUC-Rio/Laboratorio TeleMidia
 
 This file is part of NCLua.
@@ -25,10 +25,10 @@ along with NCLua.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <gio/gio.h>
 #include <fcntl.h>
 
-/* Registry key for the srcbuffer metatable.  */
-#define SRCBUFFER_PIPE "nclua.event.srcbuffer_pipe"
-GHashTable *src_buffers_fd;
-GHashTable *src_buffers_byte_array;
+/* Registry key for the streambuf metatable.  */
+#define STREAMBUF_PIPE "nclua.event.streambuf_pipe"
+GHashTable *stream_buffers_fd;
+GHashTable *stream_buffers_byte_array;
 GThread    *thread;
 G_LOCK_DEFINE (buffer_lock);
 
@@ -36,10 +36,10 @@ G_LOCK_DEFINE (buffer_lock);
 #define MAX_BYTE_ARRAY_SIZE 3 * MY_PIPE_SIZE
 
 int
-create_src_buffer (const gchar *buffer_id)
+create_stream_buf (const gchar *buffer_id)
 {
   gchar *pipe_name = g_strdup_printf ("/tmp/%s.mp4", buffer_id);
-  printf ("create_src_buffer %s.\n", pipe_name);
+  printf ("create_stream_buf %s.\n", pipe_name);
   int fd = open (pipe_name, O_WRONLY | O_NONBLOCK, 0644);
 
   if (fd > 0)
@@ -50,23 +50,23 @@ create_src_buffer (const gchar *buffer_id)
           perror("set pipe size failed.");
         }
 
-      g_hash_table_insert (src_buffers_fd, pipe_name, GINT_TO_POINTER(fd));
+      g_hash_table_insert (stream_buffers_fd, pipe_name, GINT_TO_POINTER(fd));
     }
 
   return fd;
 }
 
 void
-update_srcbuffer_pipe (gpointer key, gpointer value, gpointer user_data)
+update_streambuf_pipe (gpointer key, gpointer value, gpointer user_data)
 {
   GByteArray *byte_array = value;
 
   G_LOCK (buffer_lock);
 
-  int fd = GPOINTER_TO_INT ( g_hash_table_lookup (src_buffers_fd, key) );
+  int fd = GPOINTER_TO_INT ( g_hash_table_lookup (stream_buffers_fd, key) );
 
   if (fd < 0)
-    fd = create_src_buffer (key);
+    fd = create_stream_buf (key);
 
   if (fd < 0)
     {
@@ -101,7 +101,7 @@ done:
 }
 
 /**
- * @brief A thread that tries to write pending data on the srcbuffer pipe.
+ * @brief A thread that tries to write pending data on the streambuf pipe.
  */
 static int
 thread_update_all_pipes (gpointer data)
@@ -109,14 +109,14 @@ thread_update_all_pipes (gpointer data)
   while (TRUE)
     {
       g_hash_table_foreach (
-          src_buffers_byte_array, update_srcbuffer_pipe, NULL);
+          stream_buffers_byte_array, update_streambuf_pipe, NULL);
       usleep (100000);
     }
   return 1;
 }
 
 static int
-l_srcbuffer_pipe_write (lua_State *L)
+l_streambuf_pipe_write (lua_State *L)
 {
   int ret = 0;
 
@@ -130,14 +130,14 @@ l_srcbuffer_pipe_write (lua_State *L)
   size = luaL_checkint (L, 2);
   data = luaL_checkstring (L, 3);
 
-  if (!g_hash_table_contains (src_buffers_byte_array, buff))
+  if (!g_hash_table_contains (stream_buffers_byte_array, buff))
     {
       GByteArray *arr = g_byte_array_new ();
-      g_hash_table_insert (src_buffers_fd, buff, GINT_TO_POINTER (-1));
-      g_hash_table_insert (src_buffers_byte_array, buff, arr);
+      g_hash_table_insert (stream_buffers_fd, buff, GINT_TO_POINTER (-1));
+      g_hash_table_insert (stream_buffers_byte_array, buff, arr);
     }
 
-  byte_array = g_hash_table_lookup (src_buffers_byte_array, buff);
+  byte_array = g_hash_table_lookup (stream_buffers_byte_array, buff);
 
   G_LOCK (buffer_lock);
   if (byte_array->len + size < MAX_BYTE_ARRAY_SIZE)
@@ -158,24 +158,24 @@ l_srcbuffer_pipe_write (lua_State *L)
   return 2;
 } 
 
-static const struct luaL_Reg srcbuffer_pipe_funcs[] = {
-  {"write", l_srcbuffer_pipe_write},
+static const struct luaL_Reg streambuf_pipe_funcs[] = {
+  {"write", l_streambuf_pipe_write},
   {NULL, NULL}
 };
 
-int luaopen_nclua_event_srcbuffer_pipe (lua_State *L);
+int luaopen_nclua_event_streambuf_pipe (lua_State *L);
 
 int
-luaopen_nclua_event_srcbuffer_pipe (lua_State *L)
+luaopen_nclua_event_streambuf_pipe (lua_State *L)
 {
   G_TYPE_INIT_WRAPPER ();
 
   lua_newtable (L);
-  luax_newmetatable (L, SRCBUFFER_PIPE);
-  luaL_setfuncs (L, srcbuffer_pipe_funcs, 0);
+  luax_newmetatable (L, STREAMBUF_PIPE);
+  luaL_setfuncs (L, streambuf_pipe_funcs, 0);
 
-  src_buffers_fd = g_hash_table_new (g_str_hash, g_str_equal);
-  src_buffers_byte_array = g_hash_table_new (g_str_hash, g_str_equal);
+  stream_buffers_fd = g_hash_table_new (g_str_hash, g_str_equal);
+  stream_buffers_byte_array = g_hash_table_new (g_str_hash, g_str_equal);
 
   thread = g_thread_new ("pipe_flush", thread_update_all_pipes, NULL);
 

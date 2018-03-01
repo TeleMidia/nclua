@@ -22,16 +22,16 @@ local FAIL = tests.FAIL
 local TRACE_SEP = tests.trace_sep
 local TRACE = tests.trace
 
-local srcbuffer = require ('nclua.event.srcbuffer')
+local streambuf = require ('nclua.event.streambuf')
 _ENV = nil
 
 -- Send N events and check if all them are received.
 local n = 2^10            -- 1K
 for i=1,n do
-   srcbuffer:send {class='srcbuffer', i=i}
+   streambuf:send {class='streambuf', i=i}
 end
 
-srcbuffer:cycle ()
+streambuf:cycle ()
 
 -- local t = {user:receive (n)}
 -- ASSERT (#t == n)

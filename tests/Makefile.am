@@ -180,7 +180,7 @@ endif
 
 #if WITH_EVENT_STREAM
 # event.stream
-scripts+=test-event-srcbuffer-engine.lua
+scripts+=test-event-streambuf-engine.lua
 #endif
 
 # event.user (handler plugin)

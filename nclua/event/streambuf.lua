@@ -1,4 +1,4 @@
---[[ nclua.event.user -- The USER event class.
+--[[ nclua.event.user -- The STREAMBUF event class.
      Copyright (C) 2013-2018 PUC-Rio/Laboratorio TeleMidia
 
 This file is part of NCLua.
@@ -16,19 +16,19 @@ License for more details.
 You should have received a copy of the GNU General Public License
 along with NCLua.  If not, see <https://www.gnu.org/licenses/>.  ]]--
 
-local srcbuffer
+local streambuf
 
 local print = print
 local assert = assert
 local engine = require ('nclua.event.engine')
-local srcbuffer_pipe = require ('nclua.event.srcbuffer_pipe')
+local streambuf_pipe = require ('nclua.event.streambuf_pipe')
 local io = io
 local os = os
 _ENV = nil
 
 do
-   srcbuffer = engine:new ()
-   srcbuffer.class = 'srcbuffer'
+   streambuf = engine:new ()
+   streambuf.class = 'streambuf'
 end
 
 -- List of supported types.
@@ -41,8 +41,8 @@ local action_list = {
 -- Checks if event EVT is a valid STREAM event.
 -- Returns EVT if successful, otherwise throws an error.
 --
-function srcbuffer:check (evt)
-   assert (evt.class == srcbuffer.class)
+function streambuf:check (evt)
+   assert (evt.class == streambuf.class)
    return evt
 end
 
@@ -50,8 +50,8 @@ end
 -- Builds a STREAM event filter according to the given parameters.
 -- Returns a new filter if successful, otherwise throws an error.
 --
-function srcbuffer:filter (class)
-   assert (class == srcbuffer.class)
+function streambuf:filter (class)
+   assert (class == streambuf.class)
    return {class=class}
 end
 
@@ -60,12 +60,12 @@ local buffs = {}
 ---
 -- Cycles the STREAM engine once.
 --
-function srcbuffer:cycle ()
-   while not srcbuffer.INQ:is_empty () do
-      local evt = srcbuffer.INQ:dequeue ()
+function streambuf:cycle ()
+   while not streambuf.INQ:is_empty () do
+      local evt = streambuf.INQ:dequeue ()
 
       if (evt.action == 'write') then
-        -- print ("Received a write srcbuffer evt on '" .. evt.buff .. "'.")
+        -- print ("Received a write streambuf evt on '" .. evt.buff .. "'.")
 
         if (buffs[evt.buff] == nil) then
           os.execute ("mkfifo /tmp/" .. evt.buff .. ".mp4")
@@ -73,14 +73,14 @@ function srcbuffer:cycle ()
         end
 
         if (evt.data) then
-          local ret, avail = srcbuffer_pipe.write (evt.buff, #evt.data,
+          local ret, avail = streambuf_pipe.write (evt.buff, #evt.data,
                                                    evt.data)
           evt.available = avail
 
           if (ret == 0) then
             evt.error = 'Could not write.  Buffer is full!'
           end
-          srcbuffer.OUTQ:enqueue (evt)
+          streambuf.OUTQ:enqueue (evt)
         else
           print ("empty")
 
@@ -90,9 +90,9 @@ function srcbuffer:cycle ()
           end
         end
       elseif evt.action == 'read' then
-        print ("Received a read srcbuffer evt.", evt.buff)
+        print ("Received a read streambuf evt.", evt.buff)
       end
    end
 end
 
-return srcbuffer
+return streambuf
