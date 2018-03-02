@@ -90,8 +90,18 @@ function streambuf:cycle ()
             buffs[evt.uri] = nil
           end
         end
-      elseif evt.action == 'read' then
-        -- print ("Received a read streambuf evt.", evt.buff)
+      elseif evt.action == 'status' then
+          local ret, size = streambuf_pipe.status (buff_id);
+          if (ret == 1) then
+            evt.state = 'READY'
+          else
+            evt.state = 'CLOSED'
+          end
+
+          evt.size = size
+          streambuf.OUTQ:enqueue (evt)
+      elseif (evt.action == 'read') then
+          -- print ("Received a read streambuf evt.", evt.buff)
       end
    end
 end

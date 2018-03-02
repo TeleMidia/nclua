@@ -23,7 +23,7 @@ _ENV = nil
 
 local streambuf_uri = 'streambuf://b0'
 local file = {
-  fd          = io.open ('/tmp/main1_5s.ts', "rb"),
+  fd          = io.open ('/tmp/main4.ts', "rb"),
   chunk       = nil,
   chunk_size  = 2^16,
   waiting = false
@@ -50,20 +50,27 @@ local function handler (e)
   if (e.class == 'user' and e.type == 'first') then
     ask_next_chunk = true
   elseif (e.class == 'streambuf') then
-    draw_streambuf_info (e)
-
-    if (not e.error) then
-      ask_next_chunk = true
+    if (e.action == 'status') then
+      draw_streambuf_info (e)
+      event.timer (200, function ()
+                            event.post ( { class  = 'streambuf',
+                                           uri    = streambuf_uri,
+                                           action = 'status' })
+                         end)
     else
-      print ('Error: ', e.error)
-      if (file.waiting) then return end
+      if (not e.error) then
+        ask_next_chunk = true
+      else
+        -- print ('Error: ', e.error)
+        if (file.waiting) then return end
 
-      file.waiting = true
-      event.timer (500, function ()
-                          file.waiting = false
-                          event.post({ class='user' })
-                        end )
-      return
+        file.waiting = true
+        event.timer (500, function ()
+                            file.waiting = false
+                            event.post({ class='user' })
+                          end )
+        return
+      end
     end
   end
 
@@ -77,7 +84,10 @@ local function handler (e)
                   uri    = streambuf_uri,
                   data   = file.chunk })
   end
+
+  -- stay in loop getting the buffer status
 end
 
 event.register (handler)
 event.post ({class="user", type='first'})
+event.post ({class="streambuf", uri = streambuf_uri, action='status'})

@@ -65,7 +65,6 @@ update_streambuf_pipe (gpointer key, gpointer value, gpointer user_data)
   int fd = GPOINTER_TO_INT (g_hash_table_lookup (stream_buffers_fd, key));
   if (fd < 0)
     {
-      printf ("create stream %s.\n", key);
       fd = create_stream_buf (key);
     }
 
@@ -117,6 +116,28 @@ thread_update_all_pipes (gpointer data)
 }
 
 static int
+l_streambuf_pipe_status (lua_State *L)
+{
+  int status = 0;
+  int len = -1;
+  const gchar *buff_id = luaL_checkstring (L, 1);
+
+  G_LOCK (buffer_lock);
+  if (g_hash_table_contains (stream_buffers_byte_array, buff_id))
+    {
+      status = 1;
+      GByteArray *a = g_hash_table_lookup (stream_buffers_byte_array, buff_id);
+      len = a->len;
+    }
+  G_UNLOCK (buffer_lock);
+
+  lua_pushnumber (L, status);
+  lua_pushnumber (L, len);
+
+  return 2;
+}
+
+static int
 l_streambuf_pipe_write (lua_State *L)
 {
   int ret = 0;
@@ -160,6 +181,7 @@ l_streambuf_pipe_write (lua_State *L)
 
 static const struct luaL_Reg streambuf_pipe_funcs[] = {
   {"write", l_streambuf_pipe_write},
+  {"status", l_streambuf_pipe_status},
   {NULL, NULL}
 };
 
