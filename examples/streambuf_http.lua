@@ -27,7 +27,8 @@ local streambuf_uri = 'streambuf://b0'
 local video = {
   next_seg = 0,
   cur_seg_data = "",
-  root_uri = 'http://www.telemidia.puc-rio.br/~roberto/misc/sintel_hls/1100kbit/' ,
+  root_uri = 'http://www.telemidia.puc-rio.br/~roberto/' ..
+             'misc/sintel/hls/video/1100kbit/' ,
   downloading = false
 }
 
