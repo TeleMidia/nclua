@@ -23,6 +23,6 @@ local function handler (e)
 end
 
 event.register (handler, {class='udp'})
-event.post {class='udp', a=1}
-event.post {class='udp', b=2}
-event.post {class='udp', c=2}
+
+
+event.post {class='udp', type='data', host='127.0.0.1', port=47818, value='nclua client message!'}

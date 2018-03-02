@@ -120,6 +120,26 @@ tcp_socket_la_SOURCES=\
   $(NULL)
 endif
 
+
+# tcp_socket
+if WITH_EVENT_TCP
+eventlib_LTLIBRARIES+= udp_socket.la
+if OS_WIN32
+udp_socket_def_dependency= udp_socket.def
+def_dependency+= $(udp_socket_def_dependency)
+udp_socket_export_symbols= -export-symbols $(udp_socket_def_dependency)\
+  -no-undefined
+endif
+udp_socket_la_DEPENDENCIES= $(udp_socket_def_dependency)
+udp_socket_la_CFLAGS= $(AM_CFLAGS) $(GLIB_CFLAGS) $(GIO_CFLAGS)
+udp_socket_la_LDFLAGS= $(AM_LDFLAGS) $(GLIB_LIBS) $(GIO_LIBS)\
+  $(udp_socket_export_symbols)
+udp_socket_la_SOURCES=\
+  luax-callback.h\
+  udp_socket.c\
+  $(NULL)
+endif
+
 # Generate .def files if we're on Win32.
 if OS_WIN32
 CLEANFILES+= $(def_dependency)
