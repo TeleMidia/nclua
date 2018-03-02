@@ -32,8 +32,7 @@ local file = {
 local function draw_streambuf_info (e)
   canvas:attrColor (0, 0, 0, 0)
   canvas:clear ()
-  local text = ( 'StreamBuffer ' .. e.uri .. ' status: '.. e.state
-                 .. ' size: %d bytes.' )
+  local text = ( e.uri .. ' status: '.. e.state .. ' size: %d bytes.' )
                 :format (e.size)
   canvas:attrColor ('red')
   canvas:attrFont ('tiresias', 20, 'bold')
