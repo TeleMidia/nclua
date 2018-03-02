@@ -38,6 +38,7 @@ dist_eventdata_DATA=\
   ncl.lua\
   pointer.lua\
   queue.lua\
+  streambuf.lua\
   user.lua\
   $(NULL)
 
@@ -84,6 +85,26 @@ http_soup_la_SOURCES=\
   http_soup.c\
   $(NULL)
 endif
+
+# streambuf_pipe
+#if WITH_EVENT_STREAMBUF
+eventlib_LTLIBRARIES+= streambuf_pipe.la
+if OS_WIN32
+streambuf_pipe_def_dependency= streambuf_pipe.def
+def_dependency+= $(streambuf_pipe_def_dependency)
+streambuf_pipe_export_symbols= -export-symbols \
+  $(streambuf_pipe_def_dependency) -no-undefined
+endif
+
+streambuf_pipe_la_DEPENDENCIES= $(streambuf_pipe_def_dependency)
+streambuf_pipe_la_CFLAGS= $(AM_CFLAGS) $(_CFLAGS) $(GLIB_CFLAGS)\
+  $(GIO_CFLAGS)
+streambuf_pipe_la_LDFLAGS= $(AM_LDFLAGS) $(GLIB_LIBS) $(GIO_LIBS)\
+  $(streambuf_pipe_export_symbols)
+streambuf_pipe_la_SOURCES=\
+  streambuf_pipe.c\
+  $(NULL)
+#endif
 
 # stopwatch
 eventlib_LTLIBRARIES+= stopwatch.la

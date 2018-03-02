@@ -178,6 +178,11 @@ scripts+= test-event-http-filter.lua
 scripts+= test-event-http-engine.lua # requires network
 endif
 
+#if WITH_EVENT_STREAM
+# event.stream
+scripts+=test-event-streambuf-engine.lua
+#endif
+
 # event.user (handler plugin)
 scripts+= test-event-user-api.lua
 scripts+= test-event-user-check.lua
