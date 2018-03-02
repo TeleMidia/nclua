@@ -24,6 +24,7 @@ local engine = require ('nclua.event.engine')
 local streambuf_pipe = require ('nclua.event.streambuf_pipe')
 local io = io
 local os = os
+local string = string
 _ENV = nil
 
 do
@@ -63,34 +64,34 @@ local buffs = {}
 function streambuf:cycle ()
    while not streambuf.INQ:is_empty () do
       local evt = streambuf.INQ:dequeue ()
+      local buff_id = string.sub (evt.uri, 13)
 
       if (evt.action == 'write') then
-        -- print ("Received a write streambuf evt on '" .. evt.buff .. "'.")
-
-        if (buffs[evt.buff] == nil) then
-          os.execute ("mkfifo /tmp/" .. evt.buff .. ".mp4")
-          buffs[evt.buff] = 1;
+        if (buffs[evt.uri] == nil) then
+          os.execute ("mkfifo /tmp/" .. buff_id .. ".mp4")
+          buffs[evt.uri] = 1;
         end
 
         if (evt.data) then
-          local ret, avail = streambuf_pipe.write (evt.buff, #evt.data,
-                                                   evt.data)
-          evt.available = avail
-
+          local ret, size = streambuf_pipe.write (buff_id, #evt.data,
+                                                  evt.data)
           if (ret == 0) then
-            evt.error = 'Could not write.  Buffer is full!'
+            evt.error = 'Could not write in stream buffer. Buffer is full!'
+            evt.state = 'FULL'
+          else
+            evt.state = 'READY'
           end
+
+          evt.size = size
           streambuf.OUTQ:enqueue (evt)
         else
-          print ("empty")
-
-          if (buffs[evt.buff]) then
-            os.execute ("rm /tmp/" .. evt.buff)
-            buffs[evt.buff] = nil
+          if (buffs[evt.uri]) then
+            os.execute ("rm /tmp/" .. buf_id)
+            buffs[evt.uri] = nil
           end
         end
       elseif evt.action == 'read' then
-        print ("Received a read streambuf evt.", evt.buff)
+        -- print ("Received a read streambuf evt.", evt.buff)
       end
    end
 end

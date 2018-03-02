@@ -39,7 +39,6 @@ int
 create_stream_buf (const gchar *buffer_id)
 {
   gchar *pipe_name = g_strdup_printf ("/tmp/%s.mp4", buffer_id);
-  printf ("create_stream_buf %s.\n", pipe_name);
   int fd = open (pipe_name, O_WRONLY | O_NONBLOCK, 0644);
 
   if (fd > 0)
@@ -50,23 +49,25 @@ create_stream_buf (const gchar *buffer_id)
           perror("set pipe size failed.");
         }
 
-      g_hash_table_insert (stream_buffers_fd, pipe_name, GINT_TO_POINTER(fd));
+      g_hash_table_insert (stream_buffers_fd, buffer_id, GINT_TO_POINTER (fd));
     }
 
+  g_free (pipe_name);
   return fd;
 }
 
 void
 update_streambuf_pipe (gpointer key, gpointer value, gpointer user_data)
 {
+  G_LOCK (buffer_lock);
   GByteArray *byte_array = value;
 
-  G_LOCK (buffer_lock);
-
-  int fd = GPOINTER_TO_INT ( g_hash_table_lookup (stream_buffers_fd, key) );
-
+  int fd = GPOINTER_TO_INT (g_hash_table_lookup (stream_buffers_fd, key));
   if (fd < 0)
-    fd = create_stream_buf (key);
+    {
+      printf ("create stream %s.\n", key);
+      fd = create_stream_buf (key);
+    }
 
   if (fd < 0)
     {
@@ -126,34 +127,33 @@ l_streambuf_pipe_write (lua_State *L)
 
   GByteArray *byte_array;
 
-  buff = luaL_checkstring (L, 1);
+  buff = g_strdup (luaL_checkstring (L, 1));
   size = luaL_checkint (L, 2);
   data = luaL_checkstring (L, 3);
 
+  G_LOCK (buffer_lock);
   if (!g_hash_table_contains (stream_buffers_byte_array, buff))
     {
-      GByteArray *arr = g_byte_array_new ();
+      byte_array = g_byte_array_new ();
       g_hash_table_insert (stream_buffers_fd, buff, GINT_TO_POINTER (-1));
-      g_hash_table_insert (stream_buffers_byte_array, buff, arr);
+      g_hash_table_insert (stream_buffers_byte_array, buff, byte_array);
     }
 
   byte_array = g_hash_table_lookup (stream_buffers_byte_array, buff);
 
-  G_LOCK (buffer_lock);
   if (byte_array->len + size < MAX_BYTE_ARRAY_SIZE)
     {
       byte_array = g_byte_array_append (byte_array, data, size);
-      printf ("buffer size = %u.\n", byte_array->len);
       ret = 1;
     }
   else
     {
-      printf ("Buffer is full.\n");
+      // printf ("Buffer is full.\n");
     }
   G_UNLOCK (buffer_lock);
 
   lua_pushnumber (L, ret);
-  lua_pushnumber (L, MAX_BYTE_ARRAY_SIZE - byte_array->len);
+  lua_pushnumber (L, byte_array->len);
 
   return 2;
 } 

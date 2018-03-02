@@ -21,58 +21,63 @@ local print = print
 local io = io
 _ENV = nil
 
-canvas:attrFont ('tiresias', 20, 'bold')
+local streambuf_uri = 'streambuf://b0'
+local file = {
+  fd          = io.open ('/tmp/main1_5s.ts', "rb"),
+  chunk       = nil,
+  chunk_size  = 2^16,
+  waiting = false
+}
 
-local buffer_id = 'b0'
-local inp = io.open ('/tmp/fs0.ts', "rb")
-local chunk = nil
-local chunk_size = 2^16
-local waiting = false
+local function draw_streambuf_info (e)
+  canvas:attrColor (0, 0, 0, 0)
+  canvas:clear ()
+  local text = ( 'StreamBuffer ' .. e.uri .. ' status: '.. e.state
+                 .. ' size: %d bytes.' )
+                :format (e.size)
+  canvas:attrColor ('red')
+  canvas:attrFont ('tiresias', 20, 'bold')
+  canvas:drawText (0, 0, text)
+  canvas:flush ()
+end
 
 local function handler (e)
-  print (e.class, event.uptime (), waiting)
   if (e.class ~= 'user' and e.class ~= 'streambuf') then
     return
   end
+
+  local ask_next_chunk = false
   if (e.class == 'user' and e.type == 'first') then
-    chunk = inp:read (chunk_size)
+    ask_next_chunk = true
   elseif (e.class == 'streambuf') then
-    if (e.available ~= nil) then
-      canvas:attrColor (0, 0, 0, 0)
-      canvas:clear ()
-      local text =
-        ('StreamBuffer ' .. buffer_id .. ' available size: %d bytes.')
-              :format (e.available)
-      canvas:attrColor ('red')
-      canvas:drawText (0, 0, text)
-      canvas:flush ()
-    end
-    if (e.error ~= nil) then
-      print ('Error: ', e.error)
-      if (waiting) then
-        return
-      else
-        waiting = true
-        event.timer (500,
-          function ()
-            waiting = false
-            event.post({ class='user' })
-          end)
-        return
-      end
+    draw_streambuf_info (e)
+
+    if (not e.error) then
+      ask_next_chunk = true
     else
-      chunk = inp:read (chunk_size)
+      print ('Error: ', e.error)
+      if (file.waiting) then return end
+
+      file.waiting = true
+      event.timer (500, function ()
+                          file.waiting = false
+                          event.post({ class='user' })
+                        end )
+      return
     end
   end
 
-  if (chunk) then
-    event.post ({ class='streambuf', 
-                  action='write', 
-                  buff=buffer_id, 
-                  data=chunk })
+  if (ask_next_chunk) then
+    file.chunk = file.fd:read (file.chunk_size)
+  end
+
+  if (file.chunk) then
+    event.post ({ class  = 'streambuf',
+                  action = 'write',
+                  uri    = streambuf_uri,
+                  data   = file.chunk })
   end
 end
 
 event.register (handler)
 event.post ({class="user", type='first'})
-
