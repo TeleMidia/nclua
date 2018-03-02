@@ -24,28 +24,27 @@ _ENV = nil
 
 canvas:attrFont ('tiresias', 20, 'bold')
 
-local resolutions = {
-  'main1_5s.ts',
-  'main2_5s.ts',
-  'main3_5s.ts',
-  'main4_5s.ts',
-  'main5_5s.ts',
-}
-
-local fd = {};
+local streambuf_uri = 'streambuf://b0'
 
 local root = "../../ginga/tests-ncl/samples/"
-for i, fname in pairs (resolutions) do
-  print (i, fname)
-  fd[i] = io.open (root .. fname, 'rb')
-end
+local files = {
+  names = {'main1_5s.ts',
+           'main2_5s.ts',
+           'main3_5s.ts',
+           'main4_5s.ts',
+           'main5_5s.ts'},
+  fds  = {},
+  chunk = nil,
+  chunk_size = 2^16,
 
-local buffer_id = 'streambuf://b0'
-local chunk = nil
-local chunk_size = 2^16
-local cur_index = 1
-local waiting = false
-local last_change = 0
+  cur_index = 1,
+  waiting = false
+}
+
+for i, fname in pairs (files.names) do
+  print (i, fname)
+  files.fds[i] = io.open (root .. fname, 'rb')
+end
 
 local function draw_streambuf_info (e)
   canvas:attrColor (0, 0, 0, 0)
@@ -60,50 +59,51 @@ end
 
 local function handler (e)
   local cur_time = event.uptime ()
-  print (e.class, cur_time, waiting)
+  print (e.class, cur_time, files.waiting)
   if (e.class ~= 'user' and e.class ~= 'streambuf') then
     return
   end
   if (e.class == 'user' and e.type == 'first') then
-    chunk = fd[cur_index]:read (chunk_size)
+    files.chunk = files.fds[files.cur_index]:read (files.chunk_size)
   elseif (e.class == 'streambuf') then
     if (e.action == 'status') then
       draw_streambuf_info (e)
       event.timer (200, function ()
                           event.post ( { class  = 'streambuf',
-                                         uri    = buffer_id,
+                                         uri    = streambuf_uri,
                                          action = 'status' })
                        end)
     elseif (e.error ~= nil) then
       print ('Error: ', e.error)
-      if (waiting) then
+      if (files.waiting) then
         return
       else
-        waiting = true
+        files.waiting = true
         event.timer (500,
           function ()
-            waiting = false
-            event.post({ class='user' })
+            files.waiting = false
+            event.post ({ class='user' })
           end)
         return
       end
     else
-      chunk = fd[cur_index]:read (chunk_size)
-      if (chunk == nil and cur_index ~= #resolutions) then
-        cur_index = cur_index + 1
-        chunk = fd[cur_index]:read (chunk_size)
+      files.chunk = files.fds[files.cur_index]:read (files.chunk_size)
+
+      if (files.chunk == nil and files.cur_index ~= #files.names) then
+        files.cur_index = files.cur_index + 1
+        files.chunk = files.fds[files.cur_index]:read (files.chunk_size)
       end
     end
   end
 
-  if (chunk) then
-    event.post ({ class='streambuf',
-                  action='write',
-                  uri=buffer_id,
-                  data=chunk })
+  if (files.chunk) then
+    event.post ({ class  = 'streambuf',
+                  action = 'write',
+                  uri    = streambuf_uri,
+                  data   = files.chunk })
   end
 end
 
 event.register (handler)
 event.post ({class="user", type='first'})
-event.post ({class="streambuf", uri = buffer_id, action='status'})
+event.post ({class="streambuf", uri = streambuf_uri, action='status'})
