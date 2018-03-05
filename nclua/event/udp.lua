@@ -99,9 +99,9 @@ local function data_received (from_, port_, value_)
 -- Cycles the UDP engine once.
 --
 function udp:cycle ()
-   while not udp.INQ:is_empty () do
-      local evt = udp.INQ:dequeue ()
-      assert (evt.class == udp.class)
+    while not udp.INQ:is_empty () do
+        local evt = udp.INQ:dequeue ()
+        assert (evt.class == udp.class)
       
         if evt.type == 'bind' then
             local localport = assert (evt.localport)
@@ -116,7 +116,7 @@ function udp:cycle ()
             sock:send (host, port, value)
         end
 
-      udp.OUTQ:enqueue (evt)    -- echo back
+        udp.OUTQ:enqueue (evt)    -- echo back
    end
 end
 

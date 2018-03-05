@@ -19,6 +19,7 @@ along with NCLua.  If not, see <https://www.gnu.org/licenses/>.  ]]--
 local tcp
 
 local assert = assert
+local print = print
 local type = type
 
 local check = require ('nclua.event.check')
@@ -60,20 +61,17 @@ end
 --
 function tcp:check (evt)
    assert (evt.class == tcp.class)
-   check.event.option ('type', evt.type, {'connect', 'data', 'disconnect'})
+   check.event.option ('type', evt.type, {'connect', 'listen', 'data', 'disconnect',})
    if evt.type == 'connect' then
       check.event.string ('host', evt.host)
       check.event.number ('port', evt.port)
       check.event.number ('timeout', evt.timeout, 0)
    elseif evt.type == 'listen' then
-      check.event.string ('host', evt.host)
-      check.event.number ('port', evt.port)
-      check.event.number ('timeout', evt.timeout, 0)  
+      check.event.number ('localport', evt.localport) 
    elseif evt.type == 'data' then
       check_event_socket ('connection', evt.connection, true)
       check.event.string ('value', evt.value)
       check.event.number ('timeout', evt.timeout, 0)
-
    elseif evt.type == 'disconnect' then
       check_event_socket ('connection', evt.connection, true)
    end
@@ -86,6 +84,7 @@ end
 --
 function tcp:filter (class, connection)
    assert (class == tcp.class)
+   print("FILTER!")
    if connection ~= nil then
       check_arg_socket ('connection', connection)
    end
@@ -146,27 +145,34 @@ local function send_finished (status, sock, data_left)
    end
 end
 
+local function data_received (sock, value_)
+     dispatch {class='tcp', type='data', value=value_}
+end
+
 function tcp:cycle ()
-   while not tcp.INQ:is_empty () do
-      local evt = tcp.INQ:dequeue ()
-      assert (evt.class == tcp.class)
-      if evt.type == 'connect' then
-         local host = assert (evt.host)
-         local port = assert (evt.port)
-         local sock = assert (socket.new (evt.timeout or 0))
-         sock:connect (host, port, connect_finished)
-
-      elseif evt.type == 'data' then
-         local sock = assert (evt.connection)
-         local data = assert (evt.value)
-         assert (sock:is_connected ())
-         sock:send (data, send_finished)
-
-      elseif evt.type == 'disconnect' then
-         local sock = assert (evt.connection)
-         assert (sock:is_connected ())
-         sock:disconnect (disconnect_finished)
-      end
+    while not tcp.INQ:is_empty () do
+        local evt = tcp.INQ:dequeue ()
+        assert (evt.class == tcp.class)
+        if evt.type == 'connect' then
+            local host = assert (evt.host)
+            local port = assert (evt.port)
+            local sock = assert (socket.new (evt.timeout or 0))
+            sock:connect (host, port, connect_finished)
+        elseif evt.type == 'listen' then
+            local localport = assert (evt.localport)
+            local sock = assert (socket.new (0))
+            sock:listen (localport, data_received)
+        elseif evt.type == 'data' then
+            local sock = assert (evt.connection)
+            local data = assert (evt.value)
+            assert (sock:is_connected ())
+            sock:send (data, send_finished)
+        elseif evt.type == 'disconnect' then
+            local sock = assert (evt.connection)
+            assert (sock:is_connected ())
+            sock:disconnect (disconnect_finished)
+        end
+            tcp.OUTQ:enqueue (evt)    -- echo back  
    end
    socket.cycle ()
 end

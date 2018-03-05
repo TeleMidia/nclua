@@ -29,6 +29,7 @@ along with NCLua.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Socket object data.  */
 typedef struct _socket_t
 {
+  GSocketService *service;
   GSocketClient *client;        /* client socket handle */
   GSocketConnection *conn;      /* connection handle */
 } socket_t;
@@ -39,12 +40,13 @@ typedef struct _socket_t
 
 static inline socket_t *
 socket_check (lua_State *L, int index, GSocketClient ** client,
-              GSocketConnection ** conn)
+              GSocketConnection ** conn, GSocketService ** service)
 {
   socket_t *sock;
   sock = (socket_t *) luaL_checkudata (L, index, SOCKET);
   tryset (client, sock->client);
   tryset (conn, sock->conn);
+  tryset (service, sock->service);
   return sock;
 }
 
@@ -102,7 +104,7 @@ __l_socket_gc (lua_State *L)
   GSocketClient *client;
   GSocketConnection *conn;
 
-  socket_check (L, 1, &client, &conn);
+  socket_check (L, 1, &client, &conn, NULL);
   /* TODO: Check if pending requests are canceled.  */
   g_object_unref (client);
 
@@ -201,7 +203,7 @@ l_socket_connect (lua_State *L)
   int port;
   luax_callback_data_t *cb_data;
 
-  sock = socket_check (L, 1, &client, NULL);
+  sock = socket_check (L, 1, &client, NULL, NULL);
   if (unlikely (socket_is_connected (sock)))
     return error_throw_socket_already_connected (L, sock);
 
@@ -215,6 +217,83 @@ l_socket_connect (lua_State *L)
   g_socket_client_connect_to_host_async (client, host, (guint16) port, NULL,
                                          connect_finished, cb_data);
   return 0;
+}
+
+gboolean
+incoming_callback  (GSocketService *service,
+                    GSocketConnection *connection,
+                    GObject *source_object,
+                    gpointer data)
+{
+
+  luax_callback_data_t *cb_data;
+  lua_State *L;
+  socket_t *sock;
+
+  cb_data = (luax_callback_data_t *) data;
+  luax_callback_data_get_data (cb_data, &L, (void **) &sock);
+  //  g_assert (sock->client == G_SOCKET_CLIENT (source));
+
+  luax_callback_data_push (cb_data);
+  g_assert (lua_type (L, -1) == LUA_TFUNCTION);
+
+  //g_print("Received Connection from client!\n");
+  GInputStream * istream = g_io_stream_get_input_stream (G_IO_STREAM (connection));
+  gchar buf[1024];
+  g_input_stream_read  (istream,
+                        buf,
+                        1024,
+                        NULL,
+                        NULL);
+
+  //g_print("Message was: \"%s\"\n", buf);
+
+  lua_pushstring (L, "aaaa");
+  lua_pushstring (L, buf);
+  lua_call (L, 2, 0);
+
+  return FALSE;
+}
+
+static int
+l_socket_listen (lua_State *L)
+{
+  socket_t *sock;
+  GSocketService *service;
+  int port;
+  luax_callback_data_t *cb_data;
+
+  sock = socket_check (L, 1, NULL, NULL, &service);
+  if (unlikely (socket_is_connected (sock)))
+    return error_throw_socket_already_connected (L, sock);
+
+  port = CLAMP (luaL_checkint (L, 2), 0, G_MAXUINT16);
+  luaL_checktype(L, 3, LUA_TFUNCTION);
+
+  service = g_socket_service_new ();
+  
+  GError * error = NULL;
+
+  g_socket_listener_add_inet_port ((GSocketListener*)service,
+                                    port,
+                                    NULL,
+                                    &error);
+
+  if (error != NULL){
+      g_error (error->message);
+      return FALSE;
+  }
+
+  cb_data = luax_callback_data_ref (L, sock);
+
+  g_signal_connect (service,
+                    "incoming",
+                    G_CALLBACK (incoming_callback),
+                    cb_data);
+
+  g_socket_service_start (service);    
+
+  return FALSE;
 }
 
 /*-
@@ -314,7 +393,7 @@ l_socket_disconnect (lua_State *L)
   socket_t *sock;
   luax_callback_data_t *cb_data;
 
-  sock = socket_check (L, 1, NULL, NULL);
+  sock = socket_check (L, 1, NULL, NULL, NULL);
   if (unlikely (!socket_is_connected (sock)))
     return error_throw_socket_not_connected (L, sock);
 
@@ -338,7 +417,7 @@ static int
 l_socket_is_connected (lua_State *L)
 {
   socket_t *sock;
-  sock = socket_check (L, 1, NULL, NULL);
+  sock = socket_check (L, 1, NULL, NULL, NULL);
   lua_pushboolean (L, socket_is_connected (sock));
   return 1;
 }
@@ -452,7 +531,7 @@ l_socket_receive (lua_State *L)
   GInputStream *in;
   char *buf;
 
-  sock = socket_check (L, 1, NULL, NULL);
+  sock = socket_check (L, 1, NULL, NULL, NULL);
   if (unlikely (!socket_is_connected (sock)))
     return error_throw_socket_not_connected (L, sock);
 
@@ -569,7 +648,7 @@ l_socket_send (lua_State *L)
   luax_callback_data_t *cb_data;
   GOutputStream *out;
 
-  sock = socket_check (L, 1, NULL, NULL);
+  sock = socket_check (L, 1, NULL, NULL, NULL);
   if (unlikely (!socket_is_connected (sock)))
     return error_throw_socket_not_connected (L, sock);
 
@@ -589,6 +668,7 @@ static const struct luaL_Reg socket_funcs[] = {
   {"new", l_socket_new},
   {"__gc", __l_socket_gc},
   {"connect", l_socket_connect},
+  {"listen", l_socket_listen},
   {"cycle", l_socket_cycle},
   {"disconnect", l_socket_disconnect},
   {"is_connected", l_socket_is_connected},
