@@ -25,3 +25,16 @@ ASSERT (settings.luaVersion == tests.NCLUA_VERSION)
 ASSERT (settings.luaVersionMajor == tests.NCLUA_VERSION_MAJOR)
 ASSERT (settings.luaVersionMinor == tests.NCLUA_VERSION_MINOR)
 ASSERT (settings.luaVersionMicro == tests.NCLUA_VERSION_MICRO)
+
+local function check_interfaces(t)
+  ASSERT (t)
+  print (t)
+  for index,value in pairs(t) do
+    for nestedindex,nestedvalue in pairs(value) do
+      print ("settings.inet("..index..")."..nestedindex.."="..tostring(nestedvalue))
+    end
+  end
+end
+
+check_interfaces (settings.inet)
+check_interfaces (settings.inet6)
