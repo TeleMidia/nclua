@@ -100,3 +100,4 @@ Makefile.in
 autom4te.cache
 libtool
 vgcore.*
+.DS_Store

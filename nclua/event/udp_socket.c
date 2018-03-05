@@ -86,6 +86,8 @@ l_socket_new(lua_State *L)
     g_socket_set_timeout(sock->socket, timeout);
     luaL_setmetatable(L, SOCKET);
 
+    printf("New socket %p \n", sock->socket);
+
     return 1;
 }
 
@@ -107,32 +109,48 @@ gio_read_socket(GIOChannel *channel,
                 GIOCondition condition,
                 gpointer data)
 {
+    luax_callback_data_t *cb_data;
+    lua_State *L;
+    socket_t *sock;
 
+    cb_data = (luax_callback_data_t *) data;
+    luax_callback_data_get_data (cb_data, &L, (void **) &sock);
+  //  g_assert (sock->client == G_SOCKET_CLIENT (source));
+
+    luax_callback_data_push (cb_data);
+    g_assert (lua_type (L, -1) == LUA_TFUNCTION);
 
     char buf[1024];
     gsize bytes_read;
     GError *error = NULL;
 
     if (condition & G_IO_HUP)
-        return FALSE; /* this channel is done */
+        return FALSE; /* this channel is done */ //unref no cbdata
+
+/*
+    printf("check socket %p \n", sock->socket);    
+    GSocketAddress *addr;
+    g_socket_receive_from(sock->socket, &addr, NULL, 0, NULL, error);
+
+    if (error != NULL)
+        printf("ERROR: %s\n", error->message);
+*/
 
     g_io_channel_read_chars(channel, buf, sizeof(buf), &bytes_read,
                             &error);
     g_assert(error == NULL);
 
-    buf[bytes_read] = '\0';
+    buf[bytes_read] = '\0';                   
 
-    printf("BUFFER: %s \n", buf);
+    lua_pushstring (L, "aaaa");
+    lua_pushstring (L, "bbbb");
+    lua_pushstring (L, buf);
+    lua_call (L, 3, 0);
 
     return TRUE;
 }
 
-static int
-l_socket_connect_callback_closure (lua_State *L)
-{
 
-
-}
 
 static int
 l_socket_bind(lua_State *L)
@@ -149,41 +167,21 @@ l_socket_bind(lua_State *L)
         return error_throw_socket_already_connected(L, sock);
 
     port = CLAMP(luaL_checkint(L, 2), 0, G_MAXUINT16);
-
     luaL_checktype(L, 3, LUA_TFUNCTION);
-   // lua_pushstring (L,"um erro!");
-   // lua_call (L, 3, 0);
-
-    printf("C::DANDO UM BIND NA PORTA %d \n", port);
 
     addr = G_SOCKET_ADDRESS(g_inet_socket_address_new(g_inet_address_new_any(G_SOCKET_FAMILY_IPV4), port));
+    
+    GError *err = NULL;
 
-    if (!g_socket_bind(socket, addr, TRUE, NULL))
-    {
-        printf("C::ERRO AO TENTAR BIND \n");
+    if (!g_socket_bind(socket, addr, TRUE, &err)){
+        //error
     }
-    else
-        printf("BIND DEU CERTO \n");
-
-
-    lua_pushcclosure (L, l_socket_connect_callback_closure, 3);
+ 
     cb_data = luax_callback_data_ref (L, sock);
-
     int fd = g_socket_get_fd(socket);
     GIOChannel *channel = g_io_channel_unix_new(fd);
     guint source = g_io_add_watch(channel, G_IO_IN, (GIOFunc)gio_read_socket, cb_data);
-
     g_io_channel_unref(channel);
-
-    
-
-    /*
-  lua_pushcclosure (L, l_socket_connect_callback_closure, 4);
-  cb_data = luax_callback_data_ref (L, sock);
-
-  g_socket_client_connect_to_host_async (client, host, (guint16) port, NULL,
-                                         connect_finished, cb_data);
-*/
 
     return 0;
 }
@@ -223,8 +221,8 @@ l_socket_send(lua_State *L)
     if (err != NULL)
         printf("ERROR: %s\n", err->message);  
 
-    g_socket_close(socket, &err);
-        printf("Error to close socket!");
+   // g_socket_close(socket, &err);
+   //     printf("Error to close socket!");
        
 
     /*

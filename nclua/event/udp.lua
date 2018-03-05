@@ -72,7 +72,6 @@ function udp:check (evt)
 --      check_event_socket ('connection', evt.connection, true)
     end 
 
-    print("UDP CHECK END")
     return evt
 end
 
@@ -81,25 +80,19 @@ end
 -- Returns a new filter if successful, otherwise throws an error.
 --
 function udp:filter (class)
-    print("UDP FILTER:", class)
     assert (class == udp.class)
-    print("UDP FILTER END")
     return {class=class}
 end
 
 -- Dispatch TCP event EVT.
 local function dispatch (evt)
     evt.class = udp.class
-    tcp.OUTQ:enqueue (evt)
+    udp.OUTQ:enqueue (evt)
  end
 
 local function data_received (from_, port_, value_)
-    print("local data received! from:", from_,"port:", port_,"value:", value_,"\n")
-   -- dispatch {class='udp', type='data', from=from_, port=port_, value=value_}
- end
-
-local function error_handler(errmsg)
-    print("error handler: msg:", errmsg)
+   -- print("local data received! from:", from_,"port:", port_,"value:", value_,"\n")
+    dispatch {class='udp', type='data', value=value_}
  end
 
 ---
@@ -113,14 +106,14 @@ function udp:cycle ()
         if evt.type == 'bind' then
             local localport = assert (evt.localport)
             local sock = assert (socket.new (evt.timeout or 0))
-            sock:bind (localport, data_received, error_handler)
+            sock:bind (localport, data_received)
         elseif evt.type == 'data' then
             local host = assert (evt.host)
             local port = assert (evt.port)
             local value = assert (evt.value)
             -- ver isso depois
             local sock = assert (socket.new (evt.timeout or 0))
-            sock:send (host, port, value, error_handler)  
+            sock:send (host, port, value)
         end
 
       udp.OUTQ:enqueue (evt)    -- echo back

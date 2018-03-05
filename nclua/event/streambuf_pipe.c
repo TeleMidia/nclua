@@ -16,6 +16,8 @@ License for more details.
 You should have received a copy of the GNU General Public License
 along with NCLua.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#define _GNU_SOURCE
+
 #include <config.h>
 #include <string.h>
 #include <stdlib.h>
@@ -43,12 +45,15 @@ create_stream_buf (const gchar *buffer_id)
 
   if (fd > 0)
     {
+#ifdef __APPLE__
+      // write fcntl for osx here
+#elif      
       int ret = fcntl (fd, F_SETPIPE_SZ, MY_PIPE_SIZE);
       if (ret < 0)
         {
           perror("set pipe size failed.");
         }
-
+#endif      
       g_hash_table_insert (stream_buffers_fd, buffer_id, GINT_TO_POINTER (fd));
     }
 
