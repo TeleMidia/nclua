@@ -57,11 +57,14 @@ push_interface (lua_State *L, int index, int fd, const char *name)
     default:
       sprintf (host, "unknown (family: %d)", family);
     }
+  // settings.inet[index][name]
   lua_pushliteral (L, "name");
   lua_pushstring (L, name);
+  lua_rawset (L, -3);
+  // settings.inet[index][adress]
   lua_pushliteral (L, "address");
   lua_pushstring (L, host);
-  lua_rawset (L, -5);
+  lua_rawset (L, -3);
 }
 
 static void
@@ -71,9 +74,14 @@ push_interfaces (lua_State *L, int family)
   struct ifreq *ifreq;
   struct ifconf ifconf;
   char buf[16384];
-  char fieldname[128];
-  unsigned i, index;
+  int i, index;
   size_t len;
+  char *fieldname;
+
+  if (family == PF_INET)
+    fieldname = "inet";
+  else
+    fieldname = "inet6";
 
   fd = socket (family, SOCK_DGRAM, 0);
   if (fd < 0)
@@ -92,25 +100,20 @@ push_interfaces (lua_State *L, int family)
 
   ifreq = ifconf.ifc_req;
 
-  if (family == PF_INET)
-    sprintf (fieldname, "inet", index);
-  else
-    sprintf (fieldname, "inet6", index);
-
   lua_pushstring (L, fieldname);
+  // settings.inet = {}
   lua_newtable (L);
-  for (i = 0, index = 0; i < ifconf.ifc_len; index++)
+  for (i = 0, index = 1; i < ifconf.ifc_len; index++)
     {
-      lua_pushnumber (L, index);
+      // settings.inet[index] = {}
       lua_newtable (L);
       push_interface (L, index, fd, ifreq->ifr_name);
-      lua_rawset (L, -3);
+      lua_rawseti (L, -2, index);
 
       len = sizeof *ifreq;
       ifreq = (struct ifreq *) ((char *) ifreq + len);
       i += len;
     }
-  lua_rawset (L, -5);
   lua_rawset (L, -3);
   close (fd);
 }

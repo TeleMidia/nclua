@@ -47,13 +47,13 @@ create_stream_buf (const gchar *buffer_id)
     {
 #ifdef __APPLE__
       // write fcntl for osx here
-#elif      
+#elif defined(G_OS_UNIX)
       int ret = fcntl (fd, F_SETPIPE_SZ, MY_PIPE_SIZE);
       if (ret < 0)
         {
           perror("set pipe size failed.");
         }
-#endif      
+#endif
       g_hash_table_insert (stream_buffers_fd, buffer_id, GINT_TO_POINTER (fd));
     }
 
@@ -182,7 +182,7 @@ l_streambuf_pipe_write (lua_State *L)
   lua_pushnumber (L, byte_array->len);
 
   return 2;
-} 
+}
 
 static const struct luaL_Reg streambuf_pipe_funcs[] = {
   {"write", l_streambuf_pipe_write},
