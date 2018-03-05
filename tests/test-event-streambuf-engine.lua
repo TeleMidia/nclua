@@ -28,7 +28,7 @@ _ENV = nil
 -- Send N events and check if all them are received.
 local n = 2^10            -- 1K
 for i=1,n do
-   streambuf:send {class='streambuf', i=i}
+   streambuf:send {class='streambuf', uri="streambuf://b0", i=i}
 end
 
 streambuf:cycle ()
