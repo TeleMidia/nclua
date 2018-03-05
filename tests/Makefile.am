@@ -122,6 +122,8 @@ scripts+= test-canvas-_resize.lua
 scripts+= test-dir-api.lua
 scripts+= test-dir-test.lua
 scripts+= test-dir-dir.lua
+# settings
+scripts+= test-settings.lua
 # event.queue
 scripts+= test-event-queue-api.lua
 scripts+= test-event-queue-new.lua
