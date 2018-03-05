@@ -25,6 +25,7 @@ along with NCLua.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "aux-glib.h"
 #include "aux-lua.h"
 #include <cairo.h>
+#include "ncluaconf.h"
 
 /*-
  * tests0.dir_exists (path:string) -> status:boolean
@@ -179,6 +180,42 @@ l_cairo_get_version (lua_State *L)
   return 3;
 }
 
+
+/********************************* SETTINGS **********************************/
+
+static int
+l_nclua_check_version (lua_State *L)
+{
+  if (NCLUA_VERSION_MAJOR >= luaL_checkint (L, 1)
+      && NCLUA_VERSION_MINOR >= luaL_optint (L, 2, 0)
+      && NCLUA_VERSION_MICRO >= luaL_optint (L, 3, 0))
+    {
+      lua_pushboolean (L, TRUE);
+    }
+  else
+    {
+      lua_pushboolean (L, FALSE);
+    }
+
+  return 1;
+}
+
+static int
+l_nclua_get_version (lua_State *L)
+{
+  lua_pushinteger (L, NCLUA_VERSION_MAJOR);
+  lua_pushinteger (L, NCLUA_VERSION_MINOR);
+  lua_pushinteger (L, NCLUA_VERSION_MICRO);
+  return 3;
+}
+
+static int
+l_nclua_get_version_string (lua_State *L)
+{
+  lua_pushstring (L, PACKAGE_VERSION);
+  return 1;
+}
+
 /********************************* CANVAS *********************************/
 
 /*-
@@ -312,6 +349,9 @@ l_canvas_surface_equals (lua_State *L)
 static const struct luaL_Reg tests0_funcs[] = {
   {"cairo_check_version", l_cairo_check_version},
   {"cairo_get_version", l_cairo_get_version},
+  {"nclua_check_version", l_nclua_check_version},
+  {"nclua_get_version", l_nclua_get_version},
+  {"nclua_get_version_string", l_nclua_get_version_string},
   {"canvas_intersect", l_canvas_intersect},
   {"canvas_surface_equals", l_canvas_surface_equals},
   {"dir_exists", l_dir_exists},

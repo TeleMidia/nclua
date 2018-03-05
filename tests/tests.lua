@@ -620,7 +620,6 @@ function tests.rand_table (nelem, depth, n)
    return rand_iterate (n, rand_table, rand, tests.rand_scalar, nelem, depth)
 end
 
-
 ---------------------------------- CAIRO -----------------------------------
 
 do
@@ -630,7 +629,17 @@ do
       = tests.cairo_get_version ()
 end
 
-
+---------------------------------- SETTINGS -----------------------------------
+
+do
+   tests.nclua_check_version = tests0.nclua_check_version
+   tests.nclua_get_version = tests0.nclua_get_version
+   tests.NCLUA_VERSION_MAJOR, tests.NCLUA_VERSION_MINOR, tests.NCLUA_VERSION_MICRO
+      = tests.nclua_get_version ()
+   tests.nclua_get_version_string = tests0.nclua_get_version_string
+   tests.NCLUA_VERSION = tests.nclua_get_version_string ()
+end
+
 ---------------------------------- CANVAS ----------------------------------
 
 do
