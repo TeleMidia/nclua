@@ -29,6 +29,7 @@ AM_LDFLAGS= $(LIBM) -module $(LT_MODULE_LDFLAGS) $(LUA_LIBS)
 nclualib_LTLIBRARIES=\
   canvas.la\
   dir.la\
+  settings.la\
   $(NULL)
 
 if OS_WIN32
@@ -67,3 +68,18 @@ dir_la_DEPENDENCIES= $(dir_def_dependency)
 dir_la_CFLAGS= $(AM_CFLAGS) $(GLIB_CFLAGS)
 dir_la_LDFLAGS= $(AM_LDFLAGS) $(GLIB_LIBS) $(dir_export_symbols)
 dir_la_SOURCES= dir.c
+
+if OS_WIN32
+settings_def_dependency= settings.def
+settings_export_symbols= -export-symbols $(settings_def_dependency)\
+  -no-undefined
+endif
+
+CLEANFILES+= settings.def
+settings.def:
+	$(AM_V_GEN) (echo EXPORTS; echo luaopen_nclua_settings) >$@
+
+settings_la_DEPENDENCIES= $(settings_def_dependency)
+settings_la_CFLAGS= $(AM_CFLAGS) $(GLIB_CFLAGS)
+settings_la_LDFLAGS= $(AM_LDFLAGS) $(GLIB_LIBS) $(settings_export_symbols)
+settings_la_SOURCES= settings.c
