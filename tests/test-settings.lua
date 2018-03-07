@@ -40,4 +40,5 @@ for i,v in ipairs(settings.inet) do
   for index,value in pairs(v) do
       print ("settings.inet["..i.."]."..index.."="..value)
   end
+  print("");
 end
