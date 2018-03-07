@@ -37,9 +37,13 @@ for i,v in ipairs(settings.inet) do
   ASSERT (settings.inet[i].hwAddress ~= nil)
   ASSERT (settings.inet[i].mtu ~= nil)
   ASSERT (settings.inet[i].bcastAddress ~= nil)
+  ASSERT (settings.inet[i].active ~= nil)
+  ASSERT (settings.inet[i].loopback ~= nil)
+  ASSERT (settings.inet[i].pointToPoint ~= nil)
+  ASSERT (settings.inet[i].supportsMulticast ~= nil)
   ASSERT (settings.inet[i].XYZ == nil)
   for index,value in pairs(v) do
-      print ("settings.inet["..i.."]."..index.."="..value)
+      print ("settings.inet["..i.."]."..index.."="..tostring(value))
   end
   print("");
 end

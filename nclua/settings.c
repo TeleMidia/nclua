@@ -30,23 +30,26 @@ along with NCLua.  If not, see <https://www.gnu.org/licenses/>.  */
 #define PREFIX_INET "inet"
 #define PREFIX_INET6 "inet6"
 
+/*-
+ * Push settings.inet[index] properties to L
+ *
+ */
 static void
 push_one_interface (lua_State *L, int family, int fd, const char *name)
 {
   int i;
   struct ifreq ifr;
   struct sockaddr_in *ipaddr;
-  char address[INET_ADDRSTRLEN];
+  char address[INET_ADDRSTRLEN] = "";
+  char parentIndex[INET_ADDRSTRLEN] = "";
   char mac[19] = "";
-  int mtu = 0;
-  // char mtu[128] = "";
+  int mtu = 0, active = 0, loopback = 0, pointToPoint,
+      supportsMulticast = 0, slave = 0;
 
-  // settings.inet[index].name
+  // name and displayName
   lua_pushliteral (L, "name");
   lua_pushstring (L, name);
   lua_rawset (L, -3);
-
-  // settings.inet[index].displayName
   lua_pushliteral (L, "displayName");
   lua_pushstring (L, name);
   lua_rawset (L, -3);
@@ -55,7 +58,32 @@ push_one_interface (lua_State *L, int family, int fd, const char *name)
   memset (&ifr, 0, sizeof ifr);
   strncpy (ifr.ifr_name, name, IFNAMSIZ);
 
-  // settings.inet[index].inetAddress
+  // active, loopback, pointToPoint and supportsMulticast
+  if (ioctl (fd, SIOCGIFFLAGS, &ifr) != -1)
+    {
+      active = (ifr.ifr_flags & IFF_UP) == IFF_UP;
+      loopback = (ifr.ifr_flags & IFF_LOOPBACK) == IFF_LOOPBACK;
+      pointToPoint = (ifr.ifr_flags & IFF_POINTOPOINT) == IFF_POINTOPOINT;
+      supportsMulticast = (ifr.ifr_flags & IFF_MULTICAST) == IFF_MULTICAST;
+      slave = (ifr.ifr_flags & IFF_SLAVE) == IFF_SLAVE;
+    }
+  lua_pushliteral (L, "active");
+  lua_pushboolean (L, active);
+  lua_rawset (L, -3);
+  lua_pushliteral (L, "loopback");
+  lua_pushboolean (L, loopback);
+  lua_rawset (L, -3);
+  lua_pushliteral (L, "pointToPoint");
+  lua_pushboolean (L, pointToPoint);
+  lua_rawset (L, -3);
+  lua_pushliteral (L, "supportsMulticast");
+  lua_pushboolean (L, supportsMulticast);
+  lua_rawset (L, -3);
+  lua_pushliteral (L, "isSlave");
+  lua_pushboolean (L, slave);
+  lua_rawset (L, -3);
+
+  // inetAddress
   if (ioctl (fd, SIOCGIFADDR, &ifr) != -1)
     {
       ipaddr = (struct sockaddr_in *) &ifr.ifr_addr;
@@ -65,7 +93,17 @@ push_one_interface (lua_State *L, int family, int fd, const char *name)
   lua_pushstring (L, address);
   lua_rawset (L, -3);
 
-  // settings.inet[index].hwAddress
+  // inetAddress
+  if (ioctl (fd, SIOCGIFSLAVE, &ifr) != -1)
+    {
+      ipaddr = (struct sockaddr_in *) &ifr.ifr_addr;
+      inet_ntop (AF_INET, &ipaddr->sin_addr, address, sizeof (address));
+    }
+  lua_pushliteral (L, "parentIndex");
+  lua_pushstring (L, parentIndex);
+  lua_rawset (L, -3);
+
+  // hwAddress
   if (ioctl (fd, SIOCGIFHWADDR, &ifr) != -1)
     sprintf (mac, "%02x:%02x:%02x:%02x:%02x:%02x",
              (unsigned char) ifr.ifr_hwaddr.sa_data[0],
@@ -78,14 +116,14 @@ push_one_interface (lua_State *L, int family, int fd, const char *name)
   lua_pushstring (L, mac);
   lua_rawset (L, -3);
 
-  // settings.inet[index].mtu
+  // mtu
   if (ioctl (fd, SIOCGIFMTU, &ifr) != -1)
     mtu = ifr.ifr_mtu;
   lua_pushliteral (L, "mtu");
   lua_pushnumber (L, mtu);
   lua_rawset (L, -3);
 
-  // settings.inet[index].bcastAddress
+  // bcastAddress
   if (ioctl (fd, SIOCGIFBRDADDR, &ifr) != -1)
     {
       ipaddr = (struct sockaddr_in *) &ifr.ifr_broadaddr;
@@ -162,7 +200,6 @@ int
 luaopen_nclua_settings (lua_State *L)
 {
   luax_newmetatable (L, SETTINGS);
-  G_TYPE_INIT_WRAPPER ();
 
   // system.luaVersion
   lua_pushliteral (L, PACKAGE_VERSION);
