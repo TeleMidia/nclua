@@ -36,6 +36,7 @@ for i,v in ipairs(settings.inet) do
   ASSERT (settings.inet[i].inetAddress ~= nil)
   ASSERT (settings.inet[i].hwAddress ~= nil)
   ASSERT (settings.inet[i].mtu ~= nil)
+  ASSERT (settings.inet[i].bcastAddress ~= nil)
   ASSERT (settings.inet[i].XYZ == nil)
   for index,value in pairs(v) do
       print ("settings.inet["..i.."]."..index.."="..value)

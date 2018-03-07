@@ -84,6 +84,25 @@ push_one_interface (lua_State *L, int family, int fd, const char *name)
   lua_pushliteral (L, "mtu");
   lua_pushnumber (L, mtu);
   lua_rawset (L, -3);
+
+  // settings.inet[index].bcastAddress
+  if (ioctl (fd, SIOCGIFBRDADDR, &ifr) != -1)
+    {
+      ipaddr = (struct sockaddr_in *) &ifr.ifr_broadaddr;
+      inet_ntop (AF_INET, &ipaddr->sin_addr, address, sizeof (address));
+    }
+  lua_pushliteral (L, "bcastAddress");
+  lua_pushstring (L, address);
+  lua_rawset (L, -3);
+
+  if (ioctl (fd, SIOCGIFNETMASK, &ifr) != -1)
+    {
+      ipaddr = (struct sockaddr_in *) &ifr.ifr_netmask;
+      inet_ntop (AF_INET, &ipaddr->sin_addr, address, sizeof (address));
+    }
+  lua_pushliteral (L, "subnetMask");
+  lua_pushstring (L, address);
+  lua_rawset (L, -3);
 }
 
 static void
