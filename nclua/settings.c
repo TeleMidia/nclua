@@ -20,13 +20,8 @@ along with NCLua.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "aux-glib.h"
 #include "aux-lua.h"
 #include "ncluaconf.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 #include <net/if.h>
 #include <netdb.h>
 
@@ -36,34 +31,51 @@ along with NCLua.  If not, see <https://www.gnu.org/licenses/>.  */
 #define PREFIX_INET6 "inet6"
 
 static void
-push_interface (lua_State *L, int index, int fd, const char *name)
+push_one_interface (lua_State *L, int index, int fd, const char *name)
 {
-  int family;
+  int family, i;
   struct ifreq ifreq;
-  char host[128];
+  char host[128] = "";
+  char mac[128] = "";
+  char mtu[128] = "";
+
+  // init ifreq
   memset (&ifreq, 0, sizeof ifreq);
   strncpy (ifreq.ifr_name, name, IFNAMSIZ);
-  if (ioctl (fd, SIOCGIFADDR, &ifreq) != 0)
-      return;
-  switch (family = ifreq.ifr_addr.sa_family)
-    {
-    case AF_UNSPEC:
-      return;
-    case AF_INET:
-    case AF_INET6:
+
+  // settings.inet[index] [name], [displayName] and [inetAddress]
+  if (ioctl (fd, SIOCGIFADDR, &ifreq) == 0)
+    if (ifreq.ifr_addr.sa_family == AF_INET)
       getnameinfo (&ifreq.ifr_addr, sizeof ifreq.ifr_addr, host,
                    sizeof host, 0, 0, NI_NUMERICHOST);
-      break;
-    default:
-      sprintf (host, "unknown (family: %d)", family);
-    }
-  // settings.inet[index][name]
   lua_pushliteral (L, "name");
   lua_pushstring (L, name);
   lua_rawset (L, -3);
-  // settings.inet[index][adress]
-  lua_pushliteral (L, "address");
+  lua_pushliteral (L, "displayName");
+  lua_pushstring (L, name);
+  lua_rawset (L, -3);
+  lua_pushliteral (L, "inetAddress");
   lua_pushstring (L, host);
+  lua_rawset (L, -3);
+
+  // settings.inet[index][hwAddress]
+  if (ioctl (fd, SIOCGIFHWADDR, &ifreq) != -1)
+    sprintf (mac, "%02x:%02x:%02x:%02x:%02x:%02x",
+             (unsigned char) ifreq.ifr_hwaddr.sa_data[0],
+             (unsigned char) ifreq.ifr_hwaddr.sa_data[1],
+             (unsigned char) ifreq.ifr_hwaddr.sa_data[2],
+             (unsigned char) ifreq.ifr_hwaddr.sa_data[3],
+             (unsigned char) ifreq.ifr_hwaddr.sa_data[4],
+             (unsigned char) ifreq.ifr_hwaddr.sa_data[5]);
+  lua_pushliteral (L, "hwAddress");
+  lua_pushstring (L, mac);
+  lua_rawset (L, -3);
+
+  // settings.inet[index][mtu]
+  if (ioctl (fd, SIOCGIFMTU, &ifreq) != -1)
+    sprintf (mtu, "%d", ifreq.ifr_mtu);
+  lua_pushliteral (L, "mtu");
+  lua_pushstring (L, mtu);
   lua_rawset (L, -3);
 }
 
@@ -100,14 +112,14 @@ push_interfaces (lua_State *L, int family)
 
   ifreq = ifconf.ifc_req;
 
-  lua_pushstring (L, fieldname);
   // settings.inet = {}
+  lua_pushstring (L, fieldname);
   lua_newtable (L);
   for (i = 0, index = 1; i < ifconf.ifc_len; index++)
     {
       // settings.inet[index] = {}
       lua_newtable (L);
-      push_interface (L, index, fd, ifreq->ifr_name);
+      push_one_interface (L, index, fd, ifreq->ifr_name);
       lua_rawseti (L, -2, index);
 
       len = sizeof *ifreq;
@@ -135,8 +147,8 @@ luaopen_nclua_settings (lua_State *L)
   lua_setfield (L, -2, "luaVersionMicro");
 
   // system.network
-  push_interfaces (L, PF_INET);      // IPv4
-  push_interfaces (L, PF_INET6);     // IPv6
+  push_interfaces (L, PF_INET);  // IPv4
+  push_interfaces (L, PF_INET6); // IPv6
 
   return 1;
 }

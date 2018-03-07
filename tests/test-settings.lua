@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with NCLua.  If not, see <https://www.gnu.org/licenses/>.  ]]--
 
 local tests = require ('tests')
+-- local inspect = require ('inspect')
 local ASSERT = tests.ASSERT
 
 local settings = require ('nclua.settings')
@@ -28,9 +29,13 @@ ASSERT (settings.luaVersionMicro == tests.NCLUA_VERSION_MICRO)
 ASSERT (settings.inet)
 ASSERT (settings.inet6)
 
+-- print (inspect (settings.inet))
 for i,v in ipairs(settings.inet) do
   ASSERT (settings.inet[i].name ~= nil)
-  ASSERT (settings.inet[i].address ~= nil)
+  ASSERT (settings.inet[i].displayName ~= nil)
+  ASSERT (settings.inet[i].inetAddress ~= nil)
+  ASSERT (settings.inet[i].hwAddress ~= nil)
+  ASSERT (settings.inet[i].mtu ~= nil)
   ASSERT (settings.inet[i].XYZ == nil)
   for index,value in pairs(v) do
       print ("settings.inet["..i.."]."..index.."="..value)
