@@ -28,22 +28,38 @@ ASSERT (settings.luaVersionMicro == tests.NCLUA_VERSION_MICRO)
 
 ASSERT (settings.inet)
 ASSERT (settings.inet6)
-
 -- print (inspect (settings.inet))
+
+local text = ''
+local INFO = nil
+
 for i,v in ipairs(settings.inet) do
-  ASSERT (settings.inet[i].name ~= nil)
-  ASSERT (settings.inet[i].displayName ~= nil)
-  ASSERT (settings.inet[i].inetAddress ~= nil)
-  ASSERT (settings.inet[i].hwAddress ~= nil)
-  ASSERT (settings.inet[i].mtu ~= nil)
-  ASSERT (settings.inet[i].bcastAddress ~= nil)
-  ASSERT (settings.inet[i].active ~= nil)
-  ASSERT (settings.inet[i].loopback ~= nil)
-  ASSERT (settings.inet[i].pointToPoint ~= nil)
-  ASSERT (settings.inet[i].supportsMulticast ~= nil)
-  ASSERT (settings.inet[i].XYZ == nil)
   for index,value in pairs(v) do
-      print ("settings.inet["..i.."]."..index.."="..tostring(value))
+    text = text..'settings.inet['..i..'].'..index..'='..tostring(value)..'\n'
   end
-  print("");
+  text = text..'\n'
 end
+print(text);
+
+local canvas = canvas
+local WIDTH, HEIGHT = canvas:attrSize ()
+
+-- Colors.
+local BG_COLOR = 'black'        -- background
+local FG_COLOR = 'lime'         -- foreground
+local FT_COLOR = 'yellow'       -- footer
+local function clear ()
+   canvas:attrColor (BG_COLOR)
+   canvas:clear ()
+   canvas:attrColor (FG_COLOR)
+end
+clear ()
+canvas:attrFont ('monospace', 12)
+local w,h = canvas:measureText (text)
+local family, size, style = canvas:attrFont ()
+canvas:attrColor (FT_COLOR)
+canvas:attrFont (family, size, 'bold')
+canvas:attrColor (FT_COLOR)
+canvas:drawText ((WIDTH - w)/2, (HEIGHT - h)/2, text)
+canvas:attrFont (family, size, style)
+canvas:flush ()
