@@ -20,8 +20,10 @@ NCLua is the Lua dialect used by the Brazilian digital TV middleware, called
 Ginga (cf. http://www.ginga.org.br).  The reference implementation of
 Ginga (>= 0.14) uses libnclua to run NCLua scripts.
 
-Dependencies
+Building the repository
 ------------
+
+### Dependencies
 
 Required:
 * Lua >= 5.2, http://www.lua.org
@@ -37,6 +39,20 @@ Optional:
 GIO is used by the `tcp` event class, Libsoup is used by the `http` event
 class, and GTK+ is used by the `nclua` binary.  These libraries are
 optional, if they are not present the corresponding modules are not built.
+
+### Linux
+
+On Ubuntu-based distros, to install the dependencies run:
+
+    $ sudo apt-get install -y git gcc g++ autotools-dev dh-autoreconf \
+        liblua5.2-dev libglib2.0-dev libpango1.0-dev \
+        librsvg2-dev libgtk-3-dev libsoup2.4-dev -qq
+
+To build with autotools run:
+
+    $ ./bootstrap
+    $ ./configure --prefix=/usr/
+    $ make
 
 Canvas API
 ----------
