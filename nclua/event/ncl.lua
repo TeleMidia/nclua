@@ -43,7 +43,7 @@ function ncl:check (evt)
    if evt.type == 'attribution' then
       check.event.string ('name', evt.name)
       check.event.string ('value', evt.value)
-   else
+   elseif evt.label ~= nil then
       check.event.string ('label', evt.label)
    end
    return evt

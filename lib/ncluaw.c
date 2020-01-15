@@ -416,10 +416,18 @@ ncluaw_receive (ncluaw_t *nw)
         {
           lua_pop (L, 1);
           lua_getfield (L, -3, "name");
-          evt.u.ncl.name = luaL_checkstring (L, -1);
-          lua_getfield (L, -4, "value");
-          evt.u.ncl.value = luaL_checkstring (L, -1);
-          lua_pop (L, 1);
+          if (!lua_isnil (L, -1))
+            {
+              evt.u.ncl.name = luaL_checkstring (L, -1);
+              lua_getfield (L, -4, "value");
+              evt.u.ncl.value = luaL_checkstring (L, -1);
+              lua_pop (L, 1);
+            }
+          else
+            {
+              evt.u.ncl.name = "";
+              evt.u.ncl.value = NULL;
+            }
         }
       dup = ncluaw_event_clone (&evt);
       lua_pop (L, 3);
